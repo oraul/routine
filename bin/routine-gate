@@ -1,0 +1,88 @@
+#!/usr/bin/env bash
+# Gate runner: composes selfcheck (preflight only) -> gate baseline -> app
+# hook into one exit-code decision. Exit 0 passes; the first non-zero stage
+# aborts the run and its output is the reason.
+set -u
+
+repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=/dev/null
+. "$repo_dir/lib/paths.sh"
+# shellcheck source=/dev/null
+. "$repo_dir/lib/telemetry.sh"
+
+gate="${1:-}"
+case "$gate" in
+  preflight|analyst|developer) ;;
+  *)
+    echo "routine-gate: unknown gate '${gate}'" >&2
+    echo "usage: routine-gate <preflight|analyst|developer>" >&2
+    exit 2
+    ;;
+esac
+
+root="$(routine_root)"
+target="${TARGET:-$PWD}"
+
+app_key() {
+  _top="$(git -C "$target" rev-parse --show-toplevel 2>/dev/null)" || _top="$target"
+  basename "$_top"
+}
+
+# Seam contract: optional hooks log one line and pass when missing; the
+# developer hook is mandatory because it is the app's lint+test facade.
+run_hook() {
+  _app="$(app_key)"
+  _hook="$root/runs/$_app/hooks/$1.sh"
+  if [ -f "$_hook" ]; then
+    TARGET="$target" bash "$_hook"
+  elif [ "$1" = developer ]; then
+    echo "routine-gate: missing mandatory hook: runs/$_app/hooks/developer.sh" >&2
+    echo "routine-gate: create it with one line delegating to the app's own tooling, e.g.: cd \"\$TARGET\" && bin/ci" >&2
+    return 1
+  else
+    echo "routine-gate: no $1 hook for $_app; passing"
+    return 0
+  fi
+}
+
+# Preflight baseline: the target must be a git worktree that is clean
+# (nothing staged, modified, or untracked) and checked out on a branch.
+baseline_preflight() {
+  if ! git -C "$target" rev-parse --git-dir >/dev/null 2>&1; then
+    echo "routine-gate: target is not a git repository: $target" >&2
+    return 1
+  fi
+  if [ -n "$(git -C "$target" status --porcelain)" ]; then
+    echo "routine-gate: target worktree is not clean: $target" >&2
+    git -C "$target" status --short >&2
+    return 1
+  fi
+  if ! git -C "$target" symbolic-ref -q HEAD >/dev/null; then
+    echo "routine-gate: target HEAD is detached; check out a branch" >&2
+    return 1
+  fi
+  return 0
+}
+
+run_gate() {
+  case "$gate" in
+    preflight)
+      "$root/bin/routine-selfcheck" || return "$?"
+      baseline_preflight || return "$?"
+      run_hook preflight || return "$?"
+      ;;
+    analyst)
+      run_hook analyst || return "$?"
+      ;;
+    developer)
+      run_hook developer || return "$?"
+      ;;
+  esac
+}
+
+start_s="$(date -u +%s)"
+run_gate
+code="$?"
+end_s="$(date -u +%s)"
+telemetry_gate_emit "gate.$gate" "bin/routine-gate" "$code" "$(( (end_s - start_s) * 1000 ))"
+exit "$code"
