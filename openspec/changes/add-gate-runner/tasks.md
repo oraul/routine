@@ -1,6 +1,6 @@
 ## 1. Telemetry helper
 
-- [ ] 1.1 Red→green: `lib/telemetry.sh` emit function appends one JSON line
+- [x] 1.1 Red→green: `lib/telemetry.sh` emit function appends one JSON line
       with fixed key order `ts,event,script,ticket,task,exit,ms` to a named
       file, append-only, verified against fixture files
 - [ ] 1.2 Red→green: emission is skipped cleanly when `ROUTINE_TICKET_DIR` is
