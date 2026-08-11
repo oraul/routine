@@ -1,9 +1,9 @@
 ## 1. Rails pair
 
-- [ ] 1.1 Red→green: `caffeine/ruby/rails.sh` — debuggers, interpolated SQL,
+- [x] 1.1 Red→green: `caffeine/ruby/rails.sh` — debuggers, interpolated SQL,
       `puts` in app/, `rescue Exception`; one fixture per rule plus a clean
       fixture
-- [ ] 1.2 Write `caffeine/ruby/rails.md` — judgment guidance beyond the
+- [x] 1.2 Write `caffeine/ruby/rails.md` — judgment guidance beyond the
       mechanical rules
 
 ## 2. ActiveRecord pair
