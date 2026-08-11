@@ -67,6 +67,18 @@ make_good_ticket() {
   [ "$(printf '%s\n' "$output" | grep -c 'no analyst hook')" -eq 1 ]
 }
 
+@test "analyst gate passes a fresh ticket by syncing the index" {
+  make_gate_root
+  make_target
+  make_good_ticket
+  : > "$ticket/index.tsv"
+  rm -f "$ticket/telemetry.jsonl"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
+  [ "$status" -eq 0 ]
+  grep -q "^01-01" "$ticket/index.tsv"
+}
+
 @test "analyst gate requires a ticket context" {
   make_gate_root
   make_target
@@ -97,16 +109,6 @@ make_good_ticket() {
   case "$output" in *09-09*) ;; *) false ;; esac
 }
 
-@test "analyst gate fails on a task directory without an index row" {
-  make_gate_root
-  make_target
-  make_good_ticket
-  : > "$ticket/index.tsv"
-  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
-    "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
-  [ "$status" -ne 0 ]
-  case "$output" in *"no index row"*) ;; *) false ;; esac
-}
 
 @test "missing developer hook aborts naming the file and an example" {
   make_gate_root

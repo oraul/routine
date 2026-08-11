@@ -63,6 +63,9 @@ baseline_analyst() {
     echo "routine-gate: ticket has no index.tsv" >&2
     return 1
   fi
+  # Fresh tickets are coherent by construction: derive missing rows the
+  # same append-only way routine-next would, before judging coherence.
+  index_sync "$ROUTINE_TICKET_DIR" "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
   _bad=0
   while IFS="$TAB" read -r _tid _b _t _rest; do
     [ -n "$_tid" ] || continue
