@@ -9,6 +9,27 @@ index_first_with_status() {
     '$4==s {print $1"\t"$2"\t"$3; found=1; exit} END {exit !found}' "$1"
 }
 
+# index_sync <ticket-dir> <timestamp>
+# Append one pending row per task directory missing from the index, in
+# strict file order; existing rows are never touched. Idempotent.
+index_sync() {
+  _ix_tab="$(printf '\t')"
+  _ix_index="$1/index.tsv"
+  for _ix_bdir in "$1"/briefings/*/; do
+    [ -d "$_ix_bdir" ] || continue
+    _ix_b="$(basename "$_ix_bdir")"
+    for _ix_tdir in "${_ix_bdir}tasks/"*/; do
+      [ -d "$_ix_tdir" ] || continue
+      _ix_t="$(basename "$_ix_tdir")"
+      _ix_id="${_ix_b%%-*}-${_ix_t%%-*}"
+      if ! grep -q "^$_ix_id$_ix_tab" "$_ix_index"; then
+        printf '%s\t%s\t%s\tpending\t%s\n' "$_ix_id" "$_ix_b" "$_ix_t" "$2" \
+          >> "$_ix_index"
+      fi
+    done
+  done
+}
+
 # index_set_status <index> <task-id> <status> <timestamp>
 index_set_status() {
   awk -F'\t' -v OFS='\t' -v id="$2" -v s="$3" -v ts="$4" \

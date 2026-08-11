@@ -4,8 +4,11 @@
 # in_progress. Exit 3 when a blocked task blocks the line, 4 when all done.
 set -u
 
+lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
 # shellcheck source=/dev/null
-. "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+. "$lib/telemetry.sh"
+# shellcheck source=/dev/null
+. "$lib/index.sh"
 
 TAB="$(printf '\t')"
 
@@ -19,18 +22,7 @@ ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
 # Sync: one row per task directory, appended in file order, never rewriting
 # existing rows — the index is script-owned and append-only here.
-for bdir in "$ticket"/briefings/*/; do
-  [ -d "$bdir" ] || continue
-  b="$(basename "$bdir")"
-  for tdir in "$bdir"tasks/*/; do
-    [ -d "$tdir" ] || continue
-    t="$(basename "$tdir")"
-    tid="${b%%-*}-${t%%-*}"
-    if ! grep -q "^$tid$TAB" "$index"; then
-      printf '%s\t%s\t%s\tpending\t%s\n' "$tid" "$b" "$t" "$ts" >> "$index"
-    fi
-  done
-done
+index_sync "$ticket" "$ts"
 
 # Select: first non-done row, unless an earlier row is blocked.
 sel_id="" sel_b="" sel_t="" sel_status=""
