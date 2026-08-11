@@ -45,6 +45,9 @@ For each topic `<eco>/<name>`, create the pair the caffeine spec demands:
 Rules must encode the package's documented footguns, not invented style
 opinions. When you cannot find 3 genuinely mechanical rules for a topic,
 say so and write only the `.md` — a weak sidecar is worse than none.
+Doc-only topics are first-class: the developer gate accepts a topic whose
+`.md` exists without a `.sh` (the `architecture/` namespace is doc-only by
+design — judgment in any language, no fake greps).
 
 ## 4. Accept
 

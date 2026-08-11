@@ -197,6 +197,21 @@ make_manifest_ticket() {
   grep '"event":"gate.developer.script"' "$ticket/telemetry.jsonl" | grep -q '"exit":1'
 }
 
+@test "doc-only manifest topic logs and passes" {
+  make_gate_root
+  make_target
+  make_good_ticket
+  printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
+    '## Acceptance' '1. works' '## Caffeine' '- architecture/oop' \
+    > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  mkdir -p "$groot/runs/app/hooks"
+  printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$groot/runs/app/hooks/developer.sh"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  [ "$status" -eq 0 ]
+  case "$output" in *doc-only*) ;; *) false ;; esac
+}
+
 @test "developer baseline fails on an unknown manifest topic" {
   make_gate_root
   make_target
