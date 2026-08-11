@@ -9,5 +9,5 @@
 
 - [x] 2.1 Red→green: `routine-retro` aggregates runs/fails per event and
       fails per script across apps and archived tickets, writing no files
-- [ ] 2.2 Red→green: duration min/p50/p95/max per event and time-in-blocked
+- [x] 2.2 Red→green: duration min/p50/p95/max per event and time-in-blocked
       per task from block/unblock timestamp pairs
