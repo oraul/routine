@@ -8,8 +8,8 @@
 
 ## 2. Agents
 
-- [ ] 2.1 Write `agents/analyst.md`: spec-grammar decomposition, caffeine
+- [x] 2.1 Write `agents/analyst.md`: spec-grammar decomposition, caffeine
       manifest selection, revise-on-lint-failure, never implements
-- [ ] 2.2 Write `agents/developer.md`: one task via `routine-next`, closed
+- [x] 2.2 Write `agents/developer.md`: one task via `routine-next`, closed
       context, red→green per scenario, defective-spec refusal, block
       procedure
