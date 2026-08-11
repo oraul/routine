@@ -80,5 +80,9 @@ run_gate() {
   esac
 }
 
+start_s="$(date -u +%s)"
 run_gate
-exit "$?"
+code="$?"
+end_s="$(date -u +%s)"
+telemetry_gate_emit "gate.$gate" "bin/routine-gate" "$code" "$(( (end_s - start_s) * 1000 ))"
+exit "$code"

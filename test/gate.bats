@@ -93,6 +93,26 @@ make_target() {
   case "$output" in *branch*) ;; *) false ;; esac
 }
 
+@test "gate emits one telemetry line when ticket context is set" {
+  make_gate_root
+  make_target
+  tdir="$BATS_TEST_TMPDIR/ticket"
+  mkdir -p "$tdir"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$tdir" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  [ "$status" -eq 0 ]
+  [ "$(wc -l < "$tdir/telemetry.jsonl")" -eq 1 ]
+  grep -q '"event":"gate.preflight"' "$tdir/telemetry.jsonl"
+}
+
+@test "gate emits nothing without ticket context" {
+  make_gate_root
+  make_target
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  [ "$status" -eq 0 ]
+  [ -z "$(find "$BATS_TEST_TMPDIR" -name telemetry.jsonl)" ]
+}
+
 @test "missing gate name exits non-zero naming the gates" {
   run "$ROUTINE_REPO_ROOT/bin/routine-gate"
   [ "$status" -ne 0 ]

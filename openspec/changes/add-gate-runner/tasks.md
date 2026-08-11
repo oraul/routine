@@ -25,5 +25,5 @@
 
 ## 4. Wiring
 
-- [ ] 4.1 Red→green: each gate run emits exactly one `gate.<name>` telemetry
+- [x] 4.1 Red→green: each gate run emits exactly one `gate.<name>` telemetry
       line into `ROUTINE_TICKET_DIR` when set, none when unset
