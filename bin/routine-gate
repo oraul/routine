@@ -9,6 +9,8 @@ repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
 . "$repo_dir/lib/paths.sh"
 # shellcheck source=/dev/null
 . "$repo_dir/lib/telemetry.sh"
+# shellcheck source=/dev/null
+. "$repo_dir/lib/index.sh"
 
 gate="${1:-}"
 case "$gate" in
@@ -84,6 +86,43 @@ baseline_analyst() {
   return "$_bad"
 }
 
+# Developer baseline: run every sidecar the current briefing's caffeine
+# manifest names, one gate.developer.script telemetry line per run. The
+# current briefing derives from the in-progress index row — never chosen.
+baseline_developer() {
+  if [ -z "${ROUTINE_TICKET_DIR:-}" ]; then
+    echo "routine-gate: no ticket context; developer baseline has no manifest to run"
+    return 0
+  fi
+  if ! _row="$(index_first_with_status "$ROUTINE_TICKET_DIR/index.tsv" in_progress)"; then
+    echo "routine-gate: no task in progress; developer baseline has nothing to run"
+    return 0
+  fi
+  _b="$(printf '%s' "$_row" | cut -f2)"
+  _briefing="$ROUTINE_TICKET_DIR/briefings/$_b/briefing.md"
+  [ -f "$_briefing" ] || { echo "routine-gate: missing $_briefing" >&2; return 1; }
+  _topics="$(awk '/^## Caffeine/ {a=1; next} a && /^#/ {a=0} a && /^- / {print substr($0, 3)}' "$_briefing")"
+  [ -n "$_topics" ] || return 0
+  for _topic in $_topics; do
+    _sidecar="$repo_dir/caffeine/$_topic.sh"
+    if [ ! -f "$_sidecar" ]; then
+      echo "routine-gate: manifest names $_topic but caffeine/$_topic.sh does not exist" >&2
+      return 1
+    fi
+    _s0="$(date -u +%s)"
+    TARGET="$target" bash "$_sidecar"
+    _code="$?"
+    _s1="$(date -u +%s)"
+    telemetry_gate_emit gate.developer.script "caffeine/$_topic.sh" "$_code" \
+      "$(( (_s1 - _s0) * 1000 ))"
+    if [ "$_code" -ne 0 ]; then
+      echo "routine-gate: sidecar caffeine/$_topic.sh failed" >&2
+      return "$_code"
+    fi
+  done
+  return 0
+}
+
 # Preflight baseline: the target must be a git worktree that is clean
 # (nothing staged, modified, or untracked) and checked out on a branch.
 baseline_preflight() {
@@ -115,6 +154,7 @@ run_gate() {
       run_hook analyst || return "$?"
       ;;
     developer)
+      baseline_developer || return "$?"
       run_hook developer || return "$?"
       ;;
   esac

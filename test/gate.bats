@@ -171,6 +171,51 @@ make_good_ticket() {
   [ -z "$(find "$BATS_TEST_TMPDIR" -name telemetry.jsonl)" ]
 }
 
+# Ticket whose in-progress task's briefing manifests ruby/rails.
+make_manifest_ticket() {
+  make_good_ticket
+  printf '%s\n' '# Briefing: auth' '## Caffeine' '- ruby/rails' \
+    > "$ticket/briefings/01-auth/briefing.md"
+}
+
+@test "developer baseline runs manifest sidecars and records telemetry" {
+  make_gate_root
+  make_target
+  make_manifest_ticket
+  mkdir -p "$groot/runs/app/hooks"
+  printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$groot/runs/app/hooks/developer.sh"
+  printf 'binding.irb\n' > "$tgt/bad.rb"
+  git -C "$tgt" add . 2>/dev/null; git -C "$tgt" -c user.name=t -c user.email=t@example.invalid commit -qm wip
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  [ "$status" -ne 0 ]
+  case "$output" in *"leftover debugger"*) ;; *) false ;; esac
+  grep -q '"event":"gate.developer.script"' "$ticket/telemetry.jsonl"
+  grep '"event":"gate.developer.script"' "$ticket/telemetry.jsonl" | grep -q '"exit":1'
+}
+
+@test "developer baseline fails on an unknown manifest topic" {
+  make_gate_root
+  make_target
+  make_manifest_ticket
+  printf '%s\n' '# Briefing: auth' '## Caffeine' '- ruby/nonexistent' \
+    > "$ticket/briefings/01-auth/briefing.md"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  [ "$status" -ne 0 ]
+  case "$output" in *"ruby/nonexistent"*) ;; *) false ;; esac
+}
+
+@test "developer baseline without ticket context logs and proceeds" {
+  make_gate_root
+  make_target
+  mkdir -p "$groot/runs/app/hooks"
+  printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$groot/runs/app/hooks/developer.sh"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  [ "$status" -eq 0 ]
+  case "$output" in *"no ticket context"*) ;; *) false ;; esac
+}
+
 @test "missing gate name exits non-zero naming the gates" {
   run "$ROUTINE_REPO_ROOT/bin/routine-gate"
   [ "$status" -ne 0 ]
