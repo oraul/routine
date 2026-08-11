@@ -44,6 +44,16 @@ jobs:
           export PATH="$PWD/.bats-core/bin:$PATH"
           bin/routine-selfcheck
 
+  conventions:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: convention check
+        run: bin/routine-convention-check "origin/${{ github.base_ref }}"
+
   openspec-validate:
     runs-on: ubuntu-latest
     steps:
