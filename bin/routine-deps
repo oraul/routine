@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Dependency discovery: read the target's manifests and print one caffeine
+# topic per line (ruby/<gem>, js/<package>, python/<package>). Extraction is
+# grep/awk only — drafting best practices is the /caffeinate skill's job.
+set -u
+
+target="${TARGET:-$PWD}"
+found=0
+
+if [ -f "$target/Gemfile" ]; then
+  found=1
+  awk '/^[[:space:]]*gem[[:space:]]+["'\'']/ {
+         line = $0
+         sub(/^[[:space:]]*gem[[:space:]]+["'\'']/, "", line)
+         sub(/["'\''].*$/, "", line)
+         if (line != "") print "ruby/" line
+       }' "$target/Gemfile"
+fi
+
+if [ -f "$target/package.json" ]; then
+  found=1
+  awk -F'"' '
+    /"(dependencies|devDependencies)"[[:space:]]*:/ { indeps = 1; next }
+    indeps && /}/ { indeps = 0 }
+    indeps && NF >= 2 && $2 != "" { print "js/" $2 }
+  ' "$target/package.json"
+fi
+
+if [ -f "$target/requirements.txt" ]; then
+  found=1
+  awk '/^[[:space:]]*[A-Za-z0-9]/ {
+         line = $0
+         sub(/[<>=!~;[:space:]\[].*$/, "", line)
+         if (line != "") print "python/" tolower(line)
+       }' "$target/requirements.txt"
+fi
+
+if [ "$found" -eq 0 ]; then
+  echo "routine-deps: no manifest found in $target (looked for Gemfile, package.json, requirements.txt)" >&2
+  exit 1
+fi
+exit 0
