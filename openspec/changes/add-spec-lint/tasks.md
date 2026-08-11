@@ -10,7 +10,7 @@
 
 ## 2. The analyst gate
 
-- [ ] 2.1 Red→green: analyst baseline requires `ROUTINE_TICKET_DIR`, runs
+- [x] 2.1 Red→green: analyst baseline requires `ROUTINE_TICKET_DIR`, runs
       spec-lint, and surfaces its output on failure
-- [ ] 2.2 Red→green: index/tree coherence — rows without directories and task
+- [x] 2.2 Red→green: index/tree coherence — rows without directories and task
       directories without rows each fail naming the offender

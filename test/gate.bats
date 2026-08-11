@@ -42,12 +42,70 @@ make_target() {
   [ ! -f "$groot/hook-ran" ]
 }
 
+# A grammar-clean ticket whose index agrees with its tree.
+make_good_ticket() {
+  ticket="$BATS_TEST_TMPDIR/0001"
+  mkdir -p "$ticket/briefings/01-auth/tasks/01-login"
+  printf '%s\n' '# Requirement: Login' 'The system SHALL let users log in.' \
+    > "$ticket/requirement.md"
+  printf '%s\n' '# Briefing: auth' '## Caffeine' '- ruby/rails' \
+    > "$ticket/briefings/01-auth/briefing.md"
+  printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
+    '## Acceptance' '1. works' \
+    > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  : > "$ticket/index.tsv"
+  "$ROUTINE_REPO_ROOT/bin/routine-next" "$ticket" > /dev/null
+}
+
 @test "missing optional hook logs one line and passes" {
   make_gate_root
   make_target
-  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
+  make_good_ticket
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
   [ "$status" -eq 0 ]
   [ "$(printf '%s\n' "$output" | grep -c 'no analyst hook')" -eq 1 ]
+}
+
+@test "analyst gate requires a ticket context" {
+  make_gate_root
+  make_target
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
+  [ "$status" -ne 0 ]
+  case "$output" in *ROUTINE_TICKET_DIR*) ;; *) false ;; esac
+}
+
+@test "analyst gate surfaces spec-lint failures" {
+  make_gate_root
+  make_target
+  make_good_ticket
+  printf 'broken\n' > "$ticket/requirement.md"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
+  [ "$status" -ne 0 ]
+  case "$output" in *spec-lint*requirement.md*) ;; *) false ;; esac
+}
+
+@test "analyst gate fails on an index row without a directory" {
+  make_gate_root
+  make_target
+  make_good_ticket
+  printf '09-09\t09-x\t09-y\tpending\t2026-01-01T00:00:00Z\n' >> "$ticket/index.tsv"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
+  [ "$status" -ne 0 ]
+  case "$output" in *09-09*) ;; *) false ;; esac
+}
+
+@test "analyst gate fails on a task directory without an index row" {
+  make_gate_root
+  make_target
+  make_good_ticket
+  : > "$ticket/index.tsv"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
+  [ "$status" -ne 0 ]
+  case "$output" in *"no index row"*) ;; *) false ;; esac
 }
 
 @test "missing developer hook aborts naming the file and an example" {
