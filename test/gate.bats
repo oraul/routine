@@ -48,10 +48,10 @@ make_good_ticket() {
   mkdir -p "$ticket/briefings/01-auth/tasks/01-login"
   printf '%s\n' '# Requirement: Login' 'The system SHALL let users log in.' \
     > "$ticket/requirement.md"
-  printf '%s\n' '# Briefing: auth' '## Caffeine' '- ruby/rails' \
+  printf '%s\n' '# Briefing: auth' 'Covers login.' \
     > "$ticket/briefings/01-auth/briefing.md"
   printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
-    '## Acceptance' '1. works' \
+    '## Acceptance' '1. works' '## Caffeine' \
     > "$ticket/briefings/01-auth/tasks/01-login/task.md"
   : > "$ticket/index.tsv"
   "$ROUTINE_REPO_ROOT/bin/routine-next" "$ticket" > /dev/null
@@ -173,11 +173,12 @@ make_good_ticket() {
   [ -z "$(find "$BATS_TEST_TMPDIR" -name telemetry.jsonl)" ]
 }
 
-# Ticket whose in-progress task's briefing manifests ruby/rails.
+# Ticket whose in-progress task manifests ruby/rails.
 make_manifest_ticket() {
   make_good_ticket
-  printf '%s\n' '# Briefing: auth' '## Caffeine' '- ruby/rails' \
-    > "$ticket/briefings/01-auth/briefing.md"
+  printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
+    '## Acceptance' '1. works' '## Caffeine' '- ruby/rails' \
+    > "$ticket/briefings/01-auth/tasks/01-login/task.md"
 }
 
 @test "developer baseline runs manifest sidecars and records telemetry" {
@@ -200,8 +201,9 @@ make_manifest_ticket() {
   make_gate_root
   make_target
   make_manifest_ticket
-  printf '%s\n' '# Briefing: auth' '## Caffeine' '- ruby/nonexistent' \
-    > "$ticket/briefings/01-auth/briefing.md"
+  printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
+    '## Acceptance' '1. works' '## Caffeine' '- ruby/nonexistent' \
+    > "$ticket/briefings/01-auth/tasks/01-login/task.md"
   run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
     "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
   [ "$status" -ne 0 ]

@@ -11,8 +11,7 @@ The system SHALL let users log in.
 EOF
   cat > "$ticket/briefings/01-auth/briefing.md" <<'EOF'
 # Briefing: auth
-## Caffeine
-- ruby/rails
+Covers login.
 EOF
   cat > "$ticket/briefings/01-auth/tasks/01-login/task.md" <<'EOF'
 # Task: login form
@@ -23,6 +22,8 @@ EOF
 ## Acceptance
 1. the form renders
 2. invalid credentials show an error
+## Caffeine
+- ruby/rails
 EOF
 }
 
@@ -51,11 +52,13 @@ EOF
   case "$output" in *acceptance*) ;; *) false ;; esac
 }
 
-@test "briefing without caffeine section or tasks fails; lint emits telemetry" {
+@test "task without caffeine section and taskless briefing fail; lint emits telemetry" {
   make_good_ticket
   printf '# Briefing: auth\n' > "$ticket/briefings/01-auth/briefing.md"
+  sed -i.bak '/## Caffeine/,$d' "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  rm -f "$ticket/briefings/01-auth/tasks/01-login/task.md.bak"
   mkdir -p "$ticket/briefings/02-api"
-  printf '%s\n' '# Briefing: api' '## Caffeine' > "$ticket/briefings/02-api/briefing.md"
+  printf '%s\n' '# Briefing: api' > "$ticket/briefings/02-api/briefing.md"
   run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
   [ "$status" -ne 0 ]
   case "$output" in *Caffeine*) ;; *) false ;; esac

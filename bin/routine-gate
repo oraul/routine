@@ -89,9 +89,9 @@ baseline_analyst() {
   return "$_bad"
 }
 
-# Developer baseline: run every sidecar the current briefing's caffeine
+# Developer baseline: run every sidecar the current task's caffeine
 # manifest names, one gate.developer.script telemetry line per run. The
-# current briefing derives from the in-progress index row — never chosen.
+# current task derives from the in-progress index row — never chosen.
 baseline_developer() {
   if [ -z "${ROUTINE_TICKET_DIR:-}" ]; then
     echo "routine-gate: no ticket context; developer baseline has no manifest to run"
@@ -102,9 +102,10 @@ baseline_developer() {
     return 0
   fi
   _b="$(printf '%s' "$_row" | cut -f2)"
-  _briefing="$ROUTINE_TICKET_DIR/briefings/$_b/briefing.md"
-  [ -f "$_briefing" ] || { echo "routine-gate: missing $_briefing" >&2; return 1; }
-  _topics="$(awk '/^## Caffeine/ {a=1; next} a && /^#/ {a=0} a && /^- / {print substr($0, 3)}' "$_briefing")"
+  _t="$(printf '%s' "$_row" | cut -f3)"
+  _taskfile="$ROUTINE_TICKET_DIR/briefings/$_b/tasks/$_t/task.md"
+  [ -f "$_taskfile" ] || { echo "routine-gate: missing $_taskfile" >&2; return 1; }
+  _topics="$(awk '/^## Caffeine/ {a=1; next} a && /^#/ {a=0} a && /^- / {print substr($0, 3)}' "$_taskfile")"
   [ -n "$_topics" ] || return 0
   for _topic in $_topics; do
     _sidecar="$repo_dir/caffeine/$_topic.sh"

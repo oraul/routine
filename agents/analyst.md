@@ -11,14 +11,15 @@ Inside the active ticket directory, write:
   states what the system SHALL/MUST do (RFC 2119 keywords: SHALL, MUST,
   SHOULD, MAY).
 - `briefings/<nn>-<slug>/briefing.md` — one per coherent slice of the
-  requirement, numbered in execution order. Each briefing ends with a
-  `## Caffeine` section listing the caffeine topics its tasks need (e.g.
-  `- ruby/rails`), or nothing beneath it when none apply. You select the
-  manifest; the developer loads nothing outside it.
+  requirement, numbered in execution order.
 - `briefings/<nn>-<slug>/tasks/<nn>-<slug>/task.md` — one per task, numbered
   in execution order within the briefing. Every task carries:
   - at least one scenario written as Given/When/Then lines,
-  - a `## Acceptance` section with an enumerated, non-empty list.
+  - a `## Acceptance` section with an enumerated, non-empty list,
+  - a `## Caffeine` section naming the topics **this task** needs (e.g.
+    `- ruby/active_record`), empty beneath the heading when none apply.
+    You select each task's manifest while writing the briefing's tasks;
+    the developer loads nothing outside its own task's list.
 
 Every briefing has at least one task. Size tasks so one developer session
 takes each from failing test to green.
