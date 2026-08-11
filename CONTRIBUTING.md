@@ -33,6 +33,20 @@ If sensitive data is committed by accident, do not just remove it in a follow-up
   Auto-merge armed at PR creation; the CI ruleset is the merge decision.
   WIP = 1: no new branch while any PR is open.
 
+## Releases
+
+- **A tag is a guarantee.** `v<major>.<minor>.<patch>` on `main` asserts:
+  every capability in `openspec/specs/` is implemented and green at that
+  commit, and `.claude-plugin/plugin.json` declares exactly that version.
+- **Bump by rule**, relative to the previous tag: **patch** = fixes and
+  chores only (no capability added, removed, or modified); **minor** = any
+  spec capability changed; **major** (1.0.0) is reserved until retro
+  evidence from real-project runs proves the operational loop end to end.
+- **Gate before tag, always**: `bin/routine-release-check vX.Y.Z` must exit
+  0 (semver format, manifest match, clean worktree on main, green
+  selfcheck). Tag annotated, from the commit the gate blessed; the GitHub
+  Release description states the headline capabilities since the last tag.
+
 ## The loop
 
 **P0 — Explore** *(on main; optional for pre-scoped changes)*
