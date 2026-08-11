@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Ticket allocation: next sequential 4-digit id under runs/<app>/tickets/,
+# scanning active and archived tickets so concluded ids are never reused.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+
+root="$(routine_root)"
+target="${TARGET:-$PWD}"
+app="$(routine_app_key "$target")"
+tickets="$root/runs/$app/tickets"
+
+if [ ! -d "$tickets" ]; then
+  echo "routine-ticket-new: no state for $app; run routine-scaffold first" >&2
+  exit 1
+fi
+
+max=0
+for d in "$tickets"/[0-9][0-9][0-9][0-9] "$tickets"/archive/[0-9][0-9][0-9][0-9]; do
+  [ -d "$d" ] || continue
+  n=$((10#$(basename "$d")))
+  if [ "$n" -gt "$max" ]; then max="$n"; fi
+done
+
+id="$(printf '%04d' $((max + 1)))"
+mkdir "$tickets/$id"
+: > "$tickets/$id/index.tsv"
+echo "$tickets/$id"
+exit 0
