@@ -1,6 +1,6 @@
 ## 1. Discovery script
 
-- [ ] 1.1 Red→green: `bin/routine-deps` extracts `ruby/<gem>` topics from a
+- [x] 1.1 Red→green: `bin/routine-deps` extracts `ruby/<gem>` topics from a
       Gemfile fixture
 - [ ] 1.2 Red→green: package.json (dependencies + devDependencies) and
       requirements.txt extraction; no-manifest exits non-zero naming the
