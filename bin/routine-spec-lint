@@ -7,6 +7,8 @@ set -u
 # shellcheck source=/dev/null
 . "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
 
+start_ms="$(routine_now_ms)"
+
 ticket="${1:-}"
 if [ ! -d "$ticket" ]; then
   echo "usage: routine-spec-lint <ticket-dir>" >&2
@@ -92,6 +94,6 @@ fi
 code=0
 [ "$fails" -eq 0 ] || code=1
 telemetry_emit "$ticket/telemetry.jsonl" spec.lint bin/routine-spec-lint \
-  "$(basename "$ticket")" "" "$code" 0
+  "$(basename "$ticket")" "" "$code" "$(( $(routine_now_ms) - start_ms ))"
 [ "$code" -eq 0 ] && echo "spec-lint: ok"
 exit "$code"

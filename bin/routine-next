@@ -10,6 +10,8 @@ lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
 # shellcheck source=/dev/null
 . "$lib/index.sh"
 
+start_ms="$(routine_now_ms)"
+
 TAB="$(printf '\t')"
 
 ticket="${1:-}"
@@ -39,7 +41,7 @@ done < "$index"
 
 emit() {
   telemetry_emit "$ticket/telemetry.jsonl" ticket.next bin/routine-next \
-    "$(basename "$ticket")" "${sel_id:-}" "$1" 0
+    "$(basename "$ticket")" "${sel_id:-}" "$1" "$(( $(routine_now_ms) - start_ms ))"
 }
 
 if [ "$sel_status" = "blocked" ]; then

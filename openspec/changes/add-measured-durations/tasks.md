@@ -5,5 +5,5 @@
 
 ## 2. The call sites
 
-- [ ] 2.1 Wire measured durations into all eight emitting scripts; suite
+- [x] 2.1 Wire measured durations into all eight emitting scripts; suite
       stays green
