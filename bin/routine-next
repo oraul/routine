@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# The task line: refresh the index from the briefings tree (append-only,
+# strict file order), then return the first runnable task and mark it
+# in_progress. Exit 3 when a blocked task blocks the line, 4 when all done.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+
+TAB="$(printf '\t')"
+
+ticket="${1:-}"
+if [ ! -d "$ticket" ] || [ ! -f "$ticket/index.tsv" ]; then
+  echo "usage: routine-next <ticket-dir>  (with an index.tsv)" >&2
+  exit 2
+fi
+index="$ticket/index.tsv"
+ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+# Sync: one row per task directory, appended in file order, never rewriting
+# existing rows — the index is script-owned and append-only here.
+for bdir in "$ticket"/briefings/*/; do
+  [ -d "$bdir" ] || continue
+  b="$(basename "$bdir")"
+  for tdir in "$bdir"tasks/*/; do
+    [ -d "$tdir" ] || continue
+    t="$(basename "$tdir")"
+    tid="${b%%-*}-${t%%-*}"
+    if ! grep -q "^$tid$TAB" "$index"; then
+      printf '%s\t%s\t%s\tpending\t%s\n' "$tid" "$b" "$t" "$ts" >> "$index"
+    fi
+  done
+done
+
+# Select: first non-done row, unless an earlier row is blocked.
+sel_id="" sel_b="" sel_t="" sel_status=""
+while IFS="$TAB" read -r r_id r_b r_t r_status _; do
+  if [ "$r_status" = "blocked" ]; then
+    sel_id="$r_id" sel_status="blocked"
+    break
+  fi
+  if [ "$r_status" != "done" ]; then
+    sel_id="$r_id" sel_b="$r_b" sel_t="$r_t" sel_status="$r_status"
+    break
+  fi
+done < "$index"
+
+emit() {
+  telemetry_emit "$ticket/telemetry.jsonl" ticket.next bin/routine-next \
+    "$(basename "$ticket")" "${sel_id:-}" "$1" 0
+}
+
+if [ "$sel_status" = "blocked" ]; then
+  echo "routine-next: task $sel_id is blocked; the line is blocked" >&2
+  emit 3
+  exit 3
+fi
+if [ -z "$sel_id" ]; then
+  echo "routine-next: all tasks done"
+  emit 4
+  exit 4
+fi
+
+if [ "$sel_status" != "in_progress" ]; then
+  awk -F'\t' -v OFS='\t' -v id="$sel_id" -v ts="$ts" \
+    '$1==id {$4="in_progress"; $5=ts} {print}' "$index" > "$index.new"
+  mv "$index.new" "$index"
+fi
+
+echo "$ticket/briefings/$sel_b/tasks/$sel_t"
+emit 0
+exit 0

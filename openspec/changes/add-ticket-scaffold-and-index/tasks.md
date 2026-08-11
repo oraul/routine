@@ -8,9 +8,9 @@
 
 ## 2. The task line
 
-- [ ] 2.1 Red→green: `routine-next` appends missing tree tasks to the index as
+- [x] 2.1 Red→green: `routine-next` appends missing tree tasks to the index as
       `pending` in strict file order, never touching existing rows' identity
-- [ ] 2.2 Red→green: `routine-next` returns the first runnable task and marks
+- [x] 2.2 Red→green: `routine-next` returns the first runnable task and marks
       it `in_progress`; blocked-blocks-the-line and all-done get distinct
       exits
 - [ ] 2.3 Red→green: `routine-done` marks the `in_progress` task done with a
