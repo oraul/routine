@@ -6,6 +6,11 @@ disable-model-invocation: true
 
 # /unblock <ticket> <task> — release a blocked task
 
+> **Script paths**: every `routine-*` script lives in this plugin's `bin/`.
+> In an installed plugin session invoke them as
+> `"$CLAUDE_PLUGIN_ROOT/bin/<script>"`; in this repository, `bin/<script>`.
+> The names below are shorthand for that resolved path.
+
 A blocked task blocks the whole line. Only human context releases it, and
 that context must be written down before anything moves.
 
