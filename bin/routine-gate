@@ -45,6 +45,45 @@ run_hook() {
   fi
 }
 
+TAB="$(printf '\t')"
+
+# Analyst baseline: the ticket must pass the spec grammar and its index must
+# agree with the directory tree. The ticket arrives via ROUTINE_TICKET_DIR —
+# the same channel telemetry uses.
+baseline_analyst() {
+  if [ -z "${ROUTINE_TICKET_DIR:-}" ]; then
+    echo "routine-gate: analyst gate requires a ticket context (set ROUTINE_TICKET_DIR)" >&2
+    return 1
+  fi
+  "$repo_dir/bin/routine-spec-lint" "$ROUTINE_TICKET_DIR" || return 1
+  _index="$ROUTINE_TICKET_DIR/index.tsv"
+  if [ ! -f "$_index" ]; then
+    echo "routine-gate: ticket has no index.tsv" >&2
+    return 1
+  fi
+  _bad=0
+  while IFS="$TAB" read -r _tid _b _t _rest; do
+    [ -n "$_tid" ] || continue
+    if [ ! -d "$ROUTINE_TICKET_DIR/briefings/$_b/tasks/$_t" ]; then
+      echo "routine-gate: index row $_tid has no directory briefings/$_b/tasks/$_t" >&2
+      _bad=1
+    fi
+  done < "$_index"
+  for _bdir in "$ROUTINE_TICKET_DIR"/briefings/*/; do
+    [ -d "$_bdir" ] || continue
+    _b="$(basename "$_bdir")"
+    for _tdir in "${_bdir}tasks/"*/; do
+      [ -d "$_tdir" ] || continue
+      _t="$(basename "$_tdir")"
+      if ! grep -q "^${_b%%-*}-${_t%%-*}$TAB" "$_index"; then
+        echo "routine-gate: task directory briefings/$_b/tasks/$_t has no index row" >&2
+        _bad=1
+      fi
+    done
+  done
+  return "$_bad"
+}
+
 # Preflight baseline: the target must be a git worktree that is clean
 # (nothing staged, modified, or untracked) and checked out on a branch.
 baseline_preflight() {
@@ -72,6 +111,7 @@ run_gate() {
       run_hook preflight || return "$?"
       ;;
     analyst)
+      baseline_analyst || return "$?"
       run_hook analyst || return "$?"
       ;;
     developer)

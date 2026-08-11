@@ -1,0 +1,79 @@
+#!/usr/bin/env bash
+# Spec grammar lint: structural checks only, pure grep/awk, no semantic
+# judgment. Reports every defect in one run so the analyst revises against
+# the full list.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+
+ticket="${1:-}"
+if [ ! -d "$ticket" ]; then
+  echo "usage: routine-spec-lint <ticket-dir>" >&2
+  exit 2
+fi
+
+fails=0
+fail() {
+  echo "spec-lint: $1: $2" >&2
+  fails=$((fails + 1))
+}
+
+# RFC 2119 keywords as whole words, portable to BSD grep (no \b).
+rfc2119='(^|[^A-Za-z])(SHALL|MUST|SHOULD|MAY)([^A-Za-z]|$)'
+
+req="$ticket/requirement.md"
+if [ ! -f "$req" ]; then
+  fail "requirement.md" "missing"
+else
+  grep -q '^# Requirement:' "$req" \
+    || fail "requirement.md" "no '# Requirement:' header"
+  grep -Eq "$rfc2119" "$req" \
+    || fail "requirement.md" "no RFC 2119 keyword"
+fi
+
+found_briefing=0
+for bdir in "$ticket"/briefings/*/; do
+  [ -d "$bdir" ] || continue
+  found_briefing=1
+  b="briefings/$(basename "$bdir")"
+  if [ ! -f "${bdir}briefing.md" ]; then
+    fail "$b/briefing.md" "missing"
+  else
+    grep -q '^## Caffeine' "${bdir}briefing.md" \
+      || fail "$b/briefing.md" "no '## Caffeine' section"
+  fi
+  found_task=0
+  for tdir in "${bdir}tasks/"*/; do
+    [ -d "$tdir" ] || continue
+    found_task=1
+    t="$b/tasks/$(basename "$tdir")"
+    tm="${tdir}task.md"
+    if [ ! -f "$tm" ]; then
+      fail "$t/task.md" "missing"
+      continue
+    fi
+    if ! grep -Eq '(^|[-*[:space:]])Given' "$tm" \
+      || ! grep -Eq '(^|[-*[:space:]])When' "$tm" \
+      || ! grep -Eq '(^|[-*[:space:]])Then' "$tm"; then
+      fail "$t/task.md" "no Given/When/Then scenario"
+    fi
+    if ! grep -q '^## Acceptance' "$tm"; then
+      fail "$t/task.md" "no '## Acceptance' section"
+    elif ! awk '/^## Acceptance/ {a=1; next}
+                a && /^#/ {a=0}
+                a && /^([0-9]+\.|- )/ {found=1}
+                END {exit !found}' "$tm"; then
+      fail "$t/task.md" "empty acceptance list"
+    fi
+  done
+  [ "$found_task" -eq 1 ] || fail "$b" "briefing has no tasks"
+done
+[ "$found_briefing" -eq 1 ] || fail "briefings" "no briefings"
+
+code=0
+[ "$fails" -eq 0 ] || code=1
+telemetry_emit "$ticket/telemetry.jsonl" spec.lint bin/routine-spec-lint \
+  "$(basename "$ticket")" "" "$code" 0
+[ "$code" -eq 0 ] && echo "spec-lint: ok"
+exit "$code"
