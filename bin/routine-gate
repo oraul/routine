@@ -110,7 +110,11 @@ baseline_developer() {
   for _topic in $_topics; do
     _sidecar="$repo_dir/caffeine/$_topic.sh"
     if [ ! -f "$_sidecar" ]; then
-      echo "routine-gate: manifest names $_topic but caffeine/$_topic.sh does not exist" >&2
+      if [ -f "$repo_dir/caffeine/$_topic.md" ]; then
+        echo "routine-gate: $_topic is doc-only; guidance loads, nothing to run"
+        continue
+      fi
+      echo "routine-gate: manifest names $_topic but neither caffeine/$_topic.sh nor caffeine/$_topic.md exists" >&2
       return 1
     fi
     _s0="$(date -u +%s)"
