@@ -91,3 +91,20 @@ ticket's `telemetry.jsonl` via `lib/telemetry.sh`.
 #### Scenario: next emits ticket.next
 - **WHEN** `routine-next` returns a task
 - **THEN** the ticket's `telemetry.jsonl` gains one `ticket.next` line
+
+### Requirement: Conclude is evidence-checked and archives the ticket
+`bin/routine-conclude <ticket-dir>` SHALL refuse (naming the offending
+tasks) unless every index row is `done`; on success it SHALL write
+`report.md` summarizing the run from the index, emit one `ticket.conclude`
+telemetry line, and move the ticket directory to `tickets/archive/<id>/`.
+
+#### Scenario: Refuses with work remaining
+- **WHEN** any index row is not `done`
+- **THEN** `routine-conclude` exits non-zero naming the unfinished tasks and
+  moves nothing
+
+#### Scenario: Concludes a finished ticket
+- **WHEN** every index row is `done`
+- **THEN** `report.md` exists in the archived ticket at
+  `tickets/archive/<id>/`, the active directory is gone, and the archived
+  `telemetry.jsonl` ends with a `ticket.conclude` line

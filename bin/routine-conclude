@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# The scripted ticket ending: refuses while work remains, writes report.md
+# from the index, emits ticket.conclude, and archives the ticket directory.
+set -u
+
+lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
+# shellcheck source=/dev/null
+. "$lib/telemetry.sh"
+
+TAB="$(printf '\t')"
+
+ticket="${1:-}"
+if [ ! -d "$ticket" ] || [ ! -f "$ticket/index.tsv" ]; then
+  echo "usage: routine-conclude <ticket-dir>" >&2
+  exit 2
+fi
+
+unfinished="$(awk -F'\t' '$4!="done" {print $1}' "$ticket/index.tsv")"
+if [ -n "$unfinished" ]; then
+  echo "routine-conclude: refuse — tasks not done:" >&2
+  printf '%s\n' "$unfinished" >&2
+  exit 1
+fi
+
+id="$(basename "$ticket")"
+ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+{
+  echo "# Report: ticket $id"
+  echo
+  echo "Concluded: $ts"
+  echo
+  echo "| task | briefing | dir | status | updated |"
+  echo "|------|----------|-----|--------|---------|"
+  while IFS="$TAB" read -r r_id r_b r_t r_status r_ts; do
+    [ -n "$r_id" ] || continue
+    echo "| $r_id | $r_b | $r_t | $r_status | $r_ts |"
+  done < "$ticket/index.tsv"
+} > "$ticket/report.md"
+
+telemetry_emit "$ticket/telemetry.jsonl" ticket.conclude bin/routine-conclude \
+  "$id" "" 0 0
+
+archive="$(dirname "$ticket")/archive"
+mkdir -p "$archive"
+mv "$ticket" "$archive/$id"
+echo "routine-conclude: ticket $id archived"
+exit 0
