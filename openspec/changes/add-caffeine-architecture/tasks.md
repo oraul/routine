@@ -5,6 +5,6 @@
 
 ## 2. The architecture seeds
 
-- [ ] 2.1 Write `caffeine/architecture/oop.md` and
+- [x] 2.1 Write `caffeine/architecture/oop.md` and
       `caffeine/architecture/hexagonal.md`; add the doc-only line to
       `skills/caffeinate/SKILL.md`
