@@ -5,7 +5,7 @@
 
 ## 2. Developer gate
 
-- [ ] 2.1 Red→green: the developer baseline reads the in-progress task's
+- [x] 2.1 Red→green: the developer baseline reads the in-progress task's
       `## Caffeine` manifest; gate fixtures move their manifests into
       task.md
 
