@@ -39,9 +39,6 @@ for bdir in "$ticket"/briefings/*/; do
   b="briefings/$(basename "$bdir")"
   if [ ! -f "${bdir}briefing.md" ]; then
     fail "$b/briefing.md" "missing"
-  else
-    grep -q '^## Caffeine' "${bdir}briefing.md" \
-      || fail "$b/briefing.md" "no '## Caffeine' section"
   fi
   found_task=0
   for tdir in "${bdir}tasks/"*/; do
@@ -58,6 +55,8 @@ for bdir in "$ticket"/briefings/*/; do
       || ! grep -Eq '(^|[-*[:space:]])Then' "$tm"; then
       fail "$t/task.md" "no Given/When/Then scenario"
     fi
+    grep -q '^## Caffeine' "$tm" \
+      || fail "$t/task.md" "no '## Caffeine' section"
     if ! grep -q '^## Acceptance' "$tm"; then
       fail "$t/task.md" "no '## Acceptance' section"
     elif ! awk '/^## Acceptance/ {a=1; next}

@@ -1,6 +1,6 @@
 ## 1. Grammar
 
-- [ ] 1.1 Red→green: `routine-spec-lint` requires `## Caffeine` on every
+- [x] 1.1 Red→green: `routine-spec-lint` requires `## Caffeine` on every
       `task.md` and no longer on `briefing.md`; fixtures updated
 
 ## 2. Developer gate
