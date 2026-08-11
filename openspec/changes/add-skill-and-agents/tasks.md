@@ -1,9 +1,9 @@
 ## 1. Skills
 
-- [ ] 1.1 Write `skills/routine/SKILL.md`: five gated phases, literal script
+- [x] 1.1 Write `skills/routine/SKILL.md`: five gated phases, literal script
       calls, stop-on-non-zero, approve hard stop, 3-revise limit, no direct
       state writes, `disable-model-invocation: true`
-- [ ] 1.2 Write `skills/unblock/SKILL.md`: converse → `unblock.md` →
+- [x] 1.2 Write `skills/unblock/SKILL.md`: converse → `unblock.md` →
       `routine-unblock`, human-invoked only
 
 ## 2. Agents
