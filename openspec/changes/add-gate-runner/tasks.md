@@ -12,7 +12,7 @@
       gate name exits non-zero naming the valid gates
 - [x] 2.2 Red→green: stage composition — baseline then hook, first failure
       stops the run and surfaces output, hook exit codes relayed verbatim
-- [ ] 2.3 Red→green: seam contract — missing optional hook logs one line and
+- [x] 2.3 Red→green: seam contract — missing optional hook logs one line and
       passes; missing `developer.sh` exits non-zero naming the exact file and
       a one-line delegation example
 

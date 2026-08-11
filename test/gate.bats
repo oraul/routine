@@ -42,6 +42,23 @@ make_target() {
   [ ! -f "$groot/hook-ran" ]
 }
 
+@test "missing optional hook logs one line and passes" {
+  make_gate_root
+  make_target
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
+  [ "$status" -eq 0 ]
+  [ "$(printf '%s\n' "$output" | grep -c 'no analyst hook')" -eq 1 ]
+}
+
+@test "missing developer hook aborts naming the file and an example" {
+  make_gate_root
+  make_target
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  [ "$status" -ne 0 ]
+  case "$output" in *"runs/app/hooks/developer.sh"*) ;; *) false ;; esac
+  case "$output" in *'cd "$TARGET"'*) ;; *) false ;; esac
+}
+
 @test "missing gate name exits non-zero naming the gates" {
   run "$ROUTINE_REPO_ROOT/bin/routine-gate"
   [ "$status" -ne 0 ]
