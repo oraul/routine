@@ -59,6 +59,15 @@ make_target() {
   case "$output" in *'cd "$TARGET"'*) ;; *) false ;; esac
 }
 
+@test "red harness aborts preflight before any target check" {
+  make_gate_root
+  printf '%s\n' '#!/usr/bin/env bash' 'echo harness red' 'exit 1' > "$groot/bin/routine-selfcheck"
+  run env ROUTINE_ROOT="$groot" TARGET="$BATS_TEST_TMPDIR/nonexistent" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  [ "$status" -ne 0 ]
+  case "$output" in *"harness red"*) ;; *) false ;; esac
+  case "$output" in *worktree*|*branch*) false ;; *) ;; esac
+}
+
 @test "missing gate name exits non-zero naming the gates" {
   run "$ROUTINE_REPO_ROOT/bin/routine-gate"
   [ "$status" -ne 0 ]

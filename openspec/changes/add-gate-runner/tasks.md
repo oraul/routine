@@ -18,7 +18,7 @@
 
 ## 3. Preflight baseline
 
-- [ ] 3.1 Red→green: selfcheck-first ordering — a red harness aborts preflight
+- [x] 3.1 Red→green: selfcheck-first ordering — a red harness aborts preflight
       before any target check
 - [ ] 3.2 Red→green: target checks against fixture git repos — dirty worktree
       and detached HEAD each fail with their reason; clean-on-branch passes
