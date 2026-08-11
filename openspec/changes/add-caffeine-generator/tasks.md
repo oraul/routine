@@ -8,6 +8,6 @@
 
 ## 2. Generation skill
 
-- [ ] 2.1 Write `skills/caffeinate/SKILL.md`: discovery via routine-deps,
+- [x] 2.1 Write `skills/caffeinate/SKILL.md`: discovery via routine-deps,
       human topic selection, the sidecar contract (3–5 grep-able rules, one
       fixture per rule, .md for judgment), selfcheck-green completion
