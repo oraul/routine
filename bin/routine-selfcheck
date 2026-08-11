@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Harness integrity gate: shellcheck over bin/, lib/, and caffeine
+# sidecars, then the full bats suite. Lint failure aborts before tests —
+# results from an unparseable script prove nothing.
+set -u
+
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+
+root="$(routine_root)"
+
+scripts=()
+for f in "$root"/bin/* "$root"/lib/*.sh "$root"/caffeine/*/*.sh; do
+  [ -f "$f" ] || continue
+  case "$f" in
+    */.gitkeep) continue ;;
+  esac
+  scripts[${#scripts[@]}]="$f"
+done
+
+if [ "${#scripts[@]}" -gt 0 ]; then
+  if ! shellcheck "${scripts[@]}"; then
+    echo "routine-selfcheck: shellcheck failed" >&2
+    exit 1
+  fi
+fi
+
+if ! bats "$root/test"; then
+  echo "routine-selfcheck: bats suite failed" >&2
+  exit 1
+fi
+
+exit 0
