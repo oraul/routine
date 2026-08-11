@@ -6,5 +6,5 @@
 
 ## 2. The convention
 
-- [ ] 2.1 Add the Releases section to CONTRIBUTING.md (tag assertion,
+- [x] 2.1 Add the Releases section to CONTRIBUTING.md (tag assertion,
       bump rules, gate-before-tag)
