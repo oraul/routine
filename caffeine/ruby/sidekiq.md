@@ -6,6 +6,42 @@ The sidecar mechanically rejects: `include Sidekiq::Worker`, keyword
 arguments to `perform_async`/`perform_in`/`perform_at`, `sleep` inside job
 classes, and `sidekiq_options retry: false`. Fix, don't argue.
 
+## The skeleton
+
+```ruby
+# app/jobs/close_order_job.rb — a job is a thin, idempotent shell around
+# one domain call.
+class CloseOrderJob
+  include Sidekiq::Job   # never the legacy Sidekiq::Worker
+
+  # Queue is a latency promise; default unless someone will page over it.
+  # Retries stay ON: at-least-once delivery is the platform's contract,
+  # and retry: false silently drops failures (state the dead-set plan if
+  # you ever must).
+  sidekiq_options queue: :default
+
+  # Arguments are JSON-native positionals: ids and scalars only. Objects
+  # and keyword args corrupt silently on the round-trip through Redis.
+  def perform(order_id)
+    # Fetch fresh — hours may have passed since enqueue; the record can
+    # have changed or vanished, and absence is a normal outcome, not an
+    # error to retry forever.
+    order = Order.find_by(id: order_id)
+    return unless order
+
+    # Idempotency guard: running twice must be safe, because it will
+    # happen. Check the end state, not "have I run?".
+    return if order.closed?
+
+    order.close!
+  end
+end
+
+# Enqueue site: many small jobs beat one heroic loop — Sidekiq's
+# parallelism IS the loop, and each job survives a deploy.
+order_ids.each { |id| CloseOrderJob.perform_async(id) }
+```
+
 Judgment the sidecar cannot check:
 
 - **Jobs are idempotent or they are bugs.** Sidekiq guarantees at-least-once

@@ -7,5 +7,5 @@
 
 ## 2. Skeletons for the existing guides
 
-- [ ] 2.1 Add annotated skeletons to `rails.md`, `active_record.md`, and
+- [x] 2.1 Add annotated skeletons to `rails.md`, `active_record.md`, and
       `sidekiq.md`
