@@ -117,12 +117,11 @@ baseline_developer() {
       echo "routine-gate: manifest names $_topic but neither caffeine/$_topic.sh nor caffeine/$_topic.md exists" >&2
       return 1
     fi
-    _s0="$(date -u +%s)"
+    _s0="$(routine_now_ms)"
     TARGET="$target" bash "$_sidecar"
     _code="$?"
-    _s1="$(date -u +%s)"
     telemetry_gate_emit gate.developer.script "caffeine/$_topic.sh" "$_code" \
-      "$(( (_s1 - _s0) * 1000 ))"
+      "$(( $(routine_now_ms) - _s0 ))"
     if [ "$_code" -ne 0 ]; then
       echo "routine-gate: sidecar caffeine/$_topic.sh failed" >&2
       return "$_code"
@@ -168,9 +167,8 @@ run_gate() {
   esac
 }
 
-start_s="$(date -u +%s)"
+start_ms="$(routine_now_ms)"
 run_gate
 code="$?"
-end_s="$(date -u +%s)"
-telemetry_gate_emit "gate.$gate" "bin/routine-gate" "$code" "$(( (end_s - start_s) * 1000 ))"
+telemetry_gate_emit "gate.$gate" "bin/routine-gate" "$code" "$(( $(routine_now_ms) - start_ms ))"
 exit "$code"

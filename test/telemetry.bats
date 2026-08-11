@@ -31,6 +31,26 @@ load test_helper
   [ ! -f "$tfile" ]
 }
 
+@test "now_ms returns an integer at least seconds times 1000" {
+  run bash -c ". '$ROUTINE_REPO_ROOT/lib/telemetry.sh' && routine_now_ms"
+  [ "$status" -eq 0 ]
+  printf '%s' "$output" | grep -Eq '^[0-9]+$'
+  secs="$(date -u +%s)"
+  [ "$output" -ge $((secs * 1000 - 1000)) ]
+}
+
+@test "now_ms falls back to seconds on BSD-shaped date output" {
+  fake="$BATS_TEST_TMPDIR/fakebin"
+  mkdir -p "$fake"
+  printf '%s\n' '#!/usr/bin/env bash' \
+    'case "$*" in *%s%N*) echo "1700000000N" ;; *%s*) echo "1700000000" ;; *) /bin/date "$@" ;; esac' \
+    > "$fake/date"
+  chmod +x "$fake/date"
+  run bash -c "PATH='$fake':\$PATH; . '$ROUTINE_REPO_ROOT/lib/telemetry.sh' && routine_now_ms"
+  [ "$status" -eq 0 ]
+  [ "$output" = "1700000000000" ]
+}
+
 @test "emit is append-only" {
   tfile="$BATS_TEST_TMPDIR/telemetry.jsonl"
   printf '%s\n' '{"existing":"line"}' > "$tfile"

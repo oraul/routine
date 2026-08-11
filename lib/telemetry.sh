@@ -3,6 +3,16 @@
 # ts,event,script,ticket,task,exit,ms — we are the only writer, so awk can
 # parse without a JSON library. Script-owned, append-only. bash 3.2.
 
+# routine_now_ms — epoch milliseconds where date supports %N (GNU), epoch
+# seconds x 1000 where it prints the literal N (BSD). Runtime-detected.
+routine_now_ms() {
+  _t_now="$(date +%s%N 2>/dev/null || true)"
+  case "$_t_now" in
+    ''|*[!0-9]*) echo $(( $(date -u +%s) * 1000 )) ;;
+    *) echo $(( _t_now / 1000000 )) ;;
+  esac
+}
+
 # telemetry_emit <file> <event> <script> <ticket> <task> <exit> <ms>
 telemetry_emit() {
   _t_file="$1" _t_event="$2" _t_script="$3" _t_ticket="$4" _t_task="$5"

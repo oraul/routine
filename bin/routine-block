@@ -9,6 +9,8 @@ lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
 # shellcheck source=/dev/null
 . "$lib/index.sh"
 
+start_ms="$(routine_now_ms)"
+
 ticket="${1:-}"
 if [ ! -d "$ticket" ] || [ ! -f "$ticket/index.tsv" ]; then
   echo "usage: routine-block <ticket-dir>" >&2
@@ -31,6 +33,6 @@ fi
 ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 index_set_status "$ticket/index.tsv" "$tid" blocked "$ts"
 telemetry_emit "$ticket/telemetry.jsonl" ticket.block bin/routine-block \
-  "$(basename "$ticket")" "$tid" 0 0
+  "$(basename "$ticket")" "$tid" 0 "$(( $(routine_now_ms) - start_ms ))"
 echo "routine-block: $tid blocked — the run halts here"
 exit 0
