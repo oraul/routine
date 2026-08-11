@@ -63,7 +63,9 @@ clean and checked out on a branch, and SHALL fail with the reason otherwise.
 ### Requirement: Analyst baseline lints the ticket and checks coherence
 The analyst gate baseline SHALL resolve the ticket from
 `ROUTINE_TICKET_DIR` (failing with a message when unset), SHALL run
-`routine-spec-lint` over it, and SHALL verify the index is coherent with the
+`routine-spec-lint` over it, SHALL then append any index rows missing for
+existing task directories (the same append-only, file-ordered sync
+`routine-next` performs), and SHALL verify the index is coherent with the
 directory tree: every index row's task directory exists and every task
 directory has an index row.
 
@@ -75,9 +77,14 @@ directory has an index row.
 - **WHEN** the ticket fails `routine-spec-lint`
 - **THEN** `routine-gate analyst` exits non-zero surfacing the lint output
 
+#### Scenario: Fresh ticket is coherent by construction
+- **WHEN** a well-formed ticket has task directories but an empty index
+- **THEN** the analyst baseline appends the rows as `pending` and passes
+
 #### Scenario: Index row without a directory
 - **WHEN** the index lists a task whose directory does not exist
 - **THEN** the analyst baseline exits non-zero naming the row
+
 
 ### Requirement: Developer baseline runs the briefing's manifest sidecars
 The developer gate baseline SHALL, when a ticket context exists, read the
