@@ -1,6 +1,6 @@
 ## 1. Scaffold and ticket allocation
 
-- [ ] 1.1 Red→green: `bin/routine-scaffold` creates `runs/<app>/{hooks,tickets}`
+- [x] 1.1 Red→green: `bin/routine-scaffold` creates `runs/<app>/{hooks,tickets}`
       idempotently and halts non-zero naming `developer.sh` until it exists
 - [ ] 1.2 Red→green: `bin/routine-ticket-new` allocates sequential 4-digit ids
       (scanning active and archived tickets), creates the dir + empty
