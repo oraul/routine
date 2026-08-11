@@ -21,4 +21,4 @@
       `[ubuntu-latest, macos-latest]` (bats), `openspec-validate` (strict)
 - [x] 3.2 Extend `CONTRIBUTING.md` with the conventions and the loop,
       verbatim, keeping the existing hard rules on sensitive data
-- [ ] 3.3 Add the `README.md` stub opening with the thesis
+- [x] 3.3 Add the `README.md` stub opening with the thesis
