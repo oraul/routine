@@ -1,0 +1,55 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: shellcheck
+        run: |
+          files=$(find bin lib caffeine -type f \( -name '*.sh' -o -path 'bin/*' \) 2>/dev/null | sort)
+          if [ -n "$files" ]; then
+            # shellcheck disable=SC2086
+            shellcheck $files
+          fi
+
+  test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install shellcheck (linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y shellcheck
+      - name: Install shellcheck (macos)
+        if: runner.os == 'macOS'
+        run: brew install shellcheck
+      - name: Install bats-core
+        uses: actions/checkout@v4
+        with:
+          repository: bats-core/bats-core
+          ref: v1.11.0
+          path: .bats-core
+      - name: Run the suite via selfcheck
+        run: |
+          export PATH="$PWD/.bats-core/bin:$PATH"
+          bin/routine-selfcheck
+
+  openspec-validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: openspec validate
+        run: npx --yes @fission-ai/openspec@latest validate --all --strict

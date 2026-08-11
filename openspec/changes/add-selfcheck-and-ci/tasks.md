@@ -17,7 +17,7 @@
 
 ## 3. CI and docs
 
-- [ ] 3.1 Add `.github/workflows/ci.yml`: `lint` (shellcheck), `test` matrix
+- [x] 3.1 Add `.github/workflows/ci.yml`: `lint` (shellcheck), `test` matrix
       `[ubuntu-latest, macos-latest]` (bats), `openspec-validate` (strict)
 - [ ] 3.2 Extend `CONTRIBUTING.md` with the conventions and the loop,
       verbatim, keeping the existing hard rules on sensitive data
