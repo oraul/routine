@@ -8,7 +8,7 @@
 
 ## 2. Gate runner
 
-- [ ] 2.1 Red→green: `bin/routine-gate` argument handling — unknown or missing
+- [x] 2.1 Red→green: `bin/routine-gate` argument handling — unknown or missing
       gate name exits non-zero naming the valid gates
 - [ ] 2.2 Red→green: stage composition — baseline then hook, first failure
       stops the run and surfaces output, hook exit codes relayed verbatim

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Gate runner: composes selfcheck (preflight only) -> gate baseline -> app
+# hook into one exit-code decision. Exit 0 passes; the first non-zero stage
+# aborts the run and its output is the reason.
+set -u
+
+repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=/dev/null
+. "$repo_dir/lib/paths.sh"
+# shellcheck source=/dev/null
+. "$repo_dir/lib/telemetry.sh"
+
+gate="${1:-}"
+case "$gate" in
+  preflight|analyst|developer) ;;
+  *)
+    echo "routine-gate: unknown gate '${gate}'" >&2
+    echo "usage: routine-gate <preflight|analyst|developer>" >&2
+    exit 2
+    ;;
+esac
+
+exit 0
