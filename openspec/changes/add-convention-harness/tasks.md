@@ -7,4 +7,4 @@
 
 ## 2. CI
 
-- [ ] 2.1 Add the `conventions` job running the check against the PR base
+- [x] 2.1 Add the `conventions` job running the check against the PR base
