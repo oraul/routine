@@ -15,6 +15,6 @@
 
 ## 3. Developer baseline
 
-- [ ] 3.1 Red→green: manifest-driven sidecar runs in `routine-gate developer`
+- [x] 3.1 Red→green: manifest-driven sidecar runs in `routine-gate developer`
       with per-script telemetry, missing-sidecar failure, and the
       no-ticket-context pass
