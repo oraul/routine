@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Releases a block: returns the first blocked task to pending, refusing
+# unless unblock.md carries the human's unblocking context.
+set -u
+
+lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
+# shellcheck source=/dev/null
+. "$lib/telemetry.sh"
+# shellcheck source=/dev/null
+. "$lib/index.sh"
+
+ticket="${1:-}"
+if [ ! -d "$ticket" ] || [ ! -f "$ticket/index.tsv" ]; then
+  echo "usage: routine-unblock <ticket-dir>" >&2
+  exit 2
+fi
+
+if ! row="$(index_first_with_status "$ticket/index.tsv" blocked)"; then
+  echo "routine-unblock: no task is blocked" >&2
+  exit 1
+fi
+tid="$(printf '%s' "$row" | cut -f1)"
+b="$(printf '%s' "$row" | cut -f2)"
+t="$(printf '%s' "$row" | cut -f3)"
+
+if [ ! -f "$ticket/briefings/$b/tasks/$t/unblock.md" ]; then
+  echo "routine-unblock: refuse — write briefings/$b/tasks/$t/unblock.md first" >&2
+  exit 1
+fi
+
+ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+index_set_status "$ticket/index.tsv" "$tid" pending "$ts"
+telemetry_emit "$ticket/telemetry.jsonl" ticket.unblock bin/routine-unblock \
+  "$(basename "$ticket")" "$tid" 0 0
+echo "routine-unblock: $tid released to pending"
+exit 0

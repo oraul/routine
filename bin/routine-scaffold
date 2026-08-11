@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# App state scaffolding: creates runs/<app>/{hooks,tickets} and halts until
+# the mandatory developer hook exists. Idempotent; the LLM never chooses the
+# folder.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+
+root="$(routine_root)"
+target="${TARGET:-$PWD}"
+app="$(routine_app_key "$target")"
+
+mkdir -p "$root/runs/$app/hooks" "$root/runs/$app/tickets"
+
+if [ ! -f "$root/runs/$app/hooks/developer.sh" ]; then
+  echo "routine-scaffold: missing mandatory hook: runs/$app/hooks/developer.sh" >&2
+  echo "routine-scaffold: create it with one line delegating to the app's own tooling, e.g.: cd \"\$TARGET\" && bin/ci" >&2
+  exit 1
+fi
+
+echo "$root/runs/$app"
+exit 0
