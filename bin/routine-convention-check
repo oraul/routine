@@ -31,6 +31,9 @@ if [ -n "$hits" ]; then
   printf '%s\n' "$hits" >&2
 fi
 
+# Messages of every commit are scanned; grammar applies to non-merges only
+# (a merge is any commit with more than one parent — CI's synthetic PR
+# merge commits included).
 for c in $(git -C "$target" rev-list "$base"..HEAD); do
   subject="$(git -C "$target" log -1 --format=%s "$c")"
   body="$(git -C "$target" log -1 --format=%B "$c")"
@@ -39,9 +42,10 @@ for c in $(git -C "$target" rev-list "$base"..HEAD); do
     fail "$c: sensitive pattern in the commit message"
   fi
 
-  case "$subject" in
-    "Merge pull request #"*) continue ;;
-  esac
+  parents="$(git -C "$target" rev-list --parents -n 1 "$c" | wc -w)"
+  if [ "$parents" -gt 2 ]; then
+    continue
+  fi
 
   if ! printf '%s' "$subject" \
     | grep -Eq '^(spec|feat|fix|test|refactor|docs|ci|chore)(\([a-z_-]+\))?: .+'; then

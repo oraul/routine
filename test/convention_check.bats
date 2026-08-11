@@ -71,12 +71,16 @@ See https://claude.ai/code/session_0000000000000000000000000"
   case "$output" in *72*) ;; *) false ;; esac
 }
 
-@test "behavior commit without Change trailer is caught; merge exempt" {
+@test "behavior commit without Change trailer is caught; merges exempt" {
   make_repo
   fixture_commit "feat(bin): trailerless feature"
-  fixture_commit "Merge pull request #9: feat: something — outcome"
+  git -C "$repo" checkout -qb side
+  fixture_commit "chore: side work"
+  git -C "$repo" checkout -q main 2>/dev/null || git -C "$repo" checkout -q master
+  git -C "$repo" -c user.name=test -c user.email=test@example.invalid \
+    merge -q --no-ff side -m "Merge anything at all: subjects of merges are never judged"
   run env TARGET="$repo" "$ROUTINE_REPO_ROOT/$checker" base
   [ "$status" -ne 0 ]
   case "$output" in *Change:*) ;; *) false ;; esac
-  printf '%s\n' "$output" | grep -c 'Merge pull request' | grep -qx 0
+  printf '%s\n' "$output" | grep -c 'never judged' | grep -qx 0
 }
