@@ -45,7 +45,24 @@ run_hook() {
   fi
 }
 
-baseline_preflight() { return 0; }  # target checks arrive with task 3.2
+# Preflight baseline: the target must be a git worktree that is clean
+# (nothing staged, modified, or untracked) and checked out on a branch.
+baseline_preflight() {
+  if ! git -C "$target" rev-parse --git-dir >/dev/null 2>&1; then
+    echo "routine-gate: target is not a git repository: $target" >&2
+    return 1
+  fi
+  if [ -n "$(git -C "$target" status --porcelain)" ]; then
+    echo "routine-gate: target worktree is not clean: $target" >&2
+    git -C "$target" status --short >&2
+    return 1
+  fi
+  if ! git -C "$target" symbolic-ref -q HEAD >/dev/null; then
+    echo "routine-gate: target HEAD is detached; check out a branch" >&2
+    return 1
+  fi
+  return 0
+}
 
 run_gate() {
   case "$gate" in

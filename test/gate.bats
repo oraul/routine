@@ -68,6 +68,31 @@ make_target() {
   case "$output" in *worktree*|*branch*) false ;; *) ;; esac
 }
 
+@test "preflight passes on a clean target on a branch" {
+  make_gate_root
+  make_target
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  [ "$status" -eq 0 ]
+}
+
+@test "preflight fails on a dirty target worktree" {
+  make_gate_root
+  make_target
+  touch "$tgt/untracked-file"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  [ "$status" -ne 0 ]
+  case "$output" in *worktree*) ;; *) false ;; esac
+}
+
+@test "preflight fails on a detached HEAD" {
+  make_gate_root
+  make_target
+  git -C "$tgt" checkout -q --detach HEAD
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  [ "$status" -ne 0 ]
+  case "$output" in *branch*) ;; *) false ;; esac
+}
+
 @test "missing gate name exits non-zero naming the gates" {
   run "$ROUTINE_REPO_ROOT/bin/routine-gate"
   [ "$status" -ne 0 ]
