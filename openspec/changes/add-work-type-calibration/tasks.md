@@ -7,7 +7,7 @@
 
 ## 2. Calibration docs
 
-- [ ] 2.1 Write `calibration/{bug,feature,greenfield,epic}.md` — analyst
+- [x] 2.1 Write `calibration/{bug,feature,greenfield,epic}.md` — analyst
       decomposition guidance and developer posture per type
 
 ## 3. Prompts
