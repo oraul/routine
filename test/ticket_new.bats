@@ -18,6 +18,7 @@ setup_fixture() {
   [ "$output" = "$groot/runs/app/tickets/0001" ]
   [ -f "$groot/runs/app/tickets/0001/index.tsv" ]
   [ ! -s "$groot/runs/app/tickets/0001/index.tsv" ]
+  [ "$(grep -c '"event":"ticket.new"' "$groot/runs/app/tickets/0001/telemetry.jsonl")" -eq 1 ]
 }
 
 @test "allocation is sequential and skips archived ids" {
