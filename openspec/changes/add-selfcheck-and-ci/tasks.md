@@ -3,7 +3,7 @@
 - [x] 1.1 Bootstrap the bats harness (`test/test_helper.bash`, first failing
       scaffold test) and make it green with `.claude-plugin/plugin.json`,
       `.gitignore` (single entry `runs/`), and the `bin/`/`lib/` layout
-- [ ] 1.2 Red→green: `lib/paths.sh` resolves the root as `ROUTINE_ROOT` →
+- [x] 1.2 Red→green: `lib/paths.sh` resolves the root as `ROUTINE_ROOT` →
       `$CLAUDE_PLUGIN_ROOT` → the script's own repo root
 
 ## 2. Selfcheck
