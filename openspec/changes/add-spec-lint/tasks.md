@@ -1,6 +1,6 @@
 ## 1. The linter
 
-- [ ] 1.1 Red→green: `bin/routine-spec-lint` passes a well-formed fixture
+- [x] 1.1 Red→green: `bin/routine-spec-lint` passes a well-formed fixture
       ticket and fails a missing/headerless `requirement.md`, naming file and
       rule
 - [ ] 1.2 Red→green: RFC 2119, scenario (Given/When/Then), and enumerated
