@@ -1,6 +1,6 @@
 ## 1. The rspec pair
 
-- [ ] 1.1 Red→green: `caffeine/ruby/rspec.sh` — legacy should, focus marks,
+- [x] 1.1 Red→green: `caffeine/ruby/rspec.sh` — legacy should, focus marks,
       sleep in specs, any_instance; one fixture per rule plus clean
 - [ ] 1.2 Write `caffeine/ruby/rspec.md` — the Better Specs skeleton with
       insight comments
