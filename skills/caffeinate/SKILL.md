@@ -6,6 +6,11 @@ disable-model-invocation: true
 
 # /caffeinate — grow caffeine from the target's own dependencies
 
+> **Script paths**: every `routine-*` script lives in this plugin's `bin/`.
+> In an installed plugin session invoke them as
+> `"$CLAUDE_PLUGIN_ROOT/bin/<script>"`; in this repository, `bin/<script>`.
+> The names below are shorthand for that resolved path.
+
 Discovery is a script; drafting is you; acceptance is the harness. Never
 skip a step.
 

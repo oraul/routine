@@ -6,6 +6,11 @@ disable-model-invocation: true
 
 # /routine — the phase protocol
 
+> **Script paths**: every `routine-*` script lives in this plugin's `bin/`.
+> In an installed plugin session invoke them as
+> `"$CLAUDE_PLUGIN_ROOT/bin/<script>"`; in this repository, `bin/<script>`.
+> The names below are shorthand for that resolved path.
+
 You drive the phase machine. Scripts decide; you never do. Every transition
 below calls a script — a non-zero exit **stops the run** and its output is
 the reason. Never edit `index.tsv` or `telemetry.jsonl` directly; they are
