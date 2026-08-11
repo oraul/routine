@@ -21,5 +21,5 @@
 
 ## 3. Evidence
 
-- [ ] 3.1 Red→green: each lifecycle script emits exactly one `ticket.*`
+- [x] 3.1 Red→green: each lifecycle script emits exactly one `ticket.*`
       telemetry line into the ticket's `telemetry.jsonl`

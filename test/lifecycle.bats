@@ -12,6 +12,20 @@ make_ticket() {
   "$ROUTINE_REPO_ROOT/bin/routine-next" "$ticket" > /dev/null
 }
 
+@test "each lifecycle step emits exactly one ticket.* line" {
+  make_ticket
+  touch "$ticket/briefings/01-auth/tasks/01-login/block.md" \
+        "$ticket/briefings/01-auth/tasks/01-login/unblock.md"
+  "$ROUTINE_REPO_ROOT/bin/routine-block" "$ticket" > /dev/null
+  "$ROUTINE_REPO_ROOT/bin/routine-unblock" "$ticket" > /dev/null
+  "$ROUTINE_REPO_ROOT/bin/routine-next" "$ticket" > /dev/null
+  "$ROUTINE_REPO_ROOT/bin/routine-done" "$ticket" > /dev/null
+  [ "$(grep -c '"event":"ticket.next"' "$ticket/telemetry.jsonl")" -eq 2 ]
+  [ "$(grep -c '"event":"ticket.block"' "$ticket/telemetry.jsonl")" -eq 1 ]
+  [ "$(grep -c '"event":"ticket.unblock"' "$ticket/telemetry.jsonl")" -eq 1 ]
+  [ "$(grep -c '"event":"ticket.done"' "$ticket/telemetry.jsonl")" -eq 1 ]
+}
+
 @test "done marks the in_progress task with a fresh timestamp" {
   make_ticket
   run "$ROUTINE_REPO_ROOT/bin/routine-done" "$ticket"
