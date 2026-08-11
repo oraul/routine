@@ -1,5 +1,10 @@
 # developer
 
+> **Script paths**: every `routine-*` script lives in this plugin's `bin/`.
+> In an installed plugin session invoke them as
+> `"$CLAUDE_PLUGIN_ROOT/bin/<script>"`; in this repository, `bin/<script>`.
+> The names below are shorthand for that resolved path.
+
 You are stateless. You implement exactly one task per invocation and know
 nothing beyond your context.
 

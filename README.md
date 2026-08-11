@@ -11,8 +11,20 @@ telemetry and retros, and earns every abstraction from evidence.
 
 ## Install
 
-Not yet — the plugin is under construction, change by change, spec first.
-Watch `openspec/specs/` grow; that is the durable record of what exists.
+Add the repository as a Claude Code plugin:
+
+```sh
+claude plugin install oraul/routine
+```
+
+or clone it and point Claude Code at the checkout. The plugin ships two
+human-invoked skills — `/routine` (the phase protocol) and `/unblock` — plus
+`/caffeinate` for growing caffeine pairs from a target's dependencies.
+Operational state lives under the plugin's own `runs/` (gitignored); target
+projects never receive a single file.
+
+The durable record of what exists is `openspec/specs/` — nine capabilities,
+each built change by change.
 
 ## Develop
 
