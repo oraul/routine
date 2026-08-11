@@ -13,8 +13,26 @@ make_fixture() {
   printf '%s\n' '@test "passes" { true; }' > "$fixture/test/pass.bats"
 }
 
-@test "green path: clean fixture exits 0" {
+@test "green path: clean fixture without caffeine sidecars exits 0" {
   make_fixture
   run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-selfcheck"
   [ "$status" -eq 0 ]
+}
+
+@test "lint failure exits non-zero and skips the test stage" {
+  make_fixture
+  printf '%s\n' '#!/usr/bin/env bash' 'cat $1' > "$fixture/bin/bad"
+  chmod +x "$fixture/bin/bad"
+  printf '@test "marker" { touch "%s/tests-ran"; }\n' "$fixture" \
+    > "$fixture/test/pass.bats"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-selfcheck"
+  [ "$status" -ne 0 ]
+  [ ! -f "$fixture/tests-ran" ]
+}
+
+@test "failing bats suite exits non-zero" {
+  make_fixture
+  printf '%s\n' '@test "fails" { false; }' > "$fixture/test/fail.bats"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-selfcheck"
+  [ "$status" -ne 0 ]
 }

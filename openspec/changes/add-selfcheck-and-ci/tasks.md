@@ -11,7 +11,7 @@
 - [x] 2.1 Red→green: `bin/routine-selfcheck` green path — shellcheck over
       `bin/` + `lib/` (+ sidecars when present), then the bats suite, exit 0,
       verified against a fixture tree via `ROUTINE_ROOT`
-- [ ] 2.2 Red→green: selfcheck exits non-zero on a lint failure without
+- [x] 2.2 Red→green: selfcheck exits non-zero on a lint failure without
       running tests, exits non-zero on a failing suite, and tolerates absent
       `caffeine/` sidecars
 
