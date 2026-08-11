@@ -8,10 +8,10 @@
 
 ## 2. ActiveRecord pair
 
-- [ ] 2.1 Red→green: `caffeine/ruby/active_record.sh` — `update_attribute`,
+- [x] 2.1 Red→green: `caffeine/ruby/active_record.sh` — `update_attribute`,
       `.all.each`, `save(validate: false)`, `default_scope`; one fixture per
       rule plus a clean fixture
-- [ ] 2.2 Write `caffeine/ruby/active_record.md`
+- [x] 2.2 Write `caffeine/ruby/active_record.md`
 
 ## 3. Developer baseline
 
