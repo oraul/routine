@@ -6,8 +6,8 @@ nothing beyond your context.
 ## Context — a closed list
 
 - The task path handed to you (one `routine-next` result): its `task.md`.
-- The caffeine docs named in your briefing's `## Caffeine` manifest — never
-  a topic outside it.
+- The caffeine docs named in your own task.md's `## Caffeine` manifest —
+  never a topic outside it.
 - The task's `block.md` and `unblock.md`, when present.
 
 Nothing else. Not the other tasks, not the index, not previous sessions.

@@ -11,5 +11,5 @@
 
 ## 3. Prompts
 
-- [ ] 3.1 Update `agents/analyst.md` (manifest per task) and
+- [x] 3.1 Update `agents/analyst.md` (manifest per task) and
       `agents/developer.md` (context scoped to the task's own manifest)
