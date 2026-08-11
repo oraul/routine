@@ -20,4 +20,48 @@ case "$gate" in
     ;;
 esac
 
-exit 0
+root="$(routine_root)"
+target="${TARGET:-$PWD}"
+
+app_key() {
+  _top="$(git -C "$target" rev-parse --show-toplevel 2>/dev/null)" || _top="$target"
+  basename "$_top"
+}
+
+# Seam contract: optional hooks log one line and pass when missing; the
+# developer hook is mandatory because it is the app's lint+test facade.
+run_hook() {
+  _app="$(app_key)"
+  _hook="$root/runs/$_app/hooks/$1.sh"
+  if [ -f "$_hook" ]; then
+    TARGET="$target" bash "$_hook"
+  elif [ "$1" = developer ]; then
+    echo "routine-gate: missing mandatory hook: runs/$_app/hooks/developer.sh" >&2
+    echo "routine-gate: create it with one line delegating to the app's own tooling, e.g.: cd \"\$TARGET\" && bin/ci" >&2
+    return 1
+  else
+    echo "routine-gate: no $1 hook for $_app; passing"
+    return 0
+  fi
+}
+
+baseline_preflight() { return 0; }  # target checks arrive with task 3.2
+
+run_gate() {
+  case "$gate" in
+    preflight)
+      "$root/bin/routine-selfcheck" || return "$?"
+      baseline_preflight || return "$?"
+      run_hook preflight || return "$?"
+      ;;
+    analyst)
+      run_hook analyst || return "$?"
+      ;;
+    developer)
+      run_hook developer || return "$?"
+      ;;
+  esac
+}
+
+run_gate
+exit "$?"

@@ -21,6 +21,27 @@ make_target() {
     commit -q --allow-empty -m "root"
 }
 
+@test "hook exit code is relayed verbatim" {
+  make_gate_root
+  make_target
+  mkdir -p "$groot/runs/app/hooks"
+  printf '%s\n' '#!/usr/bin/env bash' 'exit 7' > "$groot/runs/app/hooks/developer.sh"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  [ "$status" -eq 7 ]
+}
+
+@test "failing selfcheck stops preflight before the hook" {
+  make_gate_root
+  make_target
+  printf '%s\n' '#!/usr/bin/env bash' 'echo harness red' 'exit 1' > "$groot/bin/routine-selfcheck"
+  mkdir -p "$groot/runs/app/hooks"
+  printf '#!/usr/bin/env bash\ntouch "%s/hook-ran"\n' "$groot" > "$groot/runs/app/hooks/preflight.sh"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  [ "$status" -ne 0 ]
+  case "$output" in *"harness red"*) ;; *) false ;; esac
+  [ ! -f "$groot/hook-ran" ]
+}
+
 @test "missing gate name exits non-zero naming the gates" {
   run "$ROUTINE_REPO_ROOT/bin/routine-gate"
   [ "$status" -ne 0 ]
