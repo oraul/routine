@@ -26,7 +26,7 @@ make_target() {
   make_target
   mkdir -p "$groot/runs/app/hooks"
   printf '%s\n' '#!/usr/bin/env bash' 'exit 7' > "$groot/runs/app/hooks/developer.sh"
-  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
   [ "$status" -eq 7 ]
 }
 
@@ -36,7 +36,7 @@ make_target() {
   printf '%s\n' '#!/usr/bin/env bash' 'echo harness red' 'exit 1' > "$groot/bin/routine-selfcheck"
   mkdir -p "$groot/runs/app/hooks"
   printf '#!/usr/bin/env bash\ntouch "%s/hook-ran"\n' "$groot" > "$groot/runs/app/hooks/preflight.sh"
-  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
   [ "$status" -ne 0 ]
   case "$output" in *"harness red"*) ;; *) false ;; esac
   [ ! -f "$groot/hook-ran" ]
@@ -82,7 +82,7 @@ make_good_ticket() {
 @test "analyst gate requires a ticket context" {
   make_gate_root
   make_target
-  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
+  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
   [ "$status" -ne 0 ]
   case "$output" in *ROUTINE_TICKET_DIR*) ;; *) false ;; esac
 }
@@ -113,7 +113,7 @@ make_good_ticket() {
 @test "missing developer hook aborts naming the file and an example" {
   make_gate_root
   make_target
-  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
   [ "$status" -ne 0 ]
   case "$output" in *"runs/app/hooks/developer.sh"*) ;; *) false ;; esac
   case "$output" in *'cd "$TARGET"'*) ;; *) false ;; esac
@@ -122,7 +122,7 @@ make_good_ticket() {
 @test "red harness aborts preflight before any target check" {
   make_gate_root
   printf '%s\n' '#!/usr/bin/env bash' 'echo harness red' 'exit 1' > "$groot/bin/routine-selfcheck"
-  run env ROUTINE_ROOT="$groot" TARGET="$BATS_TEST_TMPDIR/nonexistent" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$BATS_TEST_TMPDIR/nonexistent" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
   [ "$status" -ne 0 ]
   case "$output" in *"harness red"*) ;; *) false ;; esac
   case "$output" in *worktree*|*branch*) false ;; *) ;; esac
@@ -131,7 +131,7 @@ make_good_ticket() {
 @test "preflight passes on a clean target on a branch" {
   make_gate_root
   make_target
-  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
   [ "$status" -eq 0 ]
 }
 
@@ -139,7 +139,7 @@ make_good_ticket() {
   make_gate_root
   make_target
   touch "$tgt/untracked-file"
-  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
   [ "$status" -ne 0 ]
   case "$output" in *worktree*) ;; *) false ;; esac
 }
@@ -148,7 +148,7 @@ make_good_ticket() {
   make_gate_root
   make_target
   git -C "$tgt" checkout -q --detach HEAD
-  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
   [ "$status" -ne 0 ]
   case "$output" in *branch*) ;; *) false ;; esac
 }
@@ -168,7 +168,7 @@ make_good_ticket() {
 @test "gate emits nothing without ticket context" {
   make_gate_root
   make_target
-  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
   [ "$status" -eq 0 ]
   [ -z "$(find "$BATS_TEST_TMPDIR" -name telemetry.jsonl)" ]
 }
@@ -213,7 +213,7 @@ make_manifest_ticket() {
   make_target
   mkdir -p "$groot/runs/app/hooks"
   printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$groot/runs/app/hooks/developer.sh"
-  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
   [ "$status" -eq 0 ]
   case "$output" in *"no ticket context"*) ;; *) false ;; esac
 }
