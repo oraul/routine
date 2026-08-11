@@ -7,6 +7,7 @@ make_good_ticket() {
   mkdir -p "$ticket/briefings/01-auth/tasks/01-login"
   cat > "$ticket/requirement.md" <<'EOF'
 # Requirement: Login
+Type: feature
 The system SHALL let users log in.
 EOF
   cat > "$ticket/briefings/01-auth/briefing.md" <<'EOF'
@@ -73,4 +74,41 @@ EOF
   run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
   [ "$status" -ne 0 ]
   case "$output" in *requirement.md*Requirement*) ;; *) false ;; esac
+}
+
+@test "missing or unknown type is rejected naming the valid set" {
+  make_good_ticket
+  sed -i.bak '/^Type:/d' "$ticket/requirement.md" && rm -f "$ticket/requirement.md.bak"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *bug*feature*greenfield*epic*) ;; *) false ;; esac
+  make_good_ticket
+  sed -i.bak 's/^Type: feature/Type: refactor/' "$ticket/requirement.md" && rm -f "$ticket/requirement.md.bak"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *bug*feature*greenfield*epic*) ;; *) false ;; esac
+}
+
+@test "a bug requires a reproduction section" {
+  make_good_ticket
+  sed -i.bak 's/^Type: feature/Type: bug/' "$ticket/requirement.md" && rm -f "$ticket/requirement.md.bak"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *Reproduction*) ;; *) false ;; esac
+  printf '%s\n' '## Reproduction' '1. visit /login with expired session' >> "$ticket/requirement.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -eq 0 ]
+}
+
+@test "an epic requires at least two briefings" {
+  make_good_ticket
+  sed -i.bak 's/^Type: feature/Type: epic/' "$ticket/requirement.md" && rm -f "$ticket/requirement.md.bak"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *"two briefings"*) ;; *) false ;; esac
+  mkdir -p "$ticket/briefings/02-api/tasks/01-endpoints"
+  printf '%s\n' '# Briefing: api' > "$ticket/briefings/02-api/briefing.md"
+  printf '%s\n' '# Task: endpoints' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' > "$ticket/briefings/02-api/tasks/01-endpoints/task.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -eq 0 ]
 }

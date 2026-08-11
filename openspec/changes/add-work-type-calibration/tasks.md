@@ -1,8 +1,8 @@
 ## 1. Grammar teeth
 
-- [ ] 1.1 Red→green: lint requires `Type: <bug|feature|greenfield|epic>` in
+- [x] 1.1 Red→green: lint requires `Type: <bug|feature|greenfield|epic>` in
       `requirement.md`, rejecting missing/unknown types naming the valid set
-- [ ] 1.2 Red→green: `Type: bug` requires `## Reproduction`; `Type: epic`
+- [x] 1.2 Red→green: `Type: bug` requires `## Reproduction`; `Type: epic`
       requires at least two briefings
 
 ## 2. Calibration docs
