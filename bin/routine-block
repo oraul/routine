@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Parks the line: marks the in_progress task blocked, refusing unless the
+# developer wrote block.md first — the block must carry its evidence.
+set -u
+
+lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
+# shellcheck source=/dev/null
+. "$lib/telemetry.sh"
+# shellcheck source=/dev/null
+. "$lib/index.sh"
+
+ticket="${1:-}"
+if [ ! -d "$ticket" ] || [ ! -f "$ticket/index.tsv" ]; then
+  echo "usage: routine-block <ticket-dir>" >&2
+  exit 2
+fi
+
+if ! row="$(index_first_with_status "$ticket/index.tsv" in_progress)"; then
+  echo "routine-block: no task is in_progress" >&2
+  exit 1
+fi
+tid="$(printf '%s' "$row" | cut -f1)"
+b="$(printf '%s' "$row" | cut -f2)"
+t="$(printf '%s' "$row" | cut -f3)"
+
+if [ ! -f "$ticket/briefings/$b/tasks/$t/block.md" ]; then
+  echo "routine-block: refuse — write briefings/$b/tasks/$t/block.md first" >&2
+  exit 1
+fi
+
+ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+index_set_status "$ticket/index.tsv" "$tid" blocked "$ts"
+telemetry_emit "$ticket/telemetry.jsonl" ticket.block bin/routine-block \
+  "$(basename "$ticket")" "$tid" 0 0
+echo "routine-block: $tid blocked — the run halts here"
+exit 0

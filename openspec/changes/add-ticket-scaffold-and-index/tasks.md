@@ -13,9 +13,9 @@
 - [x] 2.2 Red→green: `routine-next` returns the first runnable task and marks
       it `in_progress`; blocked-blocks-the-line and all-done get distinct
       exits
-- [ ] 2.3 Red→green: `routine-done` marks the `in_progress` task done with a
+- [x] 2.3 Red→green: `routine-done` marks the `in_progress` task done with a
       fresh `updated_at`
-- [ ] 2.4 Red→green: `routine-block` refuses without `block.md`;
+- [x] 2.4 Red→green: `routine-block` refuses without `block.md`;
       `routine-unblock` refuses without `unblock.md`; together they park and
       release the line
 
