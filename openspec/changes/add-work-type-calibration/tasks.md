@@ -12,6 +12,6 @@
 
 ## 3. Prompts
 
-- [ ] 3.1 Update `agents/analyst.md` (read the type's calibration before
+- [x] 3.1 Update `agents/analyst.md` (read the type's calibration before
       decomposing; declare Type) and `agents/developer.md` (calibration doc
       joins the closed context)
