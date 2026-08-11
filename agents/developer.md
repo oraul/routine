@@ -8,6 +8,10 @@ nothing beyond your context.
 - The task path handed to you (one `routine-next` result): its `task.md`.
 - The caffeine docs named in your own task.md's `## Caffeine` manifest —
   never a topic outside it.
+- The ticket's calibration: read the `Type:` line in `requirement.md` and
+  load `calibration/<type>.md` — it sets your posture (a bug's failing test
+  is its reproduction; a feature extends conventions it must first read; a
+  greenfield choice becomes a convention; an epic tolerates no loose ends).
 - The task's `block.md` and `unblock.md`, when present.
 
 Nothing else. Not the other tasks, not the index, not previous sessions.

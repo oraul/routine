@@ -23,6 +23,7 @@ fail() {
 rfc2119='(^|[^A-Za-z])(SHALL|MUST|SHOULD|MAY)([^A-Za-z]|$)'
 
 req="$ticket/requirement.md"
+work_type=""
 if [ ! -f "$req" ]; then
   fail "requirement.md" "missing"
 else
@@ -30,6 +31,15 @@ else
     || fail "requirement.md" "no '# Requirement:' header"
   grep -Eq "$rfc2119" "$req" \
     || fail "requirement.md" "no RFC 2119 keyword"
+  work_type="$(awk '/^Type: / {print $2; exit}' "$req")"
+  case "$work_type" in
+    bug|feature|greenfield|epic) ;;
+    *) fail "requirement.md" "Type must be one of: bug, feature, greenfield, epic" ;;
+  esac
+  if [ "$work_type" = "bug" ]; then
+    grep -q '^## Reproduction' "$req" \
+      || fail "requirement.md" "a bug requires a '## Reproduction' section"
+  fi
 fi
 
 found_briefing=0
@@ -69,6 +79,15 @@ for bdir in "$ticket"/briefings/*/; do
   [ "$found_task" -eq 1 ] || fail "$b" "briefing has no tasks"
 done
 [ "$found_briefing" -eq 1 ] || fail "briefings" "no briefings"
+
+if [ "$work_type" = "epic" ]; then
+  briefing_count=0
+  for bdir in "$ticket"/briefings/*/; do
+    [ -d "$bdir" ] && briefing_count=$((briefing_count + 1))
+  done
+  [ "$briefing_count" -ge 2 ] \
+    || fail "briefings" "an epic decomposes into at least two briefings"
+fi
 
 code=0
 [ "$fails" -eq 0 ] || code=1

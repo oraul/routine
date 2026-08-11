@@ -1,0 +1,28 @@
+# calibration: feature
+
+New behavior inside existing code. The codebase's conventions outrank your
+preferences; the seams you touch need protecting.
+
+## Analyst
+
+- Name, in the requirement, where the feature lives: the modules, models,
+  or endpoints it extends. Insight comes from reading that code first.
+- Decompose along the existing structure — one briefing per touched
+  subsystem — so tasks stay inside one convention set each.
+- Early tasks pin current behavior at the seams you are about to change
+  (characterization scenarios); later tasks add the new behavior.
+- Scenarios must cover the interaction between old and new: the existing
+  path still works, the new path works, and the boundary cases between.
+
+## Developer
+
+- Read before writing: the surrounding file's idioms — naming, error
+  handling, test style — are the spec for *how*, as much as task.md is the
+  spec for *what*.
+- Extend, don't rewrite. If the existing shape genuinely cannot host the
+  feature, that is a defective-spec refusal with the reason stated, not a
+  quiet refactor.
+- Regression first: make the seam's current behavior green under test
+  before changing it, then red→green the new scenario.
+- Match the target's tooling exactly; the developer.sh facade is the only
+  definition of done.
