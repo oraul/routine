@@ -7,10 +7,10 @@
 
 ## 2. The defect return
 
-- [ ] 2.1 Red→green: `bin/routine-defect` — refuses without reason or
+- [x] 2.1 Red→green: `bin/routine-defect` — refuses without reason or
       in_progress task; writes `defect.md`; resets to pending; emits
       `spec.defective` with non-zero exit value
-- [ ] 2.2 Red→green: analyst gate fails after more than 3 failed spec.lint
+- [x] 2.2 Red→green: analyst gate fails after more than 3 failed spec.lint
       events, naming the revise limit
 
 ## 3. The seam documented where agents read

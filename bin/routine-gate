@@ -57,6 +57,15 @@ baseline_analyst() {
     echo "routine-gate: analyst gate requires a ticket context (set ROUTINE_TICKET_DIR)" >&2
     return 1
   fi
+  # The revise limit is counted, never remembered: more than 3 failed
+  # lint runs on record aborts the ticket.
+  if [ -f "$ROUTINE_TICKET_DIR/telemetry.jsonl" ]; then
+    _revises="$(grep -c '"event":"spec.lint".*"exit":[1-9]' "$ROUTINE_TICKET_DIR/telemetry.jsonl" || true)"
+    if [ "$_revises" -gt 3 ]; then
+      echo "routine-gate: revise limit exhausted ($_revises failed lint runs); abort the ticket" >&2
+      return 1
+    fi
+  fi
   "$repo_dir/bin/routine-spec-lint" "$ROUTINE_TICKET_DIR" || return 1
   _index="$ROUTINE_TICKET_DIR/index.tsv"
   if [ ! -f "$_index" ]; then
