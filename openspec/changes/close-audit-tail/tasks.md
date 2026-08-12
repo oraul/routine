@@ -6,5 +6,5 @@
 
 ## 2. The chain starts at preflight
 
-- [ ] 2.1 Red→green: the audit requires one passing `gate.preflight`
+- [x] 2.1 Red→green: the audit requires one passing `gate.preflight`
       line; audit and conclude fixtures gain it

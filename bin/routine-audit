@@ -20,14 +20,17 @@ tele="$ticket/telemetry.jsonl"
 viol=0
 fail() { echo "routine-audit: $1" >&2; viol=$((viol + 1)); }
 
-# Run-level: the ticket was born by script and passed the analyst gate.
+# Run-level: the ticket was born by script and passed the preflight and
+# analyst gates.
 first="$(head -n 1 "$tele" | awk -F'"' '{print $8}')"
 if [ "$first" != ticket.new ]; then
   fail "first event is '${first}'; the protocol starts at ticket.new"
 fi
-if ! grep -q '"event":"gate.analyst"[^}]*"exit":0,' "$tele"; then
-  fail "no passing gate.analyst on record"
-fi
+for _gate in gate.preflight gate.analyst; do
+  if ! grep -q '"event":"'"$_gate"'"[^}]*"exit":0,' "$tele"; then
+    fail "no passing $_gate on record"
+  fi
+done
 
 # count_pass <event> <task> [script] — passing lines matching the fields;
 # exact string compares in awk, no regex over user-authored scenarios.

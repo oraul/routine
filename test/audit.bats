@@ -15,6 +15,7 @@ make_run() {
     "$TAB" "$TAB" "$TAB" "$TAB" > "$ticket/index.tsv"
   cat > "$ticket/telemetry.jsonl" <<'EOF'
 {"ts":"2026-01-01T00:00:00Z","event":"ticket.new","script":"bin/routine-ticket-new","ticket":"0001","task":"","exit":0,"ms":1}
+{"ts":"2026-01-01T00:00:30Z","event":"gate.preflight","script":"bin/routine-gate","ticket":"0001","task":"","exit":0,"ms":8}
 {"ts":"2026-01-01T00:01:00Z","event":"spec.lint","script":"bin/routine-spec-lint","ticket":"0001","task":"","exit":0,"ms":5}
 {"ts":"2026-01-01T00:02:00Z","event":"gate.analyst","script":"bin/routine-gate","ticket":"0001","task":"","exit":0,"ms":10}
 {"ts":"2026-01-01T00:03:00Z","event":"ticket.next","script":"bin/routine-next","ticket":"0001","task":"01-01","exit":0,"ms":2}
@@ -41,6 +42,15 @@ EOF
   run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
   [ "$status" -ne 0 ]
   case "$output" in *ticket.new*) ;; *) false ;; esac
+}
+
+@test "a passing preflight gate must be on record" {
+  make_run
+  grep -v gate.preflight "$ticket/telemetry.jsonl" > "$ticket/t.new" \
+    && mv "$ticket/t.new" "$ticket/telemetry.jsonl"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *gate.preflight*) ;; *) false ;; esac
 }
 
 @test "a passing analyst gate must be on record" {
