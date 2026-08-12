@@ -17,7 +17,7 @@
 
 ## 4. RSpec tools
 
-- [ ] 4.1 Red→green: let!, shared examples as port contracts,
+- [x] 4.1 Red→green: let!, shared examples as port contracts,
       instance_double, build_stubbed, travel helpers over Timecop
 
 ## 5. Architecture docs teach

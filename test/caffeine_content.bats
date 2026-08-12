@@ -68,3 +68,18 @@ load test_helper
   grep -q 'architecture/hexagonal' "$ROUTINE_REPO_ROOT/caffeine/ruby/rails.md"
   grep -q 'ruby/rails' "$ROUTINE_REPO_ROOT/caffeine/architecture/hexagonal.md"
 }
+
+@test "rspec guide carries the four missing tools" {
+  doc="$ROUTINE_REPO_ROOT/caffeine/ruby/rspec.md"
+  grep -q 'let!' "$doc"
+  grep -q 'shared_examples' "$doc"
+  grep -q 'it_behaves_like' "$doc"
+  grep -q 'instance_double' "$doc"
+  grep -q 'build_stubbed' "$doc"
+}
+
+@test "rspec guide aligns time travel with its own sidecar" {
+  doc="$ROUTINE_REPO_ROOT/caffeine/ruby/rspec.md"
+  grep -q 'travel_to' "$doc"
+  ! grep -q 'Timecop' "$doc"
+}
