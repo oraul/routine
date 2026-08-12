@@ -10,5 +10,5 @@
 
 ## 3. The python beachhead
 
-- [ ] 3.1 Red→green: `python/django` and `python/pytest` pairs with
+- [x] 3.1 Red→green: `python/django` and `python/pytest` pairs with
       per-rule fixtures
