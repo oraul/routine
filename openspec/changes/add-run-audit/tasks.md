@@ -5,7 +5,7 @@
 
 ## 2. Per-task checks
 
-- [ ] 2.1 Red→green: every done task shows next, red-before-green per
+- [x] 2.1 Red→green: every done task shows next, red-before-green per
       scenario, a passing developer gate, per-topic sidecar/doc
       evidence, and done
 

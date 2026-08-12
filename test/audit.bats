@@ -62,6 +62,60 @@ EOF
   case "$output" in *gate.analyst*) ;; *) false ;; esac
 }
 
+@test "green without a prior red for the scenario is a violation" {
+  make_run
+  grep -v tdd.red "$ticket/telemetry.jsonl" > "$ticket/t.new" \
+    && mv "$ticket/t.new" "$ticket/telemetry.jsonl"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *01-01*"login works"*) ;; *) false ;; esac
+}
+
+@test "a done task without tdd.green is a violation" {
+  make_run
+  grep -v tdd.green "$ticket/telemetry.jsonl" > "$ticket/t.new" \
+    && mv "$ticket/t.new" "$ticket/telemetry.jsonl"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *01-01*tdd.green*) ;; *) false ;; esac
+}
+
+@test "a skipped developer gate is a violation" {
+  make_run
+  grep -v gate.developer "$ticket/telemetry.jsonl" > "$ticket/t.new" \
+    && mv "$ticket/t.new" "$ticket/telemetry.jsonl"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *01-01*gate.developer*) ;; *) false ;; esac
+}
+
+@test "missing next or done evidence is a violation" {
+  make_run
+  grep -v ticket.next "$ticket/telemetry.jsonl" | grep -v ticket.done \
+    > "$ticket/t.new" && mv "$ticket/t.new" "$ticket/telemetry.jsonl"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *01-01*ticket.next*) ;; *) false ;; esac
+  case "$output" in *01-01*ticket.done*) ;; *) false ;; esac
+}
+
+@test "manifest sh topic needs a green sidecar line, doc topic its doc line" {
+  make_run
+  printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
+    '## Acceptance' '1. works' '## Caffeine' '- ruby/rails' '- architecture/oop' \
+    > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *01-01*"ruby/rails"*) ;; *) false ;; esac
+  case "$output" in *01-01*"architecture/oop"*) ;; *) false ;; esac
+  printf '%s\n' \
+    '{"ts":"2026-01-01T00:06:30Z","event":"gate.developer.script","script":"caffeine/ruby/rails.sh","ticket":"0001","task":"01-01","exit":0,"ms":9}' \
+    '{"ts":"2026-01-01T00:06:31Z","event":"gate.developer.doc","script":"caffeine/architecture/oop.md","ticket":"0001","task":"01-01","exit":0,"ms":0}' \
+    >> "$ticket/telemetry.jsonl"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -eq 0 ]
+}
+
 @test "usage without a ticket dir" {
   run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$BATS_TEST_TMPDIR/nope"
   [ "$status" -eq 2 ]
