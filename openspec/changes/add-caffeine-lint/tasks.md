@@ -1,6 +1,6 @@
 ## 1. The lint
 
-- [ ] 1.1 Red→green: `bin/routine-caffeine-lint` enforces the topic
+- [x] 1.1 Red→green: `bin/routine-caffeine-lint` enforces the topic
       contract over fixture trees, reporting every violation in one run
 
 ## 2. The corpus complies
