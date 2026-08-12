@@ -6,7 +6,7 @@
 
 ## 2. ActiveRecord races
 
-- [ ] 2.1 Red→green: unique-index caveat, batching outside the
+- [x] 2.1 Red→green: unique-index caveat, batching outside the
       transaction, find_each/order warning, N+1 worked pair
 
 ## 3. Rails copyable and adjudicated

@@ -34,3 +34,25 @@ load test_helper
   grep -q 'after_commit' "$doc"
   grep -q 'enqueue_after_transaction_commit' "$doc"
 }
+
+@test "active_record guide backs uniqueness with an index and names the errors" {
+  doc="$ROUTINE_REPO_ROOT/caffeine/ruby/active_record.md"
+  grep -q 'unique: true' "$doc"
+  grep -q 'RecordNotUnique' "$doc"
+  grep -q 'StaleObjectError' "$doc"
+}
+
+@test "active_record guide batches outside the transaction and knows find_each drops order" {
+  doc="$ROUTINE_REPO_ROOT/caffeine/ruby/active_record.md"
+  grep -q 'in_batches' "$doc"
+  grep -qi 'ignores.*order' "$doc"
+  ! grep -qE 'transaction do$[^`]*find_each' "$doc"
+}
+
+@test "active_record guide works the N+1 pair" {
+  doc="$ROUTINE_REPO_ROOT/caffeine/ruby/active_record.md"
+  grep -q 'includes' "$doc"
+  grep -q 'preload' "$doc"
+  grep -q 'eager_load' "$doc"
+  grep -q 'strict_loading' "$doc"
+}
