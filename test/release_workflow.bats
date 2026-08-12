@@ -21,6 +21,16 @@ WF=".github/workflows/release.yml"
   [ "$gate_line" -lt "$publish_line" ]
 }
 
+@test "release workflow scripts the notes and edits an existing release" {
+  notes_line="$(grep -n 'routine-release-notes' "$ROUTINE_REPO_ROOT/$WF" | head -1 | cut -d: -f1)"
+  publish_line="$(grep -n 'gh release create' "$ROUTINE_REPO_ROOT/$WF" | head -1 | cut -d: -f1)"
+  [ -n "$notes_line" ]
+  [ "$notes_line" -lt "$publish_line" ]
+  grep -q 'gh release edit' "$ROUTINE_REPO_ROOT/$WF"
+  ! grep -q 'generate-notes' "$ROUTINE_REPO_ROOT/$WF"
+  grep -q 'fetch-depth: 0' "$ROUTINE_REPO_ROOT/$WF"
+}
+
 @test "release workflow gates main, not the trigger branch" {
   grep -q 'ref: main' "$ROUTINE_REPO_ROOT/$WF"
 }

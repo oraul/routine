@@ -1,32 +1,4 @@
-# release Specification
-
-## Purpose
-
-What a version tag asserts and how one is earned: releases are guarantees,
-so their conditions are spec'd and their gate is a script.
-
-## Requirements
-
-### Requirement: A tag asserts an implemented, green spec set
-An annotated tag `v<major>.<minor>.<patch>` on `main` SHALL assert that, at
-the tagged commit, every capability under `openspec/specs/` is implemented,
-`routine-selfcheck` passes, and `.claude-plugin/plugin.json` declares
-exactly the tag's version.
-
-#### Scenario: Tag and manifest agree
-- **WHEN** `v0.2.0` is cut
-- **THEN** `plugin.json` at that commit declares version `0.2.0`
-
-### Requirement: Version components bump by rule
-Relative to the previous tag: a **patch** bump SHALL contain only fixes and
-chores (no capability added, removed, or modified); a **minor** bump SHALL
-be used when any spec capability changed; the **major** bump to 1.0.0 SHALL
-be reserved until retro evidence from real-project runs demonstrates the
-operational loop end to end.
-
-#### Scenario: Capability delta forces minor
-- **WHEN** a release includes a change that modified `openspec/specs/`
-- **THEN** the minor component bumps and the patch resets
+## MODIFIED Requirements
 
 ### Requirement: The release gate is scripted
 `bin/routine-release-check <vX.Y.Z>` SHALL verify: the argument is a
@@ -68,6 +40,8 @@ trigger branch.
 - **WHEN** the workflow runs for a tag whose release already exists
 - **THEN** the release's title and notes are replaced from
   `routine-release-notes` and the tag itself is unchanged
+
+## ADDED Requirements
 
 ### Requirement: Release notes are scripted and owner-free
 `bin/routine-release-notes <vX.Y.Z> [repo-dir]` SHALL print release

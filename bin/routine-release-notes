@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+# Owner-free release notes: one bullet per first-parent merge subject in
+# the release's range. The merge-title grammar is convention-checked to
+# carry no account identifiers, so the notes inherit that guarantee —
+# never delegate the body to a generator that attributes accounts.
+set -u
+
+tag="${1:-}"
+repo="${2:-$(cd "$(dirname "$0")/.." && pwd)}"
+
+if ! printf '%s' "$tag" | grep -Eq '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' \
+  || ! git -C "$repo" rev-parse --git-dir >/dev/null 2>&1; then
+  echo "usage: routine-release-notes vX.Y.Z [repo-dir]" >&2
+  exit 2
+fi
+
+# Range: previous tag → the release. While the tag does not exist yet the
+# release end is HEAD; the previous tag is the newest one strictly before
+# the end (the end's own tag excluded).
+if git -C "$repo" rev-parse -q --verify "refs/tags/$tag" >/dev/null; then
+  end="$tag"
+else
+  end="HEAD"
+fi
+prev="$(git -C "$repo" describe --tags --abbrev=0 --exclude "$tag" "$end" 2>/dev/null || true)"
+range="${prev:+$prev..}$end"
+
+echo "## Changes"
+echo
+git -C "$repo" log --merges --first-parent --format='%s' "$range" \
+  | sed -E 's/^Merge pull request #[0-9]+: /- /'
+exit 0
