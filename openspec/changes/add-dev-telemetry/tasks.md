@@ -20,5 +20,5 @@
 
 ## 5. Retro app dimension
 
-- [ ] 5.1 Red→green: blocked-seconds pairing scoped per app; colliding
+- [x] 5.1 Red→green: blocked-seconds pairing scoped per app; colliding
       ticket ids in the fixture prove separation

@@ -21,7 +21,10 @@ if [ "${#files[@]}" -eq 0 ]; then
   exit 0
 fi
 
-cat "${files[@]}" | awk -F'"' '
+# awk reads the files itself (no cat) so FILENAME carries the app
+# dimension: blocked pairing must never cross apps, where ticket ids
+# can collide.
+awk -F'"' '
   function epoch(t,    y, m, d, H, M, S, era, yoe, doy, doe) {
     y = substr(t, 1, 4) + 0; m = substr(t, 6, 2) + 0; d = substr(t, 9, 2) + 0
     H = substr(t, 12, 2) + 0; M = substr(t, 15, 2) + 0; S = substr(t, 18, 2) + 0
@@ -40,16 +43,20 @@ cat "${files[@]}" | awk -F'"' '
   }
   function rank(n, p,    r) { r = int(n * p); if (r * 1.0 < n * p) r++; if (r < 1) r = 1; return r }
   {
+    m = split(FILENAME, fp, "/")
+    app = ""
+    for (i = 1; i < m; i++) if (fp[i] == "runs") { app = fp[i + 1]; break }
     ts = $4; event = $8; script = $12; ticket = $16; task = $20
     ex = $23; gsub(/[^0-9-]/, "", ex)
     ms = $25; gsub(/[^0-9-]/, "", ms)
     runs[event]++
     if (ex + 0 != 0) { fails[event]++; sfails[script]++ }
     durs[event] = durs[event] " " ms
-    if (event == "ticket.block") bstart[ticket "\t" task] = epoch(ts)
-    if (event == "ticket.unblock" && (ticket "\t" task) in bstart) {
-      blocked[ticket "\t" task] += epoch(ts) - bstart[ticket "\t" task]
-      delete bstart[ticket "\t" task]
+    bkey = app "\t" ticket "\t" task
+    if (event == "ticket.block") bstart[bkey] = epoch(ts)
+    if (event == "ticket.unblock" && bkey in bstart) {
+      blocked[bkey] += epoch(ts) - bstart[bkey]
+      delete bstart[bkey]
     }
   }
   END {
@@ -67,8 +74,8 @@ cat "${files[@]}" | awk -F'"' '
     for (s in sfails) printf "  %-26s %d\n", s, sfails[s]
     print ""
     print "blocked seconds:"
-    for (k in blocked) { split(k, p, "\t"); printf "  %s %s  %d\n", p[1], p[2], blocked[k] }
-    for (k in bstart) { split(k, p, "\t"); printf "  %s %s  still blocked\n", p[1], p[2] }
+    for (k in blocked) { split(k, p, "\t"); printf "  %s %s %s  %d\n", p[1], p[2], p[3], blocked[k] }
+    for (k in bstart) { split(k, p, "\t"); printf "  %s %s %s  still blocked\n", p[1], p[2], p[3] }
   }
-'
+' "${files[@]}"
 exit 0
