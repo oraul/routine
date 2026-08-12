@@ -205,6 +205,8 @@ make_good_ticket() {
   [ "$(wc -l < "$tdir/telemetry.jsonl")" -eq 2 ]
   grep -q '"event":"gate.hook.absent"' "$tdir/telemetry.jsonl"
   grep -q '"event":"gate.preflight"' "$tdir/telemetry.jsonl"
+  grep '"event":"gate.preflight"' "$tdir/telemetry.jsonl" \
+    | grep '"ticket":"ticket"' | grep -q '"task":""'
 }
 
 @test "gate emits nothing without ticket context" {
@@ -237,6 +239,8 @@ make_manifest_ticket() {
   case "$output" in *"leftover debugger"*) ;; *) false ;; esac
   grep -q '"event":"gate.developer.script"' "$ticket/telemetry.jsonl"
   grep '"event":"gate.developer.script"' "$ticket/telemetry.jsonl" | grep -q '"exit":1'
+  grep '"event":"gate.developer.script"' "$ticket/telemetry.jsonl" \
+    | grep '"ticket":"0001"' | grep -q '"task":"01-01"'
 }
 
 @test "doc-only manifest topic logs and passes" {

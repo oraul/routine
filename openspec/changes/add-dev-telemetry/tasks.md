@@ -1,6 +1,6 @@
 ## 1. Attribution
 
-- [ ] 1.1 Red→green: ticket-bound events carry the ticket dir's basename
+- [x] 1.1 Red→green: ticket-bound events carry the ticket dir's basename
       and the `in_progress` task id, derived not passed
 
 ## 2. Refusals leave evidence
