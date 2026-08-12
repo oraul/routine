@@ -115,3 +115,19 @@ load test_helper
   grep -q 'architecture/oop' "$ROUTINE_REPO_ROOT/calibration/feature.md"
   grep -q 'routine-caffeine-list' "$ROUTINE_REPO_ROOT/agents/analyst.md"
 }
+
+@test "testing/tdd teaches the loop's own discipline" {
+  doc="$ROUTINE_REPO_ROOT/caffeine/testing/tdd.md"
+  [ -f "$doc" ]
+  grep -q 'routine-tdd' "$doc"
+  grep -qi 'characterization' "$doc"
+  grep -q '```' "$doc"
+}
+
+@test "security/secrets is the teaching half of the convention harness" {
+  doc="$ROUTINE_REPO_ROOT/caffeine/security/secrets.md"
+  [ -f "$doc" ]
+  grep -q 'routine-convention-check' "$doc"
+  grep -qi 'rotate' "$doc"
+  grep -q '```' "$doc"
+}
