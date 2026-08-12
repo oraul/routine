@@ -13,15 +13,17 @@ ran, in order, with the evidence to prove it.
 `telemetry.jsonl`, `index.tsv`, and task manifests — writing nothing —
 and SHALL exit 0 only when the recorded run matches the protocol:
 the first event is `ticket.new`; a `gate.preflight` line with exit 0
-exists; a `gate.analyst` line with exit 0 exists; every `done` index
-row has a passing `ticket.next`, at least one passing `tdd.green` whose
-scenario shows an earlier failing `tdd.red` for the same task, a passing
-`gate.developer`, and a passing `ticket.done`; every `.sh` topic in a
-done task's manifest has a `gate.developer.script` line naming it with
-exit 0 and every doc-only topic has its `gate.developer.doc` line; and
-per task, passing `ticket.block` and `ticket.unblock` counts balance.
-It SHALL report every violation in one run, naming the task and the
-missing or out-of-order evidence.
+exists; a `gate.analyst` line with exit 0 exists; a `ticket.approve`
+line with exit 0 exists — the human checkpoint leaves evidence; every
+`done` index row has a passing `ticket.next`, at least one passing
+`tdd.green` whose scenario shows an earlier failing `tdd.red` for the
+same task, a passing `gate.developer`, and a passing `ticket.done`;
+every `.sh` topic in a done task's manifest has a
+`gate.developer.script` line naming it with exit 0 and every doc-only
+topic has its `gate.developer.doc` line; and per task, passing
+`ticket.block` and `ticket.unblock` counts balance. It SHALL report
+every violation in one run, naming the task and the missing or
+out-of-order evidence.
 
 #### Scenario: A complete run passes
 - **WHEN** the ticket's telemetry records the full protocol for every
@@ -55,3 +57,7 @@ missing or out-of-order evidence.
 - **WHEN** the ticket's telemetry holds no `gate.preflight` line with
   exit 0
 - **THEN** the audit exits non-zero naming the missing gate
+
+#### Scenario: A skipped human checkpoint is a violation
+- **WHEN** the ticket's telemetry holds no passing `ticket.approve` line
+- **THEN** the audit exits non-zero naming the missing approval
