@@ -20,6 +20,14 @@ finish() {
   exit "$1"
 }
 
+# A malformed topic tree makes downstream results meaningless — the
+# caffeine contract is checked before any other stage. Sibling
+# resolution: fixture roots need no copy of the lint.
+if ! "$(cd "$(dirname "$0")" && pwd)/routine-caffeine-lint"; then
+  echo "routine-selfcheck: caffeine topic contract violated" >&2
+  finish 1
+fi
+
 scripts=()
 for f in "$root"/bin/* "$root"/lib/*.sh "$root"/caffeine/*/*.sh; do
   [ -f "$f" ] || continue

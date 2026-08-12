@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Caffeine sidecar: mechanical RSpec hygiene, scoped to spec/. Judges
 # nothing a grep cannot see; structure lives in rspec.md. TARGET = the app.
+# caffeine-topic: ruby/rspec
+# caffeine-applies: rspec >=3.0
+# caffeine-reviewed: 2026-08-12
 set -u
 
 target="${TARGET:-$PWD}"

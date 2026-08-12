@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Caffeine sidecar: mechanical Rails rules. Judges nothing a grep cannot
 # see; judgment guidance lives in rails.md. TARGET = the app repo.
+# caffeine-topic: ruby/rails
+# caffeine-applies: rails >=7.0
+# caffeine-reviewed: 2026-08-12
 set -u
 
 target="${TARGET:-$PWD}"

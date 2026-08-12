@@ -1,4 +1,9 @@
 # caffeine: architecture/hexagonal
+<!-- caffeine-topic: architecture/hexagonal -->
+<!-- caffeine-applies: any -->
+<!-- caffeine-source: https://alistair.cockburn.us/hexagonal-architecture -->
+<!-- caffeine-reviewed: 2026-08-12 -->
+<!-- caffeine-mode: doc-only -->
 
 Language-agnostic, doc-only: ports and adapters is a discipline about
 direction of dependency, not a framework. Loaded when your task's manifest

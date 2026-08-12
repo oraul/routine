@@ -1,9 +1,17 @@
 # caffeine: ruby/active_record
+<!-- caffeine-topic: ruby/active_record -->
+<!-- caffeine-applies: rails >=7.0 -->
+<!-- caffeine-source: https://guides.rubyonrails.org/active_record_querying.html -->
+<!-- caffeine-reviewed: 2026-08-12 -->
 
-Loaded only when your briefing's manifest names `ruby/active_record`.
+Loaded only when your task's manifest names `ruby/active_record`.
 
-The sidecar mechanically rejects: `update_attribute(`, `.all.each`,
-`save(validate: false)`, and `default_scope`. Fix, don't argue.
+The sidecar mechanically rejects (fix them, don't argue with them):
+
+- update_attribute skips validations (use update!)
+- unbatched iteration (use find_each)
+- save(validate: false) skips validations
+- default_scope (prefer named scopes)
 
 ## The skeleton
 

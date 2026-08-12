@@ -5,7 +5,7 @@
 
 ## 2. The corpus complies
 
-- [ ] 2.1 Red→green: metadata backfilled on all six topics, rule lists
+- [x] 2.1 Red→green: metadata backfilled on all six topics, rule lists
       verbatim, manifest wording fixed, doc-only markers added, test
       files renamed; the lint joins selfcheck with `harness.caffeine`
       evidence

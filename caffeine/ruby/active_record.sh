@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Caffeine sidecar: mechanical ActiveRecord rules. Judges nothing a grep
 # cannot see; judgment guidance lives in active_record.md. TARGET = the app.
+# caffeine-topic: ruby/active_record
+# caffeine-applies: rails >=7.0
+# caffeine-reviewed: 2026-08-12
 set -u
 
 target="${TARGET:-$PWD}"
