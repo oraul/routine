@@ -18,6 +18,7 @@ make_run() {
 {"ts":"2026-01-01T00:00:30Z","event":"gate.preflight","script":"bin/routine-gate","ticket":"0001","task":"","exit":0,"ms":8}
 {"ts":"2026-01-01T00:01:00Z","event":"spec.lint","script":"bin/routine-spec-lint","ticket":"0001","task":"","exit":0,"ms":5}
 {"ts":"2026-01-01T00:02:00Z","event":"gate.analyst","script":"bin/routine-gate","ticket":"0001","task":"","exit":0,"ms":10}
+{"ts":"2026-01-01T00:02:30Z","event":"ticket.approve","script":"bin/routine-approve","ticket":"0001","task":"","exit":0,"ms":1}
 {"ts":"2026-01-01T00:03:00Z","event":"ticket.next","script":"bin/routine-next","ticket":"0001","task":"01-01","exit":0,"ms":2}
 {"ts":"2026-01-01T00:04:00Z","event":"tdd.red","script":"login works","ticket":"0001","task":"01-01","exit":1,"ms":30}
 {"ts":"2026-01-01T00:05:00Z","event":"tdd.green","script":"login works","ticket":"0001","task":"01-01","exit":0,"ms":30}
@@ -145,4 +146,13 @@ EOF
   run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$BATS_TEST_TMPDIR/nope"
   [ "$status" -eq 2 ]
   case "$output" in *usage*) ;; *) false ;; esac
+}
+
+@test "a skipped human checkpoint is a violation" {
+  make_run
+  grep -v ticket.approve "$ticket/telemetry.jsonl" > "$ticket/t.new" \
+    && mv "$ticket/t.new" "$ticket/telemetry.jsonl"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *ticket.approve*) ;; *) false ;; esac
 }

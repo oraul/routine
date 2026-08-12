@@ -49,7 +49,10 @@ the ticket. Then run `routine-gate analyst`.
 
 Show the human `requirement.md` and every `briefing.md`. **Stop and wait**
 for the human to say proceed. This is the only human checkpoint in the
-operational loop; never continue without it.
+operational loop; never continue without it. When the human proceeds,
+record it: `routine-approve "$ROUTINE_TICKET_DIR" "<their remarks, if
+any>"` — the audit refuses a run whose approval left no evidence, and
+the remarks become ticket evidence instead of transcript exhaust.
 
 ## 4. develop
 
