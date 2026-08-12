@@ -1,6 +1,6 @@
 ## 1. Per-episode revise budget
 
-- [ ] 1.1 Red→green: the analyst gate counts only `spec.lint` failures
+- [x] 1.1 Red→green: the analyst gate counts only `spec.lint` failures
       after the most recent `spec.defective` line; 4 lifetime failures
       with a later defect return and 1 subsequent failure passes
 

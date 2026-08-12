@@ -118,6 +118,23 @@ make_good_ticket() {
   case "$output" in *"revise limit"*) ;; *) false ;; esac
 }
 
+@test "a defect return opens a fresh revise budget" {
+  make_gate_root
+  make_target
+  make_good_ticket
+  for i in 1 2 3 4; do
+    printf '{"ts":"2026-01-01T00:0%s:00Z","event":"spec.lint","script":"bin/routine-spec-lint","ticket":"0001","task":"","exit":1,"ms":5}\n' "$i" \
+      >> "$ticket/telemetry.jsonl"
+  done
+  printf '{"ts":"2026-01-01T00:05:00Z","event":"spec.defective","script":"bin/routine-defect","ticket":"0001","task":"01-01","exit":1,"ms":3}\n' \
+    >> "$ticket/telemetry.jsonl"
+  printf '{"ts":"2026-01-01T00:06:00Z","event":"spec.lint","script":"bin/routine-spec-lint","ticket":"0001","task":"","exit":1,"ms":5}\n' \
+    >> "$ticket/telemetry.jsonl"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
+  [ "$status" -eq 0 ]
+}
+
 @test "analyst gate surfaces spec-lint failures" {
   make_gate_root
   make_target
