@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# The run audit: replays a ticket's telemetry against the protocol and
+# reports every violation in one run. Pure reader — grep/awk over
+# script-owned state, writes nothing. The fixed telemetry key order
+# (ts,event,script,ticket,task,exit,ms) is a spec guarantee, so grep
+# patterns over adjacent keys are reliable.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+
+ticket="${1:-}"
+if [ ! -d "$ticket" ] || [ ! -f "$ticket/telemetry.jsonl" ] \
+  || [ ! -f "$ticket/index.tsv" ]; then
+  echo "usage: routine-audit <ticket-dir>  (with telemetry.jsonl and index.tsv)" >&2
+  exit 2
+fi
+
+tele="$ticket/telemetry.jsonl"
+viol=0
+fail() { echo "routine-audit: $1" >&2; viol=$((viol + 1)); }
+
+# Run-level: the ticket was born by script and passed the analyst gate.
+first="$(head -n 1 "$tele" | awk -F'"' '{print $8}')"
+if [ "$first" != ticket.new ]; then
+  fail "first event is '${first}'; the protocol starts at ticket.new"
+fi
+if ! grep -q '"event":"gate.analyst"[^}]*"exit":0,' "$tele"; then
+  fail "no passing gate.analyst on record"
+fi
+
+# count_pass <event> <task> [script] — passing lines matching the fields;
+# exact string compares in awk, no regex over user-authored scenarios.
+count_pass() {
+  awk -F'"' -v ev="$1" -v task="$2" -v sc="${3:-}" '
+    $8 == ev && $20 == task && (sc == "" || $12 == sc) {
+      ex = $23; gsub(/[^0-9-]/, "", ex)
+      if (ex + 0 == 0) n++
+    }
+    END { print n + 0 }' "$tele"
+}
+
+root="$(routine_root)"
+TAB="$(printf '\t')"
+
+# Per-task: every done row must show the whole protocol.
+while IFS="$TAB" read -r t_id t_b t_t t_status _; do
+  [ "$t_status" = "done" ] || continue
+
+  for ev in ticket.next gate.developer ticket.done; do
+    if [ "$(count_pass "$ev" "$t_id")" -eq 0 ]; then
+      fail "task $t_id: no passing $ev on record"
+    fi
+  done
+
+  if [ "$(count_pass tdd.green "$t_id")" -eq 0 ]; then
+    fail "task $t_id: no passing tdd.green on record"
+  fi
+
+  # Red before green, per scenario: the file is append-only, so line
+  # order is time order.
+  while IFS= read -r _scen; do
+    [ -n "$_scen" ] || continue
+    fail "task $t_id: tdd.green for scenario '$_scen' without a prior failing tdd.red"
+  done <<EOF
+$(awk -F'"' -v task="$t_id" '
+    $8 == "tdd.red" && $20 == task {
+      ex = $23; gsub(/[^0-9-]/, "", ex)
+      if (ex + 0 != 0 && !($12 in red)) red[$12] = NR
+    }
+    $8 == "tdd.green" && $20 == task {
+      if (!($12 in red) || red[$12] > NR) print $12
+    }' "$tele")
+EOF
+
+  # Every block must have been released: passing block and unblock
+  # counts balance per task.
+  _blocks="$(count_pass ticket.block "$t_id")"
+  _unblocks="$(count_pass ticket.unblock "$t_id")"
+  if [ "$_blocks" -ne "$_unblocks" ]; then
+    fail "task $t_id: $_blocks block(s) but $_unblocks unblock(s) on record"
+  fi
+
+  # Manifest topics: each needs its developer-gate evidence line.
+  _taskfile="$ticket/briefings/$t_b/tasks/$t_t/task.md"
+  [ -f "$_taskfile" ] || { fail "task $t_id: missing $_taskfile"; continue; }
+  _topics="$(awk '/^## Caffeine/ {a=1; next} a && /^#/ {a=0} a && /^- / {print substr($0, 3)}' "$_taskfile")"
+  for _topic in $_topics; do
+    if [ -f "$root/caffeine/$_topic.sh" ]; then
+      if [ "$(count_pass gate.developer.script "$t_id" "caffeine/$_topic.sh")" -eq 0 ]; then
+        fail "task $t_id: manifest topic $_topic has no green gate.developer.script line"
+      fi
+    elif [ -f "$root/caffeine/$_topic.md" ]; then
+      if [ "$(count_pass gate.developer.doc "$t_id" "caffeine/$_topic.md")" -eq 0 ]; then
+        fail "task $t_id: manifest topic $_topic has no gate.developer.doc line"
+      fi
+    else
+      fail "task $t_id: manifest names unknown topic $_topic"
+    fi
+  done
+done < "$ticket/index.tsv"
+
+if [ "$viol" -gt 0 ]; then
+  echo "routine-audit: $viol violation(s)" >&2
+  exit 1
+fi
+echo "routine-audit: protocol satisfied"
+exit 0
