@@ -6,29 +6,18 @@
 # caffeine-reviewed: 2026-08-12
 set -u
 
-target="${TARGET:-$PWD}"
-specs="$target/spec"
-fails=0
+# shellcheck source-path=SCRIPTDIR/../..
+# shellcheck source=lib/sidecar.sh
+. "$(cd "$(dirname "$0")/../.." && pwd)/lib/sidecar.sh"
+sidecar_init ruby/rspec
 
-scan() {
-  grep -rnE --include='*_spec.rb' --include='spec_helper.rb' \
-    --include='rails_helper.rb' "$1" "$specs" 2>/dev/null \
-    | grep -v -e '/vendor/' -e '/node_modules/'
-}
-
-check() {
-  _rule="$1" _pattern="$2"
-  [ -d "$specs" ] || return 0
-  _hits="$(scan "$_pattern")" || true
-  if [ -n "$_hits" ]; then
-    printf '%s\n' "$_hits" | sed "s|^|caffeine/ruby/rspec: $_rule: |" >&2
-    fails=1
-  fi
-}
-
-check "legacy should syntax (use expect)" '\.should(_not)?([[:space:]]|\()'
-check "leftover focus mark" '(^|[[:space:]])(fit|fdescribe|fcontext)([[:space:]]|\()|focus:[[:space:]]*true'
-check "sleep in a spec (use test doubles or travel helpers)" '(^|[^a-z_.])sleep([[:space:]]|\()'
-check "any_instance stubs objects the example never built" 'any_instance(_of)?\('
+check S1 "legacy should syntax (use expect)" \
+  '\.(should(_not)?([[:space:]]|\()|should_receive|should_not_receive|stub(\(|!))' "$target/spec"
+check S2 "leftover focus mark" \
+  '^[[:space:]]*f(it|describe|context|specify)[[:space:](]|focus:[[:space:]]*true|,[[:space:]]*:focus([[:space:]]|\)|,|$)' "$target/spec"
+check S3 "sleep in a spec (use test doubles or travel helpers)" '(^|[^a-z_.])sleep([[:space:]]|\()' "$target/spec"
+check S4 "any_instance stubs objects the example never built" 'any_instance(_of)?\(' "$target/spec"
+check S5 "silently disabled example (xit/xdescribe/xcontext)" \
+  '^[[:space:]]*x(it|describe|context)[[:space:](]' "$target/spec"
 
 exit "$fails"

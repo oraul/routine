@@ -31,9 +31,9 @@ set -u
 target="${TARGET:-$PWD}"
 fails=0
 check() { :; }
-check "leftover debugger" 'x'
-check "puts in app code" 'y'
-check "sleepy loops" 'z'
+check W1 "leftover debugger" 'x'
+check W2 "puts in app code" 'y'
+check W3 "sleepy loops" 'z'
 exit "$fails"
 EOF
   cat > "$lroot/caffeine/architecture/shape.md" <<'EOF'
@@ -117,7 +117,7 @@ PYEOF
 
 @test "rule count outside 3-5 is a violation" {
   make_corpus
-  printf 'check "extra one" a\ncheck "extra two" b\ncheck "extra three" c\n' \
+  printf 'check W4 "extra one" a\ncheck W5 "extra two" b\ncheck W6 "extra three" c\n' \
     >> "$lroot/caffeine/ruby/widget.sh"
   lint
   [ "$status" -ne 0 ]

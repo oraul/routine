@@ -15,6 +15,7 @@ The sidecar mechanically rejects (fix them, don't argue with them):
 - leftover focus mark
 - sleep in a spec (use test doubles or travel helpers)
 - any_instance stubs objects the example never built
+- silently disabled example (xit/xdescribe/xcontext)
 
 ## The skeleton
 

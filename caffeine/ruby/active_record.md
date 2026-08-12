@@ -8,7 +8,7 @@ Loaded only when your task's manifest names `ruby/active_record`.
 
 The sidecar mechanically rejects (fix them, don't argue with them):
 
-- update_attribute skips validations (use update!)
+- update_attribute/update_column skip validations (use update!)
 - unbatched iteration (use find_each)
 - save(validate: false) skips validations
 - default_scope (prefer named scopes)

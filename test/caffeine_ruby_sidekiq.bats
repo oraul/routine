@@ -54,3 +54,28 @@ make_clean_target() {
   [ "$status" -ne 0 ]
   case "$output" in *risky_job.rb*) ;; *) false ;; esac
 }
+
+@test "a URL argument is not a keyword argument" {
+  make_clean_target
+  printf 'CrawlJob.perform_async("https://example.com")\n' > "$tgt/app/jobs/u.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -eq 0 ]
+}
+
+@test "kwargs after a positional argument are caught" {
+  make_clean_target
+  printf 'CloseJob.perform_in(5, retries: 3)\n' > "$tgt/app/jobs/k.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -ne 0 ]
+}
+
+@test "removed delayed extensions are caught" {
+  make_clean_target
+  printf 'User.delay.send_welcome_email(user.id)\n' > "$tgt/app/jobs/d.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -ne 0 ]
+  rm "$tgt/app/jobs/d.rb"
+  printf 'delay = 5\nsleep_free = true\n' > "$tgt/app/jobs/ok.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -eq 0 ]
+}
