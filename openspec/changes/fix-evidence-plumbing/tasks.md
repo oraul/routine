@@ -1,6 +1,6 @@
 ## 1. Preflight fails closed
 
-- [ ] 1.1 Red→green: `routine-gate preflight` without `ROUTINE_TICKET_DIR`
+- [x] 1.1 Red→green: `routine-gate preflight` without `ROUTINE_TICKET_DIR`
       exits non-zero naming the context; gate tests carry ticket fixtures
 
 ## 2. Loud emission
