@@ -36,7 +36,12 @@ Delegate to the **analyst** agent (`agents/analyst.md`) with the human's
 requirement. The analyst writes `requirement.md`, briefings, and tasks in
 the ticket. Then run `routine-gate analyst`.
 
-- Non-zero: hand the full defect list back to the analyst to revise.
+- Non-zero: hand the full defect list back to the analyst to revise —
+  continuing the **same analyst conversation** where it survives, so the
+  grounding context is not re-derived. When that context is gone (a
+  fresh session, a defect return), the analyst re-grounds from the
+  ticket's `grounding.md` first; that fallback is sufficient on its own,
+  never optional.
 - At most **3 revise attempts**; still failing → abort the ticket and tell
   the human why.
 

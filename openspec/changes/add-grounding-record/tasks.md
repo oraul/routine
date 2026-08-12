@@ -11,7 +11,7 @@
 
 ## 3. The prompts close the loop
 
-- [ ] 3.1 Red→green: analyst writes grounding first and re-grounds from
+- [x] 3.1 Red→green: analyst writes grounding first and re-grounds from
       grounding.md + defect.md on fresh invocations, never renaming
       existing task dirs; the skill states revise continuity with the
       grounding fallback; calibrations name their evidence

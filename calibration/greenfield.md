@@ -5,6 +5,9 @@ Structure is the first deliverable.
 
 ## Analyst
 
+- Ground first: `grounding.md`'s Evidence records the contracts'
+  sources and the Alternatives section carries the shapes you rejected.
+
 - The `## Contracts` section is the contract: inputs, outputs, invariants,
   and the boundaries to the rest of the system — the lint refuses a
   greenfield without it. Implementation freedom is the developer's; the

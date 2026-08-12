@@ -21,8 +21,16 @@ section while an epic requires at least two briefings.
 
 ## Output
 
-Inside the active ticket directory, write:
+Inside the active ticket directory, write — **grounding first**:
 
+- `grounding.md` — the evidence behind the contract, written BEFORE the
+  artifacts it justifies: `## Evidence` (one `- <path> — <why it
+  matters>` bullet per target file you actually read), `## Alternatives`
+  (decompositions weighed and rejected, with the reason), and
+  `## Assumptions` (claims a later reader should re-verify). The lint
+  refuses a ticket without it. On re-entry after a defect return, add
+  a `## Reconciliation` line naming each defective task id and what the
+  defect invalidated.
 - `requirement.md` — opens with a `# Requirement: <name>` header and a
   `Type: <type>` line (column 0, one space); the body states what the
   system SHALL/MUST do (RFC 2119 keywords: SHALL, MUST, SHOULD, MAY), and
@@ -48,6 +56,17 @@ Inside the active ticket directory, write:
 
 Every briefing has at least one task. Size tasks so one developer session
 takes each from failing test to green.
+
+## Re-entry
+
+When you are invoked against a ticket that already has artifacts (a
+defect return, a fresh specify episode), **re-ground before
+re-deriving**: read `grounding.md` and every task's `defect.md` first —
+they carry the evidence and the reason for the rewind. Amend the
+existing decomposition; **never rename or renumber existing task
+directories** — the index is append-only and an orphaned row fails the
+gate on a defect you cannot fix. If the shape truly cannot survive,
+the road is `routine-abort`, not a rename.
 
 ## Rules
 

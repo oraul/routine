@@ -131,3 +131,17 @@ load test_helper
   grep -qi 'rotate' "$doc"
   grep -q '```' "$doc"
 }
+
+@test "the analyst grounds first and re-grounds on re-entry" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -q 'grounding.md' "$doc"
+  grep -qi 're-ground' "$doc"
+  grep -q 'defect.md' "$doc"
+  grep -qi 'never rename' "$doc"
+}
+
+@test "the skill states revise continuity with the grounding fallback" {
+  doc="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  grep -qi 'same analyst conversation' "$doc"
+  grep -q 'grounding.md' "$doc"
+}
