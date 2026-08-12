@@ -26,3 +26,27 @@ load test_helper
   grep -q 'routine-done' "$doc"
   ! grep -q 'keep working until it is green' "$doc"
 }
+
+@test "the agents register as subagents" {
+  for name in analyst developer; do
+    doc="$ROUTINE_REPO_ROOT/agents/$name.md"
+    [ "$(head -1 "$doc")" = "---" ] || { echo "no frontmatter: $doc"; false; }
+    grep -q "^name: $name\$" "$doc" || { echo "name mismatch: $doc"; false; }
+    grep -qE '^description: .+' "$doc" || { echo "no description: $doc"; false; }
+  done
+}
+
+@test "the analyst counts revises the gate's way and never invents vocabulary" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -q '/caffeinate' "$doc"
+  grep -qi 'episode' "$doc"
+  ! grep -q 'a bug additionally requires' "$doc"
+}
+
+@test "the skill hands agents their payload and aborts by script" {
+  doc="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  grep -q 'TARGET' "$doc"
+  grep -q 'routine-abort' "$doc"
+  grep -qi 'fresh ticket' "$doc"
+  ! grep -q 'going back through the rails' "$doc"
+}

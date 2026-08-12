@@ -8,7 +8,7 @@
 
 ## 2. The analyst contract and the phase skill
 
-- [ ] 2.1 Red→green: `agents/analyst.md` drops the stale lint
+- [x] 2.1 Red→green: `agents/analyst.md` drops the stale lint
       restatement, refers missing vocabulary to `/caffeinate`, states
       the gate-counted revise budget; both agents carry frontmatter;
       `skills/routine/SKILL.md` exports `TARGET`, hands each agent its

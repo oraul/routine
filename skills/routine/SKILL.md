@@ -24,7 +24,9 @@ Run `routine-scaffold`. If it exits non-zero, relay its instruction (the app
 needs `runs/<app>/hooks/developer.sh`) and stop — the human must create the
 facade. Otherwise note the printed app state path. If no active ticket
 exists, run `routine-ticket-new` and note the printed ticket path. Export
-`ROUTINE_TICKET_DIR=<ticket path>` for every later script call.
+both handles every later call needs: `ROUTINE_TICKET_DIR=<ticket path>`
+and `TARGET=<target project root>` (the project the work lands in;
+default is the current directory).
 
 ## 1. preflight
 
@@ -33,8 +35,10 @@ Run `routine-gate preflight`. Non-zero: stop and surface the output.
 ## 2. specify
 
 Delegate to the **analyst** agent (`agents/analyst.md`) with the human's
-requirement. The analyst writes `requirement.md`, briefings, and tasks in
-the ticket. Then run `routine-gate analyst`.
+requirement, the ticket directory, and `TARGET` — a stateless agent's
+payload is its whole world; never assume it inherits your environment.
+The analyst writes `requirement.md`, briefings, and tasks in the ticket.
+Then run `routine-gate analyst`.
 
 - Non-zero: hand the full defect list back to the analyst to revise —
   continuing the **same analyst conversation** where it survives, so the
@@ -42,8 +46,9 @@ the ticket. Then run `routine-gate analyst`.
   fresh session, a defect return), the analyst re-grounds from the
   ticket's `grounding.md` first; that fallback is sufficient on its own,
   never optional.
-- At most **3 revise attempts**; still failing → abort the ticket and tell
-  the human why.
+- At most **3 revise attempts** per episode (the gate counts them); still
+  failing → run `routine-abort "$ROUTINE_TICKET_DIR" "<why>"` and tell
+  the human — never an abort in prose.
 
 ## 3. approve — hard stop
 
@@ -63,7 +68,8 @@ Loop:
    NOT treat it as a blocked line); exit 3 means the line is blocked
    (tell the human to run `/unblock`); exit 4 means every task is
    done → go to conclude.
-2. Delegate the task to the **developer** agent (`agents/developer.md`).
+2. Delegate the task to the **developer** agent (`agents/developer.md`)
+   with the task path, the ticket directory, and `TARGET` in the payload.
 3. When the developer reports done, run `routine-gate developer`.
    Green → `routine-done "$ROUTINE_TICKET_DIR"`. Non-zero → the developer
    keeps working; it never improvises around a failing gate.
@@ -78,7 +84,11 @@ Loop:
 Run `routine-conclude "$ROUTINE_TICKET_DIR"`. It refuses unless every task
 is done **and** `routine-audit` confirms the recorded run matches the
 protocol — a skipped stage or a green without its red surfaces here, with
-the violations named. Fix means going back through the rails (the missing
-evidence cannot be hand-written; telemetry is script-owned). On success
-the ticket is archived with its `report.md`; relay the printed archive
-path. The run is over.
+the violations named. Be honest about what a violation means: telemetry
+is script-owned and append-only, so evidence missing from a task already
+marked done cannot be re-created — the road is
+`routine-abort "$ROUTINE_TICKET_DIR" "<the violations>"` and then a
+fresh ticket, not a retrofit. Only a violation on run-level or still-in-flight
+work (an unreleased block, an unfinished task) can be cured on the rails.
+On success the ticket is archived with its `report.md`; relay the printed
+archive path. The run is over.

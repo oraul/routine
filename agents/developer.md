@@ -1,3 +1,8 @@
+---
+name: developer
+description: Stateless implementer — takes exactly one routine task from failing test to green on the evidence rails.
+---
+
 # developer
 
 > **Script paths**: every `routine-*` script lives in this plugin's `bin/`.
