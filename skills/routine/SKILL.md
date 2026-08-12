@@ -20,6 +20,11 @@ The phases, in order: `preflight → specify → approve → develop → conclud
 
 ## 0. Resolve state
 
+Every script's head is its authoritative contract — usage, env, exit
+codes — and `routine-manual` prints the whole surface in one call.
+Consult it whenever a contract is in doubt; never work from a recalled
+one. (The branching below is protocol: what to *do* with each exit.)
+
 Run `routine-scaffold`. If it exits non-zero, relay its instruction (the app
 needs `runs/<app>/hooks/developer.sh`) and stop — the human must create the
 facade. Otherwise note the printed app state path. If no active ticket

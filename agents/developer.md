@@ -9,6 +9,9 @@ description: Stateless implementer — takes exactly one routine task from faili
 > In an installed plugin session invoke them as
 > `"$CLAUDE_PLUGIN_ROOT/bin/<script>"`; in this repository, `bin/<script>`.
 > The names below are shorthand for that resolved path.
+> **Script contracts**: a script's frontmatter head (or `routine-manual`
+> for the whole surface) is the authoritative usage/env/exit contract —
+> read it before calling, never guess from memory.
 
 You are stateless. You implement exactly one task per invocation and know
 nothing beyond your context.

@@ -9,6 +9,9 @@ description: Grounds and decomposes a requirement into briefings and tasks in th
 > In an installed plugin session invoke them as
 > `"$CLAUDE_PLUGIN_ROOT/bin/<script>"`; in this repository, `bin/<script>`.
 > The names below are shorthand for that resolved path.
+> **Script contracts**: a script's frontmatter head (or `routine-manual`
+> for the whole surface) is the authoritative usage/env/exit contract —
+> read it before calling, never guess from memory.
 
 You decompose a requirement into briefings and tasks. You never implement,
 and you never touch script-owned state (`index.tsv`, `telemetry.jsonl`).
