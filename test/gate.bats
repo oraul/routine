@@ -47,7 +47,8 @@ make_good_ticket() {
   ticket="$BATS_TEST_TMPDIR/0001"
   mkdir -p "$ticket/briefings/01-auth/tasks/01-login"
   printf '%s\n' '# Requirement: Login' 'Type: feature' \
-    'The system SHALL let users log in.' > "$ticket/requirement.md"
+    'The system SHALL let users log in.' '## Touchpoints' \
+    '- app/models/user.rb' > "$ticket/requirement.md"
   printf '%s\n' '# Briefing: auth' 'Covers login.' \
     > "$ticket/briefings/01-auth/briefing.md"
   printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
@@ -85,6 +86,20 @@ make_good_ticket() {
   run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
   [ "$status" -ne 0 ]
   case "$output" in *ROUTINE_TICKET_DIR*) ;; *) false ;; esac
+}
+
+@test "analyst gate aborts once the revise limit is exhausted" {
+  make_gate_root
+  make_target
+  make_good_ticket
+  for i in 1 2 3 4; do
+    printf '{"ts":"2026-01-01T00:0%s:00Z","event":"spec.lint","script":"bin/routine-spec-lint","ticket":"0001","task":"","exit":1,"ms":5}\n' "$i" \
+      >> "$ticket/telemetry.jsonl"
+  done
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
+  [ "$status" -ne 0 ]
+  case "$output" in *"revise limit"*) ;; *) false ;; esac
 }
 
 @test "analyst gate surfaces spec-lint failures" {

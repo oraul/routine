@@ -38,11 +38,25 @@ else
     bug|feature|greenfield|epic) ;;
     *) fail "requirement.md" "Type must be one of: bug, feature, greenfield, epic" ;;
   esac
-  if [ "$work_type" = "bug" ]; then
-    grep -q '^## Reproduction' "$req" \
-      || fail "requirement.md" "a bug requires a '## Reproduction' section"
-  fi
+  # Typed contract topics (contract capability): each work type hands the
+  # developer its own section, checked here — before approve, not after.
+  case "$work_type" in
+    bug)
+      grep -q '^## Reproduction' "$req" \
+        || fail "requirement.md" "a bug requires a '## Reproduction' section" ;;
+    feature)
+      grep -q '^## Touchpoints' "$req" \
+        || fail "requirement.md" "a feature requires a '## Touchpoints' section naming the code it extends" ;;
+    greenfield)
+      grep -q '^## Contracts' "$req" \
+        || fail "requirement.md" "a greenfield requires a '## Contracts' section (inputs/outputs/invariants)" ;;
+    epic)
+      grep -q '^## Order' "$req" \
+        || fail "requirement.md" "an epic requires an '## Order' section stating the order of value" ;;
+  esac
 fi
+
+caffeine_root="$(cd "$(dirname "$0")/.." && pwd)/caffeine"
 
 found_briefing=0
 for bdir in "$ticket"/briefings/*/; do
@@ -67,8 +81,29 @@ for bdir in "$ticket"/briefings/*/; do
       || ! grep -Eq '(^|[-*[:space:]])Then' "$tm"; then
       fail "$t/task.md" "no Given/When/Then scenario"
     fi
-    grep -q '^## Caffeine' "$tm" \
-      || fail "$t/task.md" "no '## Caffeine' section"
+    if ! grep -q '^## Caffeine' "$tm"; then
+      fail "$t/task.md" "no '## Caffeine' section"
+    else
+      # Manifest validity at the handoff: exact '- <topic>' form, and every
+      # topic resolves — an unbuildable manifest fails the analyst's side.
+      manifest_lines="$(awk '/^## Caffeine/ {a=1; next} a && /^#/ {a=0} a && NF {print}' "$tm")"
+      while IFS= read -r mline; do
+        [ -n "$mline" ] || continue
+        case "$mline" in
+          "- "*)
+            topic="${mline#- }"
+            if [ ! -f "$caffeine_root/$topic.sh" ] && [ ! -f "$caffeine_root/$topic.md" ]; then
+              fail "$t/task.md" "manifest topic '$topic' resolves to no caffeine/$topic.{sh,md}"
+            fi
+            ;;
+          *)
+            fail "$t/task.md" "manifest line '$mline' must use the exact form '- <topic>'"
+            ;;
+        esac
+      done <<EOF_MANIFEST
+$manifest_lines
+EOF_MANIFEST
+    fi
     if ! grep -q '^## Acceptance' "$tm"; then
       fail "$t/task.md" "no '## Acceptance' section"
     elif ! awk '/^## Acceptance/ {a=1; next}

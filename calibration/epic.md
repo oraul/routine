@@ -5,8 +5,9 @@ is execution.
 
 ## Analyst
 
-- The requirement states the destination and, critically, the **order of
-  value**: which briefing ships something observable first.
+- The `## Order` section is the contract: the destination and, critically,
+  the **order of value** — which briefing ships something observable
+  first. The lint refuses an epic without it.
 - At least two briefings by rule; in practice, one briefing per coherent
   milestone, each leaving the system releasable — no briefing may end
   mid-broken.

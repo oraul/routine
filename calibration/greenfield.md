@@ -5,9 +5,10 @@ Structure is the first deliverable.
 
 ## Analyst
 
-- Spend the requirement on contracts: inputs, outputs, invariants, and the
-  boundaries to the rest of the system. Implementation freedom is the
-  developer's; the contract is not.
+- The `## Contracts` section is the contract: inputs, outputs, invariants,
+  and the boundaries to the rest of the system — the lint refuses a
+  greenfield without it. Implementation freedom is the developer's; the
+  contract is not.
 - First briefing establishes the skeleton — layout, entry points, the first
   end-to-end walking path. Later briefings flesh it out feature by feature.
 - Prefer more, smaller scenarios: with no existing behavior to lean on, the

@@ -57,8 +57,10 @@ Loop:
 3. When the developer reports done, run `routine-gate developer`.
    Green → `routine-done "$ROUTINE_TICKET_DIR"`. Non-zero → the developer
    keeps working; it never improvises around a failing gate.
-4. If the developer declares the spec defective, take its stated reason
-   back to specify (phase 2). If it wrote `block.md` and called
+4. If the developer declares the spec defective, it runs
+   `routine-defect "$ROUTINE_TICKET_DIR" "<reason>"`; take the recorded
+   reason back to specify (phase 2), and re-run approve for the revised
+   artifacts — re-specified work is new work. If it wrote `block.md` and called
    `routine-block`, the run halts here.
 
 ## 5. conclude

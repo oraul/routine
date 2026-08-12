@@ -23,18 +23,25 @@ section while an epic requires at least two briefings.
 
 Inside the active ticket directory, write:
 
-- `requirement.md` — opens with a `# Requirement: <name>` header; the body
-  states what the system SHALL/MUST do (RFC 2119 keywords: SHALL, MUST,
-  SHOULD, MAY).
+- `requirement.md` — opens with a `# Requirement: <name>` header and a
+  `Type: <type>` line (column 0, one space); the body states what the
+  system SHALL/MUST do (RFC 2119 keywords: SHALL, MUST, SHOULD, MAY), and
+  the type's **contract topic** follows:
+  - `bug` → `## Reproduction` (exact steps, expected vs actual)
+  - `feature` → `## Touchpoints` (the modules/models/endpoints extended)
+  - `greenfield` → `## Contracts` (inputs, outputs, invariants)
+  - `epic` → `## Order` (the order of value; which briefing ships first)
 - `briefings/<nn>-<slug>/briefing.md` — one per coherent slice of the
   requirement, numbered in execution order.
 - `briefings/<nn>-<slug>/tasks/<nn>-<slug>/task.md` — one per task, numbered
   in execution order within the briefing. Every task carries:
   - at least one scenario written as Given/When/Then lines,
   - a `## Acceptance` section with an enumerated, non-empty list,
-  - a `## Caffeine` section naming the topics **this task** needs (e.g.
-    `- ruby/active_record`), empty beneath the heading when none apply.
-    You select each task's manifest while writing the briefing's tasks;
+  - a `## Caffeine` section naming the topics **this task** needs, each on
+    its own line in the exact form `- <namespace>/<topic>` (e.g.
+    `- ruby/active_record`) and resolving to a real `caffeine/` pair —
+    the lint rejects malformed bullets and unresolvable topics. Empty
+    beneath the heading when none apply. You select each task's manifest;
     the developer loads nothing outside its own task's list.
 
 Every briefing has at least one task. Size tasks so one developer session

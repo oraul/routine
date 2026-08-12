@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# The developer's defective-spec return: evidence first, then the task goes
+# back to pending and the run rewinds to specify. Mirrors the blockage
+# pattern — a sequencing decision is never carried by prose (Law 1).
+set -u
+
+lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
+# shellcheck source=/dev/null
+. "$lib/telemetry.sh"
+# shellcheck source=/dev/null
+. "$lib/index.sh"
+
+start_ms="$(routine_now_ms)"
+
+ticket="${1:-}"
+reason="${2:-}"
+if [ ! -d "$ticket" ] || [ ! -f "$ticket/index.tsv" ]; then
+  echo "usage: routine-defect <ticket-dir> <reason>" >&2
+  exit 2
+fi
+if [ -z "$reason" ]; then
+  echo "routine-defect: refuse — state the defect (a reason is the evidence)" >&2
+  exit 2
+fi
+
+if ! row="$(index_first_with_status "$ticket/index.tsv" in_progress)"; then
+  echo "routine-defect: no task is in_progress" >&2
+  exit 1
+fi
+tid="$(printf '%s' "$row" | cut -f1)"
+b="$(printf '%s' "$row" | cut -f2)"
+t="$(printf '%s' "$row" | cut -f3)"
+
+printf '%s\n' "$reason" > "$ticket/briefings/$b/tasks/$t/defect.md"
+ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+index_set_status "$ticket/index.tsv" "$tid" pending "$ts"
+telemetry_emit "$ticket/telemetry.jsonl" spec.defective bin/routine-defect \
+  "$(basename "$ticket")" "$tid" 1 "$(( $(routine_now_ms) - start_ms ))"
+echo "routine-defect: $tid returned to specify — $reason"
+exit 0

@@ -111,3 +111,14 @@ telemetry line, and move the ticket directory to `tickets/archive/<id>/`.
 - **THEN** `report.md` exists in the archived ticket at
   `tickets/archive/<id>/`, the active directory is gone, and the archived
   `telemetry.jsonl` ends with a `ticket.conclude` line
+
+### Requirement: The defect return is a lifecycle transition
+`bin/routine-defect <ticket-dir> <reason>` SHALL return the `in_progress`
+task to `pending` with the stated reason written to the task's
+`defect.md`, refusing without a reason or without an `in_progress` task,
+and SHALL emit one `spec.defective` telemetry event.
+
+#### Scenario: Defective task returned to the line
+- **WHEN** `routine-defect` runs with an in_progress task and a reason
+- **THEN** the task is `pending`, `defect.md` carries the reason, and one
+  `spec.defective` event is recorded

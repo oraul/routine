@@ -9,6 +9,8 @@ make_good_ticket() {
 # Requirement: Login
 Type: feature
 The system SHALL let users log in.
+## Touchpoints
+- app/models/user.rb
 EOF
   cat > "$ticket/briefings/01-auth/briefing.md" <<'EOF'
 # Briefing: auth
@@ -109,6 +111,45 @@ EOF
   mkdir -p "$ticket/briefings/02-api/tasks/01-endpoints"
   printf '%s\n' '# Briefing: api' > "$ticket/briefings/02-api/briefing.md"
   printf '%s\n' '# Task: endpoints' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' > "$ticket/briefings/02-api/tasks/01-endpoints/task.md"
+  printf '%s\n' '## Order' '1. auth first, api second' >> "$ticket/requirement.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -eq 0 ]
+}
+
+@test "typed contract topics are required per type" {
+  make_good_ticket
+  sed -i.bak '/^## Touchpoints/,$d' "$ticket/requirement.md" && rm -f "$ticket/requirement.md.bak"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *Touchpoints*) ;; *) false ;; esac
+  sed -i.bak 's/^Type: feature/Type: greenfield/' "$ticket/requirement.md" && rm -f "$ticket/requirement.md.bak"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *Contracts*) ;; *) false ;; esac
+}
+
+@test "an epic requires its order of value" {
+  make_good_ticket
+  sed -i.bak 's/^Type: feature/Type: epic/' "$ticket/requirement.md" && rm -f "$ticket/requirement.md.bak"
+  mkdir -p "$ticket/briefings/02-api/tasks/01-endpoints"
+  printf '%s\n' '# Briefing: api' > "$ticket/briefings/02-api/briefing.md"
+  printf '%s\n' '# Task: endpoints' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' > "$ticket/briefings/02-api/tasks/01-endpoints/task.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *Order*) ;; *) false ;; esac
+}
+
+@test "malformed manifest bullets and unresolvable topics fail" {
+  make_good_ticket
+  printf '%s\n' '# Task: login form' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' '* ruby/rails' > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *"- <topic>"*) ;; *) false ;; esac
+  printf '%s\n' '# Task: login form' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' '- ruby/nonexistent' > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *"ruby/nonexistent"*) ;; *) false ;; esac
+  printf '%s\n' '# Task: login form' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' '- ruby/rails' '- architecture/oop' > "$ticket/briefings/01-auth/tasks/01-login/task.md"
   run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
   [ "$status" -eq 0 ]
 }
