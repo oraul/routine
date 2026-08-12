@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# TDD phases as scripts: run the test command, record the outcome as
+# tdd.red/tdd.green evidence in the ticket's telemetry, and enforce the
+# phase — a red that isn't red is a protocol violation, not a warning.
+# The scenario rides the script field, the subject-of-evidence convention
+# gate.developer.script and gate.hook already use.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+
+usage() {
+  echo "usage: routine-tdd <red|green> <scenario> -- <command...>" >&2
+  exit 2
+}
+
+phase="${1:-}"
+scenario="${2:-}"
+case "$phase" in red|green) ;; *) usage ;; esac
+[ -n "$scenario" ] || usage
+[ "${3:-}" = "--" ] || usage
+shift 3
+[ "$#" -ge 1 ] || usage
+
+if [ -z "${ROUTINE_TICKET_DIR:-}" ]; then
+  echo "routine-tdd: requires a ticket context (set ROUTINE_TICKET_DIR)" >&2
+  exit 1
+fi
+
+start_ms="$(routine_now_ms)"
+"$@"
+code="$?"
+telemetry_gate_emit "tdd.$phase" "$scenario" "$code" \
+  "$(( $(routine_now_ms) - start_ms ))"
+
+if [ "$phase" = red ] && [ "$code" -eq 0 ]; then
+  echo "routine-tdd: red that isn't red — the test passed before the implementation" >&2
+  exit 1
+fi
+if [ "$phase" = green ] && [ "$code" -ne 0 ]; then
+  echo "routine-tdd: green expected but the command failed (exit $code)" >&2
+  exit "$code"
+fi
+echo "routine-tdd: $phase recorded for scenario: $scenario"
+exit 0

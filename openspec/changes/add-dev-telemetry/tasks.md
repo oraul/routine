@@ -15,7 +15,7 @@
 
 ## 4. TDD phases
 
-- [ ] 4.1 Red→green: `bin/routine-tdd` runs the command, enforces the
+- [x] 4.1 Red→green: `bin/routine-tdd` runs the command, enforces the
       phase, and emits `tdd.red`/`tdd.green` with the scenario
 
 ## 5. Retro app dimension
