@@ -53,11 +53,11 @@ never write implementation code or touch script-owned state.
 `routine-next`; context is the task file, the caffeine docs named in that
 task's own `## Caffeine` manifest, the ticket's `calibration/<type>.md`,
 and block/unblock files when present — nothing else; work red → green per
-acceptance scenario with the posture the calibration prescribes; fail a
-defective spec back to specify with a stated reason instead of
-improvising; on blockage write `block.md` and call `routine-block`.
+acceptance scenario with the posture the calibration prescribes; return a
+defective spec by calling `routine-defect <ticket-dir> <reason>` instead
+of improvising; on blockage write `block.md` and call `routine-block`.
 
 #### Scenario: Statelessness named in the prompt
 - **WHEN** the agent file is read
 - **THEN** it names the one-task rule, the closed context list including
-  the calibration doc, the defective-spec refusal, and the block procedure
+  the calibration doc, the scripted defect return, and the block procedure

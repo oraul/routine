@@ -16,9 +16,10 @@ only: `requirement.md` exists, contains a `# Requirement:` header, a
 contains `briefing.md` and at least one task directory; every `task.md`
 contains at least one scenario using Given/When/Then lines, a
 `## Acceptance` section with at least one enumerated item, and a
-`## Caffeine` section naming the task's topics (the list MAY be empty
-beneath the heading). It SHALL apply the type-specific structure rules of
-the calibration capability. It SHALL exit 0 only when every check passes.
+`## Caffeine` section whose non-empty lines each match `- <topic>` and
+resolve against `caffeine/` (the list MAY be empty beneath the heading).
+It SHALL apply the type-specific structure rules of the calibration and
+contract capabilities. It SHALL exit 0 only when every check passes.
 
 #### Scenario: Well-formed ticket passes
 - **WHEN** a ticket satisfies every grammar rule

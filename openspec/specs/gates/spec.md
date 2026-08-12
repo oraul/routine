@@ -62,12 +62,13 @@ clean and checked out on a branch, and SHALL fail with the reason otherwise.
 
 ### Requirement: Analyst baseline lints the ticket and checks coherence
 The analyst gate baseline SHALL resolve the ticket from
-`ROUTINE_TICKET_DIR` (failing with a message when unset), SHALL run
-`routine-spec-lint` over it, SHALL then append any index rows missing for
-existing task directories (the same append-only, file-ordered sync
-`routine-next` performs), and SHALL verify the index is coherent with the
-directory tree: every index row's task directory exists and every task
-directory has an index row.
+`ROUTINE_TICKET_DIR` (failing with a message when unset), SHALL fail
+naming the exhausted revise limit when the ticket's telemetry records more
+than 3 failed `spec.lint` runs, SHALL run `routine-spec-lint` over it,
+SHALL then append any index rows missing for existing task directories
+(the same append-only, file-ordered sync `routine-next` performs), and
+SHALL verify the index is coherent with the directory tree: every index
+row's task directory exists and every task directory has an index row.
 
 #### Scenario: No ticket context
 - **WHEN** `routine-gate analyst` runs without `ROUTINE_TICKET_DIR`
@@ -76,6 +77,10 @@ directory has an index row.
 #### Scenario: Grammar failure fails the gate
 - **WHEN** the ticket fails `routine-spec-lint`
 - **THEN** `routine-gate analyst` exits non-zero surfacing the lint output
+
+#### Scenario: Revise limit exhausted
+- **WHEN** the ticket's telemetry holds 4 failed `spec.lint` events
+- **THEN** the analyst gate exits non-zero naming the revise limit
 
 #### Scenario: Fresh ticket is coherent by construction
 - **WHEN** a well-formed ticket has task directories but an empty index
