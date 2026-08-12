@@ -10,7 +10,7 @@
 
 ## 3. App-level evidence
 
-- [ ] 3.1 Red→green: scaffold emits `app.scaffold` always, deps emits
+- [x] 3.1 Red→green: scaffold emits `app.scaffold` always, deps emits
       `app.deps` only when `runs/<app>` exists
 
 ## 4. TDD phases

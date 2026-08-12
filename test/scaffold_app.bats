@@ -19,6 +19,8 @@ setup_fixture() {
   [ -d "$groot/runs/app/hooks" ]
   [ -d "$groot/runs/app/tickets" ]
   case "$output" in *"runs/app/hooks/developer.sh"*) ;; *) false ;; esac
+  grep '"event":"app.scaffold"' "$groot/runs/app/telemetry.jsonl" \
+    | grep -q '"exit":1'
 }
 
 @test "scaffold is idempotent and passes once the hook exists" {
@@ -30,4 +32,18 @@ setup_fixture() {
   run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-scaffold"
   [ "$status" -eq 0 ]
   [ "$(cat "$groot/runs/app/hooks/marker")" = "keep" ]
+  grep '"event":"app.scaffold"' "$groot/runs/app/telemetry.jsonl" \
+    | grep -q '"exit":0'
+}
+
+@test "deps leaves app-level evidence only when app state exists" {
+  setup_fixture
+  printf 'gem "rails"\n' > "$tgt/Gemfile"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-deps"
+  [ "$status" -eq 0 ]
+  [ ! -f "$groot/runs/app/telemetry.jsonl" ]
+  mkdir -p "$groot/runs/app"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-deps"
+  [ "$status" -eq 0 ]
+  grep '"event":"app.deps"' "$groot/runs/app/telemetry.jsonl" | grep -q '"exit":0'
 }

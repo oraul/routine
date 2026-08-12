@@ -4,7 +4,25 @@
 # grep/awk only — drafting best practices is the /caffeinate skill's job.
 set -u
 
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
+
+root="$(routine_root)"
 target="${TARGET:-$PWD}"
+app="$(routine_app_key "$target")"
+
+# Evidence only where a destination exists: without scaffolded app state
+# there is nowhere to write, and scripts never invent a destination.
+emit() {
+  [ -d "$root/runs/$app" ] || return 0
+  telemetry_emit "$root/runs/$app/telemetry.jsonl" app.deps bin/routine-deps \
+    "" "" "$1" "$(( $(routine_now_ms) - start_ms ))"
+}
+
 found=0
 
 if [ -f "$target/Gemfile" ]; then
@@ -37,6 +55,8 @@ fi
 
 if [ "$found" -eq 0 ]; then
   echo "routine-deps: no manifest found in $target (looked for Gemfile, package.json, requirements.txt)" >&2
+  emit 1
   exit 1
 fi
+emit 0
 exit 0

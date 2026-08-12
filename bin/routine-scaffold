@@ -6,6 +6,10 @@ set -u
 
 # shellcheck source=/dev/null
 . "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
 
 root="$(routine_root)"
 target="${TARGET:-$PWD}"
@@ -13,11 +17,18 @@ app="$(routine_app_key "$target")"
 
 mkdir -p "$root/runs/$app/hooks" "$root/runs/$app/tickets"
 
+emit() {
+  telemetry_emit "$root/runs/$app/telemetry.jsonl" app.scaffold \
+    bin/routine-scaffold "" "" "$1" "$(( $(routine_now_ms) - start_ms ))"
+}
+
 if [ ! -f "$root/runs/$app/hooks/developer.sh" ]; then
   echo "routine-scaffold: missing mandatory hook: runs/$app/hooks/developer.sh" >&2
   echo "routine-scaffold: create it with one line delegating to the app's own tooling, e.g.: cd \"\$TARGET\" && bin/ci" >&2
+  emit 1
   exit 1
 fi
 
+emit 0
 echo "$root/runs/$app"
 exit 0
