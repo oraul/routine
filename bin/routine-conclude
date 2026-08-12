@@ -21,6 +21,8 @@ unfinished="$(awk -F'\t' '$4!="done" {print $1}' "$ticket/index.tsv")"
 if [ -n "$unfinished" ]; then
   echo "routine-conclude: refuse — tasks not done:" >&2
   printf '%s\n' "$unfinished" >&2
+  telemetry_emit "$ticket/telemetry.jsonl" ticket.conclude bin/routine-conclude \
+    "$(basename "$ticket")" "" 1 "$(( $(routine_now_ms) - start_ms ))"
   exit 1
 fi
 

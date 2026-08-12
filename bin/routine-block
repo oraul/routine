@@ -19,6 +19,8 @@ fi
 
 if ! row="$(index_first_with_status "$ticket/index.tsv" in_progress)"; then
   echo "routine-block: no task is in_progress" >&2
+  telemetry_emit "$ticket/telemetry.jsonl" ticket.block bin/routine-block \
+    "$(basename "$ticket")" "" 1 "$(( $(routine_now_ms) - start_ms ))"
   exit 1
 fi
 tid="$(printf '%s' "$row" | cut -f1)"
@@ -27,6 +29,8 @@ t="$(printf '%s' "$row" | cut -f3)"
 
 if [ ! -f "$ticket/briefings/$b/tasks/$t/block.md" ]; then
   echo "routine-block: refuse — write briefings/$b/tasks/$t/block.md first" >&2
+  telemetry_emit "$ticket/telemetry.jsonl" ticket.block bin/routine-block \
+    "$(basename "$ticket")" "$tid" 1 "$(( $(routine_now_ms) - start_ms ))"
   exit 1
 fi
 

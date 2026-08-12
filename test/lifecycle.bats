@@ -41,6 +41,7 @@ make_ticket() {
   run "$ROUTINE_REPO_ROOT/bin/routine-done" "$ticket"
   [ "$status" -ne 0 ]
   case "$output" in *in_progress*) ;; *) false ;; esac
+  grep '"event":"ticket.done"' "$ticket/telemetry.jsonl" | grep -q '"exit":1'
 }
 
 @test "block refuses without block.md" {
@@ -49,6 +50,7 @@ make_ticket() {
   [ "$status" -ne 0 ]
   case "$output" in *block.md*) ;; *) false ;; esac
   grep -q "^01-01${TAB}.*${TAB}in_progress${TAB}" "$ticket/index.tsv"
+  grep '"event":"ticket.block"' "$ticket/telemetry.jsonl" | grep -q '"exit":1'
 }
 
 @test "block parks the line and unblock releases it" {
@@ -61,6 +63,7 @@ make_ticket() {
   run "$ROUTINE_REPO_ROOT/bin/routine-unblock" "$ticket"
   [ "$status" -ne 0 ]
   case "$output" in *unblock.md*) ;; *) false ;; esac
+  grep '"event":"ticket.unblock"' "$ticket/telemetry.jsonl" | grep -q '"exit":1'
   touch "$ticket/briefings/01-auth/tasks/01-login/unblock.md"
   run "$ROUTINE_REPO_ROOT/bin/routine-unblock" "$ticket"
   [ "$status" -eq 0 ]

@@ -19,6 +19,8 @@ fi
 
 if ! row="$(index_first_with_status "$ticket/index.tsv" in_progress)"; then
   echo "routine-done: no task is in_progress" >&2
+  telemetry_emit "$ticket/telemetry.jsonl" ticket.done bin/routine-done \
+    "$(basename "$ticket")" "" 1 "$(( $(routine_now_ms) - start_ms ))"
   exit 1
 fi
 tid="$(printf '%s' "$row" | cut -f1)"

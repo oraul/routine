@@ -21,28 +21,32 @@ if [ ! -d "$ticket" ] || [ ! -f "$ticket/index.tsv" ]; then
   exit 2
 fi
 
+# Refusals are transitions that didn't happen — they still leave one line.
+refuse() {
+  echo "routine-unblock: $2" >&2
+  telemetry_emit "$ticket/telemetry.jsonl" ticket.unblock bin/routine-unblock \
+    "$(basename "$ticket")" "$1" 1 "$(( $(routine_now_ms) - start_ms ))"
+  exit 1
+}
+
 if [ -n "$task_id" ]; then
   if ! row="$(grep "^$task_id$TAB" "$ticket/index.tsv" | head -n 1)" \
     || [ -z "$row" ]; then
-    echo "routine-unblock: no task $task_id in the index" >&2
-    exit 1
+    refuse "" "no task $task_id in the index"
   fi
   _status="$(printf '%s' "$row" | cut -f4)"
   if [ "$_status" != blocked ]; then
-    echo "routine-unblock: task $task_id is $_status, not blocked" >&2
-    exit 1
+    refuse "$task_id" "task $task_id is $_status, not blocked"
   fi
 elif ! row="$(index_first_with_status "$ticket/index.tsv" blocked)"; then
-  echo "routine-unblock: no task is blocked" >&2
-  exit 1
+  refuse "" "no task is blocked"
 fi
 tid="$(printf '%s' "$row" | cut -f1)"
 b="$(printf '%s' "$row" | cut -f2)"
 t="$(printf '%s' "$row" | cut -f3)"
 
 if [ ! -f "$ticket/briefings/$b/tasks/$t/unblock.md" ]; then
-  echo "routine-unblock: refuse — write briefings/$b/tasks/$t/unblock.md first" >&2
-  exit 1
+  refuse "$tid" "refuse — write briefings/$b/tasks/$t/unblock.md first"
 fi
 
 ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"

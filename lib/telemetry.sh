@@ -35,9 +35,17 @@ telemetry_emit() {
 # telemetry_gate_emit <event> <script> <exit> <ms>
 # Ticket-bound wrapper: writes to $ROUTINE_TICKET_DIR/telemetry.jsonl when a
 # ticket context exists; outside one it is a clean no-op — scripts never
-# invent a destination.
+# invent a destination. Attribution is derived, never passed: the ticket is
+# the directory's basename, the task is the in_progress index row's id, and
+# an empty task field means nothing was in progress at emission time.
 telemetry_gate_emit() {
   [ -n "${ROUTINE_TICKET_DIR:-}" ] || return 0
+  _t_ticket_id="$(basename "$ROUTINE_TICKET_DIR")"
+  _t_task_id=""
+  if [ -f "$ROUTINE_TICKET_DIR/index.tsv" ]; then
+    _t_task_id="$(awk -F'\t' '$4=="in_progress" {print $1; exit}' \
+      "$ROUTINE_TICKET_DIR/index.tsv")"
+  fi
   telemetry_emit "$ROUTINE_TICKET_DIR/telemetry.jsonl" "$1" "$2" \
-    "${ROUTINE_TICKET:-}" "${ROUTINE_TASK:-}" "$3" "$4"
+    "$_t_ticket_id" "$_t_task_id" "$3" "$4"
 }
