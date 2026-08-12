@@ -56,3 +56,15 @@ load test_helper
   grep -q 'eager_load' "$doc"
   grep -q 'strict_loading' "$doc"
 }
+
+@test "rails skeleton is complete, authorized, and copyable" {
+  doc="$ROUTINE_REPO_ROOT/caffeine/ruby/rails.md"
+  ! grep -qE '^[[:space:]]+\.\.\.$' "$doc"
+  grep -q 'authorize' "$doc"
+  grep -q 'Result' "$doc"
+}
+
+@test "rails and hexagonal arbitrate their conflict in both docs" {
+  grep -q 'architecture/hexagonal' "$ROUTINE_REPO_ROOT/caffeine/ruby/rails.md"
+  grep -q 'ruby/rails' "$ROUTINE_REPO_ROOT/caffeine/architecture/hexagonal.md"
+}

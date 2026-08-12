@@ -11,7 +11,7 @@
 
 ## 3. Rails copyable and adjudicated
 
-- [ ] 3.1 Red→green: complete skeleton with Result object and
+- [x] 3.1 Red→green: complete skeleton with Result object and
       authorize, model-vs-service paragraph, hexagonal arbitration in
       both docs
 

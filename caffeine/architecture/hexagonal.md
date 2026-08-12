@@ -29,3 +29,10 @@ names `architecture/hexagonal`.
   duplicate orchestration, that orchestration belongs inside.
 - **Cross the boundary with domain types**, never with transport shapes:
   request DTOs stop at the adapter; rows stop at the repository.
+
+- **If the manifest also loads `ruby/rails`**: do not fight the
+  framework. In a vanilla Rails app the model layer is the domain and
+  ActiveRecord is its persistence adapter; apply the
+  direction-of-dependency rule at the application-service seam instead
+  of extracting a port layer the target does not have. The target's
+  existing architecture wins.
