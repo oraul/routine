@@ -5,6 +5,9 @@ toward reproduction and root cause; new surface area is scope creep.
 
 ## Analyst
 
+- Ground first: `grounding.md`'s Evidence names the files where the
+  defect lives and the suspected root cause as a claim to verify.
+
 - The `## Reproduction` section is the contract: exact steps, expected vs
   actual. If you cannot write it, the requirement is not ready — say so.
 - State the suspected root cause as a claim to verify, not a certainty.

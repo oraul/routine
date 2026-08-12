@@ -69,6 +69,18 @@ make_good_ticket() {
   printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
     '## Acceptance' '1. works' '## Caffeine' \
     > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  cat > "$ticket/grounding.md" <<'GRD'
+# Grounding: 0001
+
+## Evidence
+- app/models/user.rb — the touchpoint the feature extends
+
+## Alternatives
+- single-task shape rejected: form and session split cleanly
+
+## Assumptions
+- local auth only; no SSO in scope
+GRD
   : > "$ticket/index.tsv"
   "$ROUTINE_REPO_ROOT/bin/routine-next" "$ticket" > /dev/null
 }

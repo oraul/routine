@@ -5,6 +5,9 @@ is execution.
 
 ## Analyst
 
+- Ground first: `grounding.md`'s Alternatives records the briefing
+  orders you rejected — the cut-order reasoning outlives the session.
+
 - The `## Order` section is the contract: the destination and, critically,
   the **order of value** — which briefing ships something observable
   first. The lint refuses an epic without it.

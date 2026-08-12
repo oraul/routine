@@ -24,6 +24,33 @@ fail() {
 # RFC 2119 keywords as whole words, portable to BSD grep (no \b).
 rfc2119='(^|[^A-Za-z])(SHALL|MUST|SHOULD|MAY)([^A-Za-z]|$)'
 
+# Grounding: the evidence behind the contract, ticket-level. Structural
+# checks only — headers present, Evidence non-empty, and once any task
+# carries a defect.md, a Reconciliation line naming that task id, so
+# grounding never outlives the evidence that invalidated it.
+grounding="$ticket/grounding.md"
+if [ ! -f "$grounding" ]; then
+  fail "grounding.md" "missing (the evidence behind the contract)"
+else
+  for _gsec in Evidence Alternatives Assumptions; do
+    grep -q "^## $_gsec" "$grounding" \
+      || fail "grounding.md" "missing '## $_gsec' section"
+  done
+  if ! awk '/^## Evidence/ {a=1; next} a && /^#/ {a=0} a && /^- / {found=1} END {exit !found}' "$grounding"; then
+    fail "grounding.md" "'## Evidence' has no '- ' bullet"
+  fi
+  for _dfile in "$ticket"/briefings/*/tasks/*/defect.md; do
+    [ -f "$_dfile" ] || continue
+    _db="$(basename "$(dirname "$(dirname "$(dirname "$_dfile")")")")"
+    _dt="$(basename "$(dirname "$_dfile")")"
+    _dtid="${_db%%-*}-${_dt%%-*}"
+    if ! awk '/^## Reconciliation/ {a=1; next} a && /^#/ {a=0} a {print}' "$grounding" \
+      | grep -q "$_dtid"; then
+      fail "grounding.md" "defect on $_dtid needs a '## Reconciliation' line naming it"
+    fi
+  done
+fi
+
 req="$ticket/requirement.md"
 work_type=""
 if [ ! -f "$req" ]; then

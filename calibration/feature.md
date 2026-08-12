@@ -5,6 +5,9 @@ preferences; the seams you touch need protecting.
 
 ## Analyst
 
+- Ground first: `grounding.md`'s Evidence names the touchpoint files
+  actually read and the conventions they establish.
+
 - The `## Touchpoints` section is the contract: name the modules, models,
   or endpoints the feature extends — the lint refuses a feature without
   it. Insight comes from reading that code first.
