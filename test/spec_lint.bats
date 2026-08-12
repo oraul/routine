@@ -28,6 +28,18 @@ EOF
 ## Caffeine
 - ruby/rails
 EOF
+  cat > "$ticket/grounding.md" <<'GRD'
+# Grounding: 0001
+
+## Evidence
+- app/models/user.rb — the touchpoint the feature extends
+
+## Alternatives
+- single-task shape rejected: form and session split cleanly
+
+## Assumptions
+- local auth only; no SSO in scope
+GRD
 }
 
 @test "well-formed ticket passes" {
@@ -152,6 +164,58 @@ EOF
   # Refusals teach: the failure lists the available vocabulary.
   case "$output" in *"available topics"*"ruby/rails"*) ;; *) false ;; esac
   printf '%s\n' '# Task: login form' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' '- ruby/rails' '- architecture/oop' > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -eq 0 ]
+}
+
+# Grounding: the evidence behind the contract, ticket-level.
+write_grounding() {
+  cat > "$ticket/grounding.md" <<'GEOF'
+# Grounding: 0001
+
+## Evidence
+- app/models/user.rb — the touchpoint the feature extends
+
+## Alternatives
+- single-task shape rejected: form and session split cleanly
+
+## Assumptions
+- local auth only; no SSO in scope
+GEOF
+}
+
+@test "missing grounding.md fails the lint" {
+  make_good_ticket
+  rm -f "$ticket/grounding.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *grounding.md*) ;; *) false ;; esac
+}
+
+@test "empty evidence fails the lint" {
+  make_good_ticket
+  write_grounding
+  python3 - "$ticket/grounding.md" <<'PYEOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace('- app/models/user.rb — the touchpoint the feature extends\n', '')
+open(p, 'w').write(s)
+PYEOF
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *Evidence*) ;; *) false ;; esac
+}
+
+@test "a defect return demands reconciliation naming the task id" {
+  make_good_ticket
+  write_grounding
+  printf '## 2026-08-12T00:00:00Z\n\nscenario contradicts acceptance\n' \
+    > "$ticket/briefings/01-auth/tasks/01-login/defect.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *Reconciliation*01-01*|*01-01*Reconciliation*) ;; *) false ;; esac
+  printf '\n## Reconciliation\n- 01-01 — scenario rewritten to match the acceptance list\n' \
+    >> "$ticket/grounding.md"
   run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
   [ "$status" -eq 0 ]
 }

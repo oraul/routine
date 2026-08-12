@@ -1,12 +1,12 @@
 ## 1. The grounding artifact
 
-- [ ] 1.1 Red→green: `routine-spec-lint` requires `grounding.md` with
+- [x] 1.1 Red→green: `routine-spec-lint` requires `grounding.md` with
       `## Evidence` (≥1 bullet), `## Alternatives`, `## Assumptions`;
       fixtures comply
 
 ## 2. Reconciliation is mechanical
 
-- [ ] 2.1 Red→green: once any `defect.md` exists, the lint requires
+- [x] 2.1 Red→green: once any `defect.md` exists, the lint requires
       `## Reconciliation` naming each defective task id
 
 ## 3. The prompts close the loop
