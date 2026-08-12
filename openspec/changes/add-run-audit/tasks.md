@@ -15,5 +15,5 @@
 
 ## 4. Conclude fails closed
 
-- [ ] 4.1 Red→green: `routine-conclude` refuses (with evidence) unless
+- [x] 4.1 Red→green: `routine-conclude` refuses (with evidence) unless
       the audit passes; fixtures gain honest protocol telemetry

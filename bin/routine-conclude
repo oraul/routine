@@ -26,6 +26,15 @@ if [ -n "$unfinished" ]; then
   exit 1
 fi
 
+# Done rows are a claim; the audit checks the evidence backs it.
+if ! audit_out="$("$(cd "$(dirname "$0")" && pwd)/routine-audit" "$ticket" 2>&1)"; then
+  echo "routine-conclude: refuse — the run audit failed:" >&2
+  printf '%s\n' "$audit_out" >&2
+  telemetry_emit "$ticket/telemetry.jsonl" ticket.conclude bin/routine-conclude \
+    "$(basename "$ticket")" "" 1 "$(( $(routine_now_ms) - start_ms ))"
+  exit 1
+fi
+
 id="$(basename "$ticket")"
 ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 
