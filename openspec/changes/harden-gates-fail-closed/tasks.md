@@ -16,5 +16,5 @@
 
 ## 4. Lifecycle honesty
 
-- [ ] 4.1 Red→green: `routine-unblock [task-id]` releases exactly the named
+- [x] 4.1 Red→green: `routine-unblock [task-id]` releases exactly the named
       task or refuses; conclude prints the archived path

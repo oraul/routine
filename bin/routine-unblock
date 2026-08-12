@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# Releases a block: returns the first blocked task to pending, refusing
-# unless unblock.md carries the human's unblocking context.
+# Releases a block: returns a blocked task to pending, refusing unless
+# unblock.md carries the human's unblocking context. A task-id addresses
+# exactly that task; without one the first blocked task is released.
 set -u
 
 lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
@@ -11,13 +12,27 @@ lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
 
 start_ms="$(routine_now_ms)"
 
+TAB="$(printf '\t')"
+
 ticket="${1:-}"
+task_id="${2:-}"
 if [ ! -d "$ticket" ] || [ ! -f "$ticket/index.tsv" ]; then
-  echo "usage: routine-unblock <ticket-dir>" >&2
+  echo "usage: routine-unblock <ticket-dir> [task-id]" >&2
   exit 2
 fi
 
-if ! row="$(index_first_with_status "$ticket/index.tsv" blocked)"; then
+if [ -n "$task_id" ]; then
+  if ! row="$(grep "^$task_id$TAB" "$ticket/index.tsv" | head -n 1)" \
+    || [ -z "$row" ]; then
+    echo "routine-unblock: no task $task_id in the index" >&2
+    exit 1
+  fi
+  _status="$(printf '%s' "$row" | cut -f4)"
+  if [ "$_status" != blocked ]; then
+    echo "routine-unblock: task $task_id is $_status, not blocked" >&2
+    exit 1
+  fi
+elif ! row="$(index_first_with_status "$ticket/index.tsv" blocked)"; then
   echo "routine-unblock: no task is blocked" >&2
   exit 1
 fi

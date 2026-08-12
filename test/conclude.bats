@@ -31,6 +31,7 @@ make_ticket() {
     > "$ticket/index.tsv.new" && mv "$ticket/index.tsv.new" "$ticket/index.tsv"
   run "$ROUTINE_REPO_ROOT/bin/routine-conclude" "$ticket"
   [ "$status" -eq 0 ]
+  case "$output" in *"$tickets/archive/0001"*) ;; *) false ;; esac
   [ ! -d "$ticket" ]
   [ -f "$tickets/archive/0001/report.md" ]
   grep -q '01-01' "$tickets/archive/0001/report.md"
