@@ -33,3 +33,14 @@ make_ticket() {
   [ "$status" -ne 0 ]
   case "$output" in *in_progress*) ;; *) false ;; esac
 }
+
+@test "a second defect return keeps the first reason" {
+  make_ticket
+  "$ROUTINE_REPO_ROOT/bin/routine-defect" "$ticket" "first: scenario contradicts acceptance" > /dev/null
+  "$ROUTINE_REPO_ROOT/bin/routine-next" "$ticket" > /dev/null
+  "$ROUTINE_REPO_ROOT/bin/routine-defect" "$ticket" "second: still contradictory after re-spec" > /dev/null
+  dfile="$ticket/briefings/01-auth/tasks/01-login/defect.md"
+  grep -q "first: scenario contradicts acceptance" "$dfile"
+  grep -q "second: still contradictory after re-spec" "$dfile"
+  [ "$(grep -c '^## ' "$dfile")" -eq 2 ]
+}

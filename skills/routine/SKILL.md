@@ -51,8 +51,10 @@ operational loop; never continue without it.
 Loop:
 
 1. `routine-next "$ROUTINE_TICKET_DIR"` — exit 0 gives one task path;
-   exit 3 means the line is blocked (tell the human to run `/unblock`);
-   exit 4 means every task is done → go to conclude.
+   exit 2 is a caller bug (the ticket dir is wrong — fix the path, do
+   NOT treat it as a blocked line); exit 3 means the line is blocked
+   (tell the human to run `/unblock`); exit 4 means every task is
+   done → go to conclude.
 2. Delegate the task to the **developer** agent (`agents/developer.md`).
 3. When the developer reports done, run `routine-gate developer`.
    Green → `routine-done "$ROUTINE_TICKET_DIR"`. Non-zero → the developer

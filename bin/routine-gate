@@ -66,12 +66,17 @@ baseline_analyst() {
     echo "routine-gate: analyst gate requires a ticket context (set ROUTINE_TICKET_DIR)" >&2
     return 1
   fi
-  # The revise limit is counted, never remembered: more than 3 failed
-  # lint runs on record aborts the ticket.
+  # The revise limit is counted, never remembered — and per specify
+  # EPISODE: a spec.defective line opens a new budget (re-specified work
+  # is new work). Line order is time order; only failures after the last
+  # defect return count.
   if [ -f "$ROUTINE_TICKET_DIR/telemetry.jsonl" ]; then
-    _revises="$(grep -c '"event":"spec.lint".*"exit":[1-9]' "$ROUTINE_TICKET_DIR/telemetry.jsonl" || true)"
+    _revises="$(awk '
+      /"event":"spec.defective"/ { n = 0; next }
+      /"event":"spec.lint"/ && /"exit":[1-9]/ { n++ }
+      END { print n + 0 }' "$ROUTINE_TICKET_DIR/telemetry.jsonl")"
     if [ "$_revises" -gt 3 ]; then
-      echo "routine-gate: revise limit exhausted ($_revises failed lint runs); abort the ticket" >&2
+      echo "routine-gate: revise limit exhausted ($_revises failed lint runs this episode); run routine-abort with the reason" >&2
       return 1
     fi
   fi
