@@ -5,7 +5,7 @@
 
 ## 2. The js beachhead
 
-- [ ] 2.1 Red→green: `js/express` and `js/vitest` pairs with per-rule
+- [x] 2.1 Red→green: `js/express` and `js/vitest` pairs with per-rule
       fixtures
 
 ## 3. The python beachhead
