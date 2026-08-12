@@ -11,9 +11,16 @@ code against that topic's enforceable rules.
 ### Requirement: Sidecars are mechanical checkers with gate semantics
 Each caffeine sidecar (`caffeine/<lang>/<topic>.sh`) SHALL check the code
 under `TARGET` (default: current directory) against 3–5 mechanical,
-grep-able rules, SHALL print every hit with its file, line, and rule, SHALL
-exit 0 only when no rule matches, and SHALL judge nothing a grep cannot see
-— judgment guidance lives in the paired `.md`.
+grep-able rules declared through the shared library `lib/sidecar.sh` as
+`check <id> "<rule>" '<pattern>' [scope]`. Every hit SHALL print as
+`caffeine/<ns>/<topic>[<id>] <rule>: <file>:<line>:<content>` — the
+bracketed id is the parse handle, the rule string the canonical name.
+Scanning SHALL exclude vendored directories (`vendor`, `node_modules`,
+`tmp`, `coverage`) by directory, never by filtering hit lines. The
+sidecar SHALL exit 0 only when no rule matches, SHALL exit 2 when the
+scan itself fails (a broken instrument is never a clean repo), and
+SHALL judge nothing a grep cannot see — judgment guidance lives in the
+paired `.md`.
 
 #### Scenario: Clean target passes
 - **WHEN** the target contains no rule violations
@@ -21,7 +28,20 @@ exit 0 only when no rule matches, and SHALL judge nothing a grep cannot see
 
 #### Scenario: Violation named
 - **WHEN** a target file trips a rule
-- **THEN** the sidecar exits non-zero printing the file, line, and rule
+- **THEN** the sidecar exits non-zero printing its id, rule, file, and
+  line
+
+#### Scenario: Vendored content cannot hide a hit
+- **WHEN** a violating line's content mentions `/vendor/` but the file
+  lives under `app/`
+- **THEN** the sidecar still reports it, and files under `vendor/` are
+  skipped by directory
+
+#### Scenario: A broken instrument is loud
+- **WHEN** the scan itself errors (an invalid pattern or unreadable
+  tree)
+- **THEN** the sidecar exits 2, not 0
+
 
 ### Requirement: Dependency discovery is scripted
 `bin/routine-deps` SHALL detect the target project's dependency manifests —
@@ -105,8 +125,8 @@ and `caffeine-reviewed` (an ISO date). Every `.sh` SHALL carry
 `caffeine-topic`, `caffeine-applies`, and `caffeine-reviewed` header
 comments, SHALL have a sibling `.md`, SHALL resolve `TARGET` with a
 `$PWD` default, set `-u`, and end `exit "$fails"`, SHALL declare between
-3 and 5 `check` rules, and each rule string SHALL appear verbatim in the
-sibling `.md`. A `.md` without a sidecar SHALL declare
+3 and 5 `check <id> "<rule>"` rules, and each rule string SHALL appear
+verbatim in the sibling `.md`. A `.md` without a sidecar SHALL declare
 `caffeine-mode: doc-only`. Every sidecar SHALL have a bats file at
 `test/caffeine_<ns>_<topic>.bats`.
 
@@ -126,6 +146,7 @@ sibling `.md`. A `.md` without a sidecar SHALL declare
 #### Scenario: Missing provenance is a defect
 - **WHEN** a topic doc lacks any of the four metadata fields
 - **THEN** the lint exits non-zero naming the file and field
+
 
 ### Requirement: The caffeine lint is scripted
 `bin/routine-caffeine-lint` SHALL walk every topic under the routine
