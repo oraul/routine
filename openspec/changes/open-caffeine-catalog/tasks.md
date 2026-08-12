@@ -12,5 +12,5 @@
 
 ## 3. Inbound edges
 
-- [ ] 3.1 Red→green: greenfield names hexagonal, feature names oop, the
+- [x] 3.1 Red→green: greenfield names hexagonal, feature names oop, the
       analyst doc names the catalog command
