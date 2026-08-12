@@ -1,0 +1,35 @@
+#!/usr/bin/env bash
+# The human checkpoint as evidence: records the proceed (and any remarks)
+# the approve phase used to lose to the transcript. Refuses to approve
+# artifacts the analyst gate never passed — approval orders after the
+# gate by construction, never by claim.
+set -u
+
+lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
+# shellcheck source=/dev/null
+. "$lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
+
+ticket="${1:-}"
+note="${2:-}"
+if [ ! -d "$ticket" ] || [ ! -f "$ticket/telemetry.jsonl" ]; then
+  echo "usage: routine-approve <ticket-dir> [note]" >&2
+  exit 2
+fi
+
+if ! grep -q '"event":"gate.analyst"[^}]*"exit":0,' "$ticket/telemetry.jsonl"; then
+  echo "routine-approve: no passing gate.analyst on record — approval of ungated artifacts is meaningless" >&2
+  exit 1
+fi
+
+if [ -n "$note" ]; then
+  {
+    printf '## %s\n\n%s\n\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$note"
+  } >> "$ticket/approve.md"
+fi
+
+telemetry_emit "$ticket/telemetry.jsonl" ticket.approve bin/routine-approve \
+  "$(basename "$ticket")" "" 0 "$(( $(routine_now_ms) - start_ms ))"
+echo "routine-approve: recorded"
+exit 0

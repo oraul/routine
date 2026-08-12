@@ -26,7 +26,7 @@ first="$(head -n 1 "$tele" | awk -F'"' '{print $8}')"
 if [ "$first" != ticket.new ]; then
   fail "first event is '${first}'; the protocol starts at ticket.new"
 fi
-for _gate in gate.preflight gate.analyst; do
+for _gate in gate.preflight gate.analyst ticket.approve; do
   if ! grep -q '"event":"'"$_gate"'"[^}]*"exit":0,' "$tele"; then
     fail "no passing $_gate on record"
   fi
