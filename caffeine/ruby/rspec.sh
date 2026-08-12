@@ -11,9 +11,13 @@ set -u
 . "$(cd "$(dirname "$0")/../.." && pwd)/lib/sidecar.sh"
 sidecar_init ruby/rspec
 
-check S1 "legacy should syntax (use expect)" '\.should(_not)?([[:space:]]|\()' "$target/spec"
-check S2 "leftover focus mark" '(^|[[:space:]])(fit|fdescribe|fcontext)([[:space:]]|\()|focus:[[:space:]]*true' "$target/spec"
+check S1 "legacy should syntax (use expect)" \
+  '\.(should(_not)?([[:space:]]|\()|should_receive|should_not_receive|stub(\(|!))' "$target/spec"
+check S2 "leftover focus mark" \
+  '^[[:space:]]*f(it|describe|context|specify)[[:space:](]|focus:[[:space:]]*true|,[[:space:]]*:focus([[:space:]]|\)|,|$)' "$target/spec"
 check S3 "sleep in a spec (use test doubles or travel helpers)" '(^|[^a-z_.])sleep([[:space:]]|\()' "$target/spec"
 check S4 "any_instance stubs objects the example never built" 'any_instance(_of)?\(' "$target/spec"
+check S5 "silently disabled example (xit/xdescribe/xcontext)" \
+  '^[[:space:]]*x(it|describe|context)[[:space:](]' "$target/spec"
 
 exit "$fails"

@@ -52,3 +52,32 @@ make_clean_target() {
   [ "$status" -ne 0 ]
   case "$output" in *post.rb*) ;; *) false ;; esac
 }
+
+@test "update_column and update_attributes are caught like update_attribute" {
+  make_clean_target
+  printf 'user.update_column(:name, x)\n' > "$tgt/app/models/uc.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -ne 0 ]
+  rm "$tgt/app/models/uc.rb"
+  printf 'user.update!(name: x)\n' > "$tgt/app/models/ok.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -eq 0 ]
+}
+
+@test "where(...).each is unbatched iteration, find_each passes" {
+  make_clean_target
+  printf 'User.where(active: true).each { |u| u.touch }\n' > "$tgt/app/models/it.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -ne 0 ]
+  rm "$tgt/app/models/it.rb"
+  printf 'User.where(active: true).find_each { |u| u.touch }\n' > "$tgt/app/models/ok.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -eq 0 ]
+}
+
+@test "save! and paren-less validate: false are caught" {
+  make_clean_target
+  printf 'record.save!(validate: false)\n' > "$tgt/app/models/s.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -ne 0 ]
+}

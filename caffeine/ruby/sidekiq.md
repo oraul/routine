@@ -12,6 +12,7 @@ The sidecar mechanically rejects (fix them, don't argue with them):
 - keyword args to perform_* (arguments must be JSON-native)
 - sleep inside a job pins a Sidekiq thread
 - retry: false silently drops failures (state the dead-set plan)
+- Sidekiq delayed extensions were removed (use a job class)
 
 ## The skeleton
 

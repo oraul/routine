@@ -59,3 +59,36 @@ make_clean_target() {
   run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
   [ "$status" -eq 0 ]
 }
+
+@test "prose containing the word fit passes" {
+  make_clean_target
+  printf "it 'should fit in the box' do\nend\n" > "$tgt/spec/models/fit_spec.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -eq 0 ]
+}
+
+@test "focus metadata and support files are caught" {
+  make_clean_target
+  printf "it 'x', :focus do\nend\n" > "$tgt/spec/models/f_spec.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -ne 0 ]
+  rm "$tgt/spec/models/f_spec.rb"
+  mkdir -p "$tgt/spec/support"
+  printf 'config.filter_run focus: true\n' > "$tgt/spec/support/cfg.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -ne 0 ]
+}
+
+@test "legacy should_receive is caught" {
+  make_clean_target
+  printf 'order.should_receive(:total)\n' > "$tgt/spec/models/sr_spec.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -ne 0 ]
+}
+
+@test "silently disabled examples are caught" {
+  make_clean_target
+  printf "xit 'was disabled and forgotten' do\nend\n" > "$tgt/spec/models/x_spec.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -ne 0 ]
+}

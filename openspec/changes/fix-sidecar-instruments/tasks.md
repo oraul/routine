@@ -6,7 +6,7 @@
 
 ## 2. Repaired patterns, honest rules
 
-- [ ] 2.1 Red→green: the three verified-wrong patterns fixed and the
+- [x] 2.1 Red→green: the three verified-wrong patterns fixed and the
       rule set upgraded (rails mass-assignment, broadened active_record,
       rspec disabled-examples + full spec/ scope, sidekiq .delay), with
       tripping and near-miss fixtures per changed rule

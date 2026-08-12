@@ -12,6 +12,7 @@ The sidecar mechanically rejects (fix them, don't argue with them):
 - string-interpolated SQL
 - puts in app code (use the logger)
 - rescue Exception (rescue StandardError instead)
+- mass-assignment escape hatch (permit!/to_unsafe_h)
 
 ## The skeleton
 

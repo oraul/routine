@@ -66,3 +66,48 @@ make_clean_target() {
   run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
   [ "$status" -eq 0 ]
 }
+
+@test "rescue ExceptionNotifier::Error is a near-miss that passes" {
+  make_clean_target
+  printf '%s\n' 'begin' '  x' 'rescue ExceptionNotifier::Error => e' '  log(e)' 'end' \
+    > "$tgt/app/models/notify.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -eq 0 ]
+}
+
+@test "rescue ::Exception is caught" {
+  make_clean_target
+  printf '%s\n' 'begin' '  x' 'rescue ::Exception => e' 'end' > "$tgt/app/models/bad.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -ne 0 ]
+}
+
+@test "modern binding.break is caught, debugger_output passes" {
+  make_clean_target
+  printf 'def x; binding.break; end\n' > "$tgt/app/models/brk.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -ne 0 ]
+  rm "$tgt/app/models/brk.rb"
+  printf 'x = debugger_output.parse\n' > "$tgt/app/models/near.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -eq 0 ]
+}
+
+@test "a debugger in an erb view is caught" {
+  make_clean_target
+  mkdir -p "$tgt/app/views/orders"
+  printf '<%% binding.pry %%>\n' > "$tgt/app/views/orders/new.html.erb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -ne 0 ]
+}
+
+@test "mass-assignment escape hatch is caught" {
+  make_clean_target
+  printf 'def p; params.permit!; end\n' > "$tgt/app/models/c.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -ne 0 ]
+  rm "$tgt/app/models/c.rb"
+  printf 'params.permit(:name)\n' > "$tgt/app/models/ok.rb"
+  run env TARGET="$tgt" bash "$ROUTINE_REPO_ROOT/$sidecar"
+  [ "$status" -eq 0 ]
+}

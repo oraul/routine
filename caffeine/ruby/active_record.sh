@@ -11,9 +11,12 @@ set -u
 . "$(cd "$(dirname "$0")/../.." && pwd)/lib/sidecar.sh"
 sidecar_init ruby/active_record
 
-check A1 "update_attribute skips validations (use update!)" 'update_attribute\(' "$target"
-check A2 "unbatched iteration (use find_each)" '\.all\.each' "$target"
-check A3 "save(validate: false) skips validations" 'save\(validate:[[:space:]]*false\)' "$target"
+check A1 "update_attribute/update_column skip validations (use update!)" \
+  'update_(attribute|column|columns|attributes)\(' "$target"
+check A2 "unbatched iteration (use find_each)" \
+  '\.(all|where\([^)]*\))\.(each|map)' "$target"
+check A3 "save(validate: false) skips validations" \
+  'save!?[( ][^)]*validate:[[:space:]]*false' "$target"
 check A4 "default_scope (prefer named scopes)" '(^|[[:space:]])default_scope' "$target"
 
 exit "$fails"
