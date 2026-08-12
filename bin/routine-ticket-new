@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# routine-script: routine-ticket-new
+# routine-description: Allocate the next ticket directory with script-owned state files
+# routine-env: TARGET — the target project whose runs/ holds the tickets
+# routine-exit: 0 — ticket created — path printed
+# routine-exit: 1 — refused — the app is not scaffolded yet
+# routine-test: test/ticket_new.bats
 # Ticket allocation: next sequential 4-digit id under runs/<app>/tickets/,
 # scanning active and archived tickets so concluded ids are never reused.
 set -u

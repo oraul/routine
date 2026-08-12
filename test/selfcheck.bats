@@ -7,10 +7,27 @@ load test_helper
 make_fixture() {
   fixture="$BATS_TEST_TMPDIR/fixture"
   mkdir -p "$fixture/bin" "$fixture/lib" "$fixture/test"
-  printf '%s\n' '#!/usr/bin/env bash' 'printf ok' > "$fixture/bin/good"
+  printf '%s\n' '#!/usr/bin/env bash' \
+    '# routine-script: good' \
+    '# routine-description: A clean fixture script' \
+    '# routine-exit: 0 — ok printed' \
+    '# routine-test: test/pass.bats' \
+    'printf ok' > "$fixture/bin/good"
   chmod +x "$fixture/bin/good"
   printf '%s\n' '# shellcheck shell=bash' 'noop() { :; }' > "$fixture/lib/noop.sh"
-  printf '%s\n' '@test "passes" { true; }' > "$fixture/test/pass.bats"
+  printf '%s\n' '@test "good and bad fixture scripts pass" { true; }' \
+    > "$fixture/test/pass.bats"
+}
+
+# A shellcheck-dirty script whose contract is nonetheless honest.
+add_bad() {
+  printf '%s\n' '#!/usr/bin/env bash' \
+    '# routine-script: bad' \
+    '# routine-description: A shellcheck-dirty fixture script' \
+    '# routine-exit: 0 — cat output' \
+    '# routine-test: test/pass.bats' \
+    'cat $1' > "$fixture/bin/bad"
+  chmod +x "$fixture/bin/bad"
 }
 
 @test "green path: clean fixture without caffeine sidecars exits 0" {
@@ -23,8 +40,7 @@ make_fixture() {
   make_fixture
   mkdir -p "$fixture/caffeine/ruby"
   printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$fixture/caffeine/ruby/orphan.sh"
-  printf '%s\n' '#!/usr/bin/env bash' 'cat $1' > "$fixture/bin/bad"
-  chmod +x "$fixture/bin/bad"
+  add_bad
   run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-selfcheck"
   [ "$status" -ne 0 ]
   case "$output" in *caffeine-lint*orphan*) ;; *) false ;; esac
@@ -33,9 +49,8 @@ make_fixture() {
 
 @test "lint failure exits non-zero and skips the test stage" {
   make_fixture
-  printf '%s\n' '#!/usr/bin/env bash' 'cat $1' > "$fixture/bin/bad"
-  chmod +x "$fixture/bin/bad"
-  printf '@test "marker" { touch "%s/tests-ran"; }\n' "$fixture" \
+  add_bad
+  printf '@test "marker for good and bad" { touch "%s/tests-ran"; }\n' "$fixture" \
     > "$fixture/test/pass.bats"
   run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-selfcheck"
   [ "$status" -ne 0 ]
@@ -47,4 +62,14 @@ make_fixture() {
   printf '%s\n' '@test "fails" { false; }' > "$fixture/test/fail.bats"
   run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-selfcheck"
   [ "$status" -ne 0 ]
+}
+
+@test "a lying contract aborts before shellcheck" {
+  make_fixture
+  printf '%s\n' '#!/usr/bin/env bash' 'printf ok' > "$fixture/bin/naked"
+  chmod +x "$fixture/bin/naked"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-selfcheck"
+  [ "$status" -ne 0 ]
+  case "$output" in *script-lint*naked*) ;; *) false ;; esac
+  case "$output" in *"shellcheck failed"*) false ;; *) ;; esac
 }

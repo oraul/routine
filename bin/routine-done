@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# routine-script: routine-done
+# routine-description: Mark the in_progress task done after its developer gate passed
+# routine-usage: routine-done <ticket-dir>
+# routine-exit: 0 — done — status flipped, ticket.done recorded
+# routine-exit: 1 — refused — no in_progress task or no passing gate on record
+# routine-exit: 2 — usage
+# routine-test: test/lifecycle.bats
 # Marks the single in_progress task done. WIP = 1 makes the target
 # unambiguous; there is nothing to choose.
 set -u

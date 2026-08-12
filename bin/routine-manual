@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# routine-script: routine-manual
+# routine-description: Print every bin script's contract assembled from frontmatter — computed, never curated
+# routine-exit: 0 — the whole surface printed, one contract per script
+# routine-exit: 1 — a script without frontmatter cannot hide
+# routine-test: test/manual.bats
+#
+# The AI-facing catalog: one call yields every script's calling contract
+# (description, usage, env, exit codes, acceptance pointer) without
+# reading a single implementation. Assembled from the frontmatter lines
+# at run time — a curated manual would be drifting prose reborn.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+
+root="$(routine_root)"
+missing=0
+
+for f in "$root"/bin/*; do
+  [ -f "$f" ] || continue
+  n="$(basename "$f")"
+  fm="$(awk 'NR==1 {next} /^#/ {print; next} {exit}' "$f")"
+  if ! printf '%s\n' "$fm" | grep -q '^# routine-script: '; then
+    echo "routine-manual: $n has no frontmatter — no contract, no catalog entry" >&2
+    missing=$((missing + 1))
+    continue
+  fi
+  echo "## $n"
+  printf '%s\n' "$fm" | sed -n \
+    -e 's/^# routine-description: /  /p' \
+    -e 's/^# routine-usage: /  usage: /p' \
+    -e 's/^# routine-env: /  env:   /p' \
+    -e 's/^# routine-exit: /  exit:  /p' \
+    -e 's/^# routine-test: /  test:  /p'
+  echo
+done
+
+if [ "$missing" -gt 0 ]; then
+  echo "routine-manual: $missing script(s) without a contract" >&2
+  exit 1
+fi
+exit 0

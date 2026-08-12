@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# routine-script: routine-next
+# routine-description: Refresh the index from the briefings tree, return the first runnable task, mark it in_progress
+# routine-usage: routine-next <ticket-dir>  (with an index.tsv)
+# routine-exit: 0 — one task path printed and marked in_progress
+# routine-exit: 2 — usage — a caller bug, not a blocked line
+# routine-exit: 3 — a blocked task blocks the line
+# routine-exit: 4 — every task is done
+# routine-test: test/task_line.bats
 # The task line: refresh the index from the briefings tree (append-only,
 # strict file order), then return the first runnable task and mark it
 # in_progress. Exit 3 when a blocked task blocks the line, 4 when all done.

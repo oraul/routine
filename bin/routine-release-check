@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# routine-script: routine-release-check
+# routine-description: The release gate: a tag may be cut only when every mechanical condition holds
+# routine-usage: routine-release-check vX.Y.Z (a well-formed semver tag)
+# routine-exit: 0 — releasable
+# routine-exit: 1 — a release condition failed — the output names it
+# routine-exit: 2 — usage — a well-formed semver tag is required
+# routine-test: test/release_check.bats
 # The release gate: a tag may be cut only when every mechanically checkable
 # release condition holds. Patch-vs-minor judgment stays with the human;
 # everything else is enforced here.

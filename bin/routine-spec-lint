@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# routine-script: routine-spec-lint
+# routine-description: The ticket grammar as exit codes: requirement, briefings, tasks, manifests, grounding
+# routine-usage: routine-spec-lint <ticket-dir>
+# routine-exit: 0 — grammar satisfied
+# routine-exit: 1 — defects found — each names its file and rule
+# routine-exit: 2 — usage
+# routine-test: test/spec_lint.bats
 # Spec grammar lint: structural checks only, pure grep/awk, no semantic
 # judgment. Reports every defect in one run so the analyst revises against
 # the full list.

@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# routine-script: routine-unblock
+# routine-description: Release a blocked task to pending; refuses without the human's unblock.md
+# routine-usage: routine-unblock <ticket-dir> [task-id]
+# routine-exit: 0 — released — status flipped, ticket.unblock recorded
+# routine-exit: 1 — refused — not blocked, or unblock.md is missing
+# routine-exit: 2 — usage
+# routine-test: test/lifecycle.bats
 # Releases a block: returns a blocked task to pending, refusing unless
 # unblock.md carries the human's unblocking context. A task-id addresses
 # exactly that task; without one the first blocked task is released.

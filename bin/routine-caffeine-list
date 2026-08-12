@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# routine-script: routine-caffeine-list
+# routine-description: Print the caffeine vocabulary computed from the corpus — never curated
+# routine-exit: 0 — catalog printed, one topic per line
+# routine-test: test/caffeine_list.bats
 # The topic catalog, computed never stored: walks caffeine/ and prints
 # one line per topic — topic, mode (pair|doc-only), and the doc's first
 # prose line — so the analyst authors manifests from a menu, not a guess.

@@ -1,4 +1,12 @@
 #!/usr/bin/env bash
+# routine-script: routine-convention-check
+# routine-description: The hard rules and commit grammar as exit codes, over every commit since a base ref
+# routine-usage: routine-convention-check <base-ref>
+# routine-env: TARGET — the repository under check (default: current directory)
+# routine-exit: 0 — clean since the base
+# routine-exit: 1 — violations found — each named on stderr
+# routine-exit: 2 — usage — a base ref is required
+# routine-test: test/convention_check.bats
 # The convention harness: the hard rules and commit grammar as exit codes,
 # checked over every commit since a base ref. TARGET = the repo under check
 # (default: current directory), so fixtures are ordinary temp repositories.

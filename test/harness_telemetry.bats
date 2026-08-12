@@ -7,9 +7,14 @@ load test_helper
 make_fixture() {
   fixture="$BATS_TEST_TMPDIR/fixture"
   mkdir -p "$fixture/bin" "$fixture/lib" "$fixture/test" "$fixture/runs/app"
-  printf '%s\n' '#!/usr/bin/env bash' 'printf ok' > "$fixture/bin/good"
+  printf '%s\n' '#!/usr/bin/env bash' \
+    '# routine-script: good' \
+    '# routine-description: A clean fixture script' \
+    '# routine-exit: 0 — ok printed' \
+    '# routine-test: test/pass.bats' \
+    'printf ok' > "$fixture/bin/good"
   chmod +x "$fixture/bin/good"
-  printf '%s\n' '@test "passes" { true; }' > "$fixture/test/pass.bats"
+  printf '%s\n' '@test "good passes" { true; }' > "$fixture/test/pass.bats"
   tgt="$BATS_TEST_TMPDIR/app"
   mkdir -p "$tgt"
   git -C "$tgt" -c init.defaultBranch=main init -q

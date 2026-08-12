@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# routine-script: routine-scaffold
+# routine-description: Ensure the app state directory exists for the target; the facade is the human's to create
+# routine-env: TARGET — the target project the run operates on (default: current directory)
+# routine-exit: 0 — app state ready — path printed
+# routine-exit: 1 — the app facade is missing — instruction printed
+# routine-test: test/scaffold_app.bats
 # App state scaffolding: creates runs/<app>/{hooks,tickets} and halts until
 # the mandatory developer hook exists. Idempotent; the LLM never chooses the
 # folder.

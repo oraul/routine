@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# routine-script: routine-audit
+# routine-description: Replay a ticket's telemetry against the protocol and report every violation; pure reader
+# routine-usage: routine-audit <ticket-dir>  (with telemetry.jsonl and index.tsv)
+# routine-exit: 0 — protocol satisfied
+# routine-exit: 1 — violations found — each named on stderr
+# routine-exit: 2 — usage — the ticket needs telemetry.jsonl and index.tsv
+# routine-test: test/audit.bats
 # The run audit: replays a ticket's telemetry against the protocol and
 # reports every violation in one run. Pure reader — grep/awk over
 # script-owned state, writes nothing. The fixed telemetry key order

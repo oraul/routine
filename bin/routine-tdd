@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+# routine-script: routine-tdd
+# routine-description: TDD phases as scripts: run the command, record red/green evidence, enforce the phase
+# routine-usage: routine-tdd <red|green> <scenario> -- <command...>
+# routine-env: ROUTINE_TICKET_DIR — the active ticket receiving the evidence
+# routine-exit: 0 — phase satisfied — evidence recorded
+# routine-exit: 1 — phase violation (a red that passes) or the green command's failure relayed
+# routine-exit: 2 — usage
+# routine-exit: 3 — telemetry rejected the evidence — no evidence line was written
+# routine-test: test/tdd.bats
 # TDD phases as scripts: run the test command, record the outcome as
 # tdd.red/tdd.green evidence in the ticket's telemetry, and enforce the
 # phase — a red that isn't red is a protocol violation, not a warning.
