@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# The run audit: replays a ticket's telemetry against the protocol and
+# reports every violation in one run. Pure reader — grep/awk over
+# script-owned state, writes nothing. The fixed telemetry key order
+# (ts,event,script,ticket,task,exit,ms) is a spec guarantee, so grep
+# patterns over adjacent keys are reliable.
+set -u
+
+ticket="${1:-}"
+if [ ! -d "$ticket" ] || [ ! -f "$ticket/telemetry.jsonl" ] \
+  || [ ! -f "$ticket/index.tsv" ]; then
+  echo "usage: routine-audit <ticket-dir>  (with telemetry.jsonl and index.tsv)" >&2
+  exit 2
+fi
+
+tele="$ticket/telemetry.jsonl"
+viol=0
+fail() { echo "routine-audit: $1" >&2; viol=$((viol + 1)); }
+
+# Run-level: the ticket was born by script and passed the analyst gate.
+first="$(head -n 1 "$tele" | awk -F'"' '{print $8}')"
+if [ "$first" != ticket.new ]; then
+  fail "first event is '${first}'; the protocol starts at ticket.new"
+fi
+if ! grep -q '"event":"gate.analyst"[^}]*"exit":0,' "$tele"; then
+  fail "no passing gate.analyst on record"
+fi
+
+if [ "$viol" -gt 0 ]; then
+  echo "routine-audit: $viol violation(s)" >&2
+  exit 1
+fi
+echo "routine-audit: protocol satisfied"
+exit 0

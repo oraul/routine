@@ -1,6 +1,6 @@
 ## 1. Run-level checks
 
-- [ ] 1.1 Red→green: audit requires `ticket.new` first and a passing
+- [x] 1.1 Red→green: audit requires `ticket.new` first and a passing
       `gate.analyst`, reporting all violations in one run
 
 ## 2. Per-task checks
