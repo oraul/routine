@@ -1,6 +1,6 @@
 ## 1. The concern namespaces
 
-- [ ] 1.1 Red→green: `testing/tdd` and `security/secrets` doc-only
+- [x] 1.1 Red→green: `testing/tdd` and `security/secrets` doc-only
       topics with worked material, wired to their scripts
 
 ## 2. The js beachhead
