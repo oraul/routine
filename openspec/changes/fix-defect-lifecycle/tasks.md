@@ -6,7 +6,7 @@
 
 ## 2. Defect history appends
 
-- [ ] 2.1 Red→green: `routine-defect` appends timestamped entries; two
+- [x] 2.1 Red→green: `routine-defect` appends timestamped entries; two
       returns on one task keep both reasons
 
 ## 3. Scripted abort
