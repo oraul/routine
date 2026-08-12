@@ -8,7 +8,7 @@ TAB="$(printf '\t')"
 make_run() {
   ticket="$BATS_TEST_TMPDIR/0001"
   mkdir -p "$ticket/briefings/01-auth/tasks/01-login"
-  printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
+  printf '%s\n' '# Task: login' '## Scenario: login works' '- Given a' '- When b' '- Then c' \
     '## Acceptance' '1. works' '## Caffeine' \
     > "$ticket/briefings/01-auth/tasks/01-login/task.md"
   printf '01-01%s01-auth%s01-login%sdone%s2026-01-01T00:10:00Z\n' \
@@ -112,7 +112,7 @@ EOF
 
 @test "manifest sh topic needs a green sidecar line, doc topic its doc line" {
   make_run
-  printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
+  printf '%s\n' '# Task: login' '## Scenario: login works' '- Given a' '- When b' '- Then c' \
     '## Acceptance' '1. works' '## Caffeine' '- ruby/rails' '- architecture/oop' \
     > "$ticket/briefings/01-auth/tasks/01-login/task.md"
   run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
@@ -138,6 +138,23 @@ EOF
   printf '%s\n' \
     '{"ts":"2026-01-01T00:03:40Z","event":"ticket.unblock","script":"bin/routine-unblock","ticket":"0001","task":"01-01","exit":0,"ms":1}' \
     >> "$ticket/telemetry.jsonl"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -eq 0 ]
+}
+
+@test "an uncovered labeled scenario is a violation" {
+  make_run
+  printf '%s\n' '## Scenario: exports are streamed' '- Given a' '- When b' '- Then c' \
+    >> "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *01-01*"exports are streamed"*) ;; *) false ;; esac
+}
+
+@test "a hash-suffixed record covers its label" {
+  make_run
+  sed -i.bak 's/"script":"login works"/"script":"login works [a1b2c3d4]"/' \
+    "$ticket/telemetry.jsonl" && rm -f "$ticket/telemetry.jsonl.bak"
   run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
   [ "$status" -eq 0 ]
 }

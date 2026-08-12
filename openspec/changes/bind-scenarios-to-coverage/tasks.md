@@ -6,7 +6,7 @@
 
 ## 2. Coverage in the audit
 
-- [ ] 2.1 Red→green: `routine-audit` requires one passing `tdd.green`
+- [x] 2.1 Red→green: `routine-audit` requires one passing `tdd.green`
       per labeled scenario in every done task's file (hash-suffixed
       records match); audit and conclude fixtures carry labels
 
