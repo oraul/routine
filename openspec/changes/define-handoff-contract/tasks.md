@@ -15,6 +15,6 @@
 
 ## 3. The seam documented where agents read
 
-- [ ] 3.1 Update `agents/analyst.md`, `agents/developer.md`, and
+- [x] 3.1 Update `agents/analyst.md`, `agents/developer.md`, and
       `calibration/*.md` with the typed topics and the scripted defect
       return; `skills/routine/SKILL.md` defect path calls the script

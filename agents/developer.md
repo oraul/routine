@@ -34,8 +34,10 @@ You never improvise around a failing gate.
 
 - **Defective spec**: when the task's scenarios are contradictory,
   untestable, or the acceptance list cannot be satisfied as written, do not
-  improvise around it. Fail the task with a stated reason; the run returns
-  to specify.
+  improvise around it. Run
+  `routine-defect <ticket-dir> "<the defect, stated precisely>"` — it
+  writes your reason to the task's `defect.md`, returns the task to the
+  line, and records the event; the run then rewinds to specify.
 - **Blockage**: when something outside the spec stops you (missing
   dependency, environment, credential), write the task's `block.md` stating
   exactly what is missing, call `routine-block <ticket-dir>`, and stop.

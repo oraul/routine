@@ -5,8 +5,9 @@ preferences; the seams you touch need protecting.
 
 ## Analyst
 
-- Name, in the requirement, where the feature lives: the modules, models,
-  or endpoints it extends. Insight comes from reading that code first.
+- The `## Touchpoints` section is the contract: name the modules, models,
+  or endpoints the feature extends — the lint refuses a feature without
+  it. Insight comes from reading that code first.
 - Decompose along the existing structure — one briefing per touched
   subsystem — so tasks stay inside one convention set each.
 - Early tasks pin current behavior at the seams you are about to change
