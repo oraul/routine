@@ -5,11 +5,11 @@
 
 ## 2. Loud emission
 
-- [ ] 2.1 Red→green: `routine-tdd` exits 3 naming the cause when the
+- [x] 2.1 Red→green: `routine-tdd` exits 3 naming the cause when the
       telemetry write fails (quoted scenario), never printing "recorded"
 
 ## 3. Command-bound evidence
 
-- [ ] 3.1 Red→green: the recorded scenario carries the command hash
+- [x] 3.1 Red→green: the recorded scenario carries the command hash
       (`<scenario> [<hash8>]`); same command pairs, different command
       does not

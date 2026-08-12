@@ -3,7 +3,10 @@
 # tdd.red/tdd.green evidence in the ticket's telemetry, and enforce the
 # phase — a red that isn't red is a protocol violation, not a warning.
 # The scenario rides the script field, the subject-of-evidence convention
-# gate.developer.script and gate.hook already use.
+# gate.developer.script and gate.hook already use — suffixed with a short
+# hash of the command, so the audit's byte-exact pairing proves red and
+# green ran the SAME command. A failed telemetry write exits 3 loudly:
+# evidence never vanishes behind a success message.
 set -u
 
 # shellcheck source=/dev/null
@@ -27,11 +30,19 @@ if [ -z "${ROUTINE_TICKET_DIR:-}" ]; then
   exit 1
 fi
 
+# The recorded form: scenario + bracketed command hash (cksum-derived,
+# 8 chars) — identical command, identical string.
+cmd_hash="$(printf '%s\0' "$@" | cksum | awk '{printf "%08x", $1}')"
+recorded="$scenario [$cmd_hash]"
+
 start_ms="$(routine_now_ms)"
 "$@"
 code="$?"
-telemetry_gate_emit "tdd.$phase" "$scenario" "$code" \
-  "$(( $(routine_now_ms) - start_ms ))"
+if ! telemetry_gate_emit "tdd.$phase" "$recorded" "$code" \
+  "$(( $(routine_now_ms) - start_ms ))"; then
+  echo "routine-tdd: telemetry rejected the evidence (invalid character in scenario?) — no evidence line was written" >&2
+  exit 3
+fi
 
 if [ "$phase" = red ] && [ "$code" -eq 0 ]; then
   echo "routine-tdd: red that isn't red — the test passed before the implementation" >&2
@@ -41,5 +52,5 @@ if [ "$phase" = green ] && [ "$code" -ne 0 ]; then
   echo "routine-tdd: green expected but the command failed (exit $code)" >&2
   exit "$code"
 fi
-echo "routine-tdd: $phase recorded for scenario: $scenario"
+echo "routine-tdd: $phase recorded as: $recorded"
 exit 0

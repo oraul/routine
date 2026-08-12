@@ -15,7 +15,7 @@ make_ticket() {
     red "login rejects bad password" -- false
   [ "$status" -eq 0 ]
   grep '"event":"tdd.red"' "$ticket/telemetry.jsonl" \
-    | grep '"script":"login rejects bad password"' | grep -q '"exit":1'
+    | grep '"script":"login rejects bad password \[' | grep -q '"exit":1'
   grep '"event":"tdd.red"' "$ticket/telemetry.jsonl" \
     | grep '"ticket":"0001"' | grep -q '"task":"01-01"'
 }
@@ -55,4 +55,30 @@ make_ticket() {
   case "$output" in *usage*) ;; *) false ;; esac
   run "$ROUTINE_REPO_ROOT/bin/routine-tdd" red "s"
   [ "$status" -eq 2 ]
+}
+
+@test "a silent record is impossible: rejected scenario exits 3" {
+  make_ticket
+  run env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \
+    red 'scenario with a " quote' -- false
+  [ "$status" -eq 3 ]
+  case "$output" in *recorded*) false ;; *) ;; esac
+  case "$output" in *"invalid"*|*"rejected"*) ;; *) false ;; esac
+  [ ! -f "$ticket/telemetry.jsonl" ] || ! grep -q 'tdd.red' "$ticket/telemetry.jsonl"
+}
+
+@test "the evidence binds red and green to the same command" {
+  make_ticket
+  env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \
+    red "login works" -- false > /dev/null
+  env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \
+    green "login works" -- true > /dev/null
+  red_s="$(grep '"event":"tdd.red"' "$ticket/telemetry.jsonl" | grep -o '"script":"[^"]*"')"
+  green_s="$(grep '"event":"tdd.green"' "$ticket/telemetry.jsonl" | grep -o '"script":"[^"]*"')"
+  case "$red_s" in *'login works ['*']'*) ;; *) false ;; esac
+  [ "$red_s" != "$green_s" ]
+  env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \
+    green "login works" -- false > /dev/null 2>&1 || true
+  same="$(grep '"event":"tdd.green"' "$ticket/telemetry.jsonl" | tail -1 | grep -o '"script":"[^"]*"')"
+  [ "$red_s" = "$same" ]
 }
