@@ -52,6 +52,10 @@ capability below was built spec-first, change by change:
 | `calibration` | per-work-type decomposition and developer posture |
 | `release` | what a tag asserts and the scripted gate that blesses it |
 | `guidance` | the session contract (CLAUDE.md) and this README |
+| `conventions` | commit/branch grammar and the sensitive-data harness |
+| `contract` | typed analyst↔developer topics and the defect return |
+| `tdd` | red and green as scripted, evidence-emitting phases |
+| `audit` | replay of a ticket's telemetry against the protocol |
 
 ## Install
 

@@ -33,6 +33,7 @@ Accidental leak = history rewrite + credential rotation, immediately.
 ```sh
 bin/routine-selfcheck                          # lint + full suite; green or stop
 npx --yes @fission-ai/openspec@latest validate --all --strict
+bin/routine-convention-check origin/main       # commit grammar + no sensitive data
 bin/routine-release-check vX.Y.Z               # must bless any tag
 ```
 

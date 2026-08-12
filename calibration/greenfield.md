@@ -24,5 +24,9 @@ Structure is the first deliverable.
   every later task — make the first instance exemplary, not expedient.
 - Resist abstraction: two concrete cases before any helper; the codebase
   has no evidence yet to earn one (the same law this repo is built under).
-- Wire the target's lint and test tooling in the first task if it does not
-  exist — developer.sh needs something real to run.
+- The bootstrap order is fixed: `routine-scaffold` halts until the human
+  seeds `developer.sh`, so in a greenfield it starts as the thinnest
+  truthful check the target can already run (a syntax check beats a
+  hopeful `true`). The first task then wires real lint and test tooling
+  and upgrades `developer.sh` to call it — that upgrade is part of the
+  task's acceptance, not an afterthought.
