@@ -5,7 +5,7 @@
 
 ## 2. One root
 
-- [ ] 2.1 Red→green: spec-lint and caffeine resolve via `routine_root`;
+- [x] 2.1 Red→green: spec-lint and caffeine resolve via `routine_root`;
       fixture roots symlink lib/caffeine/spec-lint and a fixture sidecar
       proves redirection
 

@@ -66,7 +66,7 @@ baseline_analyst() {
       return 1
     fi
   fi
-  "$repo_dir/bin/routine-spec-lint" "$ROUTINE_TICKET_DIR" || return 1
+  "$root/bin/routine-spec-lint" "$ROUTINE_TICKET_DIR" || return 1
   _index="$ROUTINE_TICKET_DIR/index.tsv"
   if [ ! -f "$_index" ]; then
     echo "routine-gate: ticket has no index.tsv" >&2
@@ -117,9 +117,9 @@ baseline_developer() {
   _topics="$(awk '/^## Caffeine/ {a=1; next} a && /^#/ {a=0} a && /^- / {print substr($0, 3)}' "$_taskfile")"
   [ -n "$_topics" ] || return 0
   for _topic in $_topics; do
-    _sidecar="$repo_dir/caffeine/$_topic.sh"
+    _sidecar="$root/caffeine/$_topic.sh"
     if [ ! -f "$_sidecar" ]; then
-      if [ -f "$repo_dir/caffeine/$_topic.md" ]; then
+      if [ -f "$root/caffeine/$_topic.md" ]; then
         echo "routine-gate: $_topic is doc-only; guidance loads, nothing to run"
         continue
       fi

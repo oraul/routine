@@ -10,6 +10,11 @@ make_gate_root() {
   mkdir -p "$groot/bin" "$groot/runs"
   printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$groot/bin/routine-selfcheck"
   chmod +x "$groot/bin/routine-selfcheck"
+  # One-root resolution: the fixture root must carry every stage the gate
+  # resolves — lint, caffeine, libs — so it borrows the repo's via symlink.
+  ln -s "$ROUTINE_REPO_ROOT/lib" "$groot/lib"
+  ln -s "$ROUTINE_REPO_ROOT/caffeine" "$groot/caffeine"
+  ln -s "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$groot/bin/routine-spec-lint"
 }
 
 # Fixture target project: a git repo with one commit, clean, on a branch.
@@ -244,6 +249,25 @@ make_manifest_ticket() {
     "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
   [ "$status" -eq 0 ]
   case "$output" in *doc-only*) ;; *) false ;; esac
+}
+
+@test "fixture root redirects the whole gate including sidecars" {
+  make_gate_root
+  make_target
+  make_good_ticket
+  rm "$groot/caffeine"
+  mkdir -p "$groot/caffeine/fixture"
+  printf '%s\n' '#!/usr/bin/env bash' 'echo fixture sidecar ran' 'exit 0' \
+    > "$groot/caffeine/fixture/probe.sh"
+  printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
+    '## Acceptance' '1. works' '## Caffeine' '- fixture/probe' \
+    > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  mkdir -p "$groot/runs/app/hooks"
+  printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$groot/runs/app/hooks/developer.sh"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  [ "$status" -eq 0 ]
+  case "$output" in *"fixture sidecar ran"*) ;; *) false ;; esac
 }
 
 @test "developer baseline fails on an unknown manifest topic" {
