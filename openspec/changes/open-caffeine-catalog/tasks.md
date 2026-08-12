@@ -1,6 +1,6 @@
 ## 1. The computed catalog
 
-- [ ] 1.1 Red→green: `bin/routine-caffeine-list` prints every topic with
+- [x] 1.1 Red→green: `bin/routine-caffeine-list` prints every topic with
       mode and lede; `routine-spec-lint`'s unresolvable-topic failure
       lists the available topics
 
