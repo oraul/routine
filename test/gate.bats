@@ -47,7 +47,8 @@ make_good_ticket() {
   ticket="$BATS_TEST_TMPDIR/0001"
   mkdir -p "$ticket/briefings/01-auth/tasks/01-login"
   printf '%s\n' '# Requirement: Login' 'Type: feature' \
-    'The system SHALL let users log in.' > "$ticket/requirement.md"
+    'The system SHALL let users log in.' '## Touchpoints' \
+    '- app/models/user.rb' > "$ticket/requirement.md"
   printf '%s\n' '# Briefing: auth' 'Covers login.' \
     > "$ticket/briefings/01-auth/briefing.md"
   printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \

@@ -1,8 +1,8 @@
 ## 1. Typed topics and manifest validity in lint
 
-- [ ] 1.1 Red→green: lint enforces per-type contract topics — feature
+- [x] 1.1 Red→green: lint enforces per-type contract topics — feature
       `## Touchpoints`, greenfield `## Contracts`, epic `## Order`
-- [ ] 1.2 Red→green: lint enforces manifest form (`- <topic>` exactly) and
+- [x] 1.2 Red→green: lint enforces manifest form (`- <topic>` exactly) and
       topic resolvability against `caffeine/`
 
 ## 2. The defect return
