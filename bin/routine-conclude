@@ -46,5 +46,5 @@ telemetry_emit "$ticket/telemetry.jsonl" ticket.conclude bin/routine-conclude \
 archive="$(dirname "$ticket")/archive"
 mkdir -p "$archive"
 mv "$ticket" "$archive/$id"
-echo "routine-conclude: ticket $id archived"
+echo "routine-conclude: ticket $id archived at $archive/$id"
 exit 0

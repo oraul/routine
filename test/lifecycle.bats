@@ -68,3 +68,28 @@ make_ticket() {
   [ "$status" -eq 0 ]
   [ "$output" = "$ticket/briefings/01-auth/tasks/01-login" ]
 }
+
+@test "unblock addresses a named task or refuses with its status" {
+  # Two blocked rows are unreachable through the scripts (the line blocks),
+  # so the fixture writes the index state directly, as conclude.bats does.
+  ticket="$BATS_TEST_TMPDIR/0001"
+  mkdir -p "$ticket/briefings/01-auth/tasks/01-login" \
+           "$ticket/briefings/01-auth/tasks/02-session"
+  {
+    printf '01-01%s01-auth%s01-login%sblocked%s2026-01-01T00:00:00Z\n' \
+      "$TAB" "$TAB" "$TAB" "$TAB"
+    printf '01-02%s01-auth%s02-session%sblocked%s2026-01-01T00:00:00Z\n' \
+      "$TAB" "$TAB" "$TAB" "$TAB"
+  } > "$ticket/index.tsv"
+  touch "$ticket/briefings/01-auth/tasks/02-session/unblock.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-unblock" "$ticket" 01-99
+  [ "$status" -ne 0 ]
+  case "$output" in *01-99*) ;; *) false ;; esac
+  run "$ROUTINE_REPO_ROOT/bin/routine-unblock" "$ticket" 01-02
+  [ "$status" -eq 0 ]
+  grep -q "^01-02${TAB}.*${TAB}pending${TAB}" "$ticket/index.tsv"
+  grep -q "^01-01${TAB}.*${TAB}blocked${TAB}" "$ticket/index.tsv"
+  run "$ROUTINE_REPO_ROOT/bin/routine-unblock" "$ticket" 01-02
+  [ "$status" -ne 0 ]
+  case "$output" in *pending*) ;; *) false ;; esac
+}
