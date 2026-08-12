@@ -1,6 +1,8 @@
-# Scripted publication: dispatch with a tag, the gate decides, gh
-# publishes. bats comes from npm (not a checkout) so the worktree stays
-# clean — routine-release-check refuses a dirty tree.
+# Scripted publication: request by dispatch or by pushing a
+# release/vX.Y.Z branch (a message, not a source — the job always gates
+# main). The gate decides, gh publishes. bats comes from npm (not a
+# checkout) so the worktree stays clean — routine-release-check refuses
+# a dirty tree.
 name: release
 
 on:
@@ -9,6 +11,8 @@ on:
       tag:
         description: "Semver tag to publish (vX.Y.Z)"
         required: true
+  push:
+    branches: ["release/v*"]
 
 permissions:
   contents: write
@@ -24,16 +28,23 @@ jobs:
         run: |
           sudo apt-get update && sudo apt-get install -y shellcheck
           sudo npm install -g bats@1.11.0
-      - name: Gate
+      - name: Resolve tag
         env:
-          TAG: ${{ inputs.tag }}
+          INPUT_TAG: ${{ inputs.tag }}
+          REF_NAME: ${{ github.ref_name }}
+        run: |
+          TAG="${INPUT_TAG:-${REF_NAME#release/}}"
+          echo "TAG=$TAG" >> "$GITHUB_ENV"
+      - name: Gate
         run: bin/routine-release-check "$TAG"
       - name: Publish tag and release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ inputs.tag }}
         run: |
           gh release create "$TAG" \
             --target "$(git rev-parse HEAD)" \
             --title "routine $TAG" \
             --generate-notes
+      - name: Delete the trigger branch
+        if: startsWith(github.ref, 'refs/heads/release/v')
+        run: git push origin --delete "${GITHUB_REF_NAME}"

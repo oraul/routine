@@ -4,11 +4,13 @@ load test_helper
 
 WF=".github/workflows/release.yml"
 
-@test "release workflow exists and is dispatch-only with a tag input" {
+@test "release workflow triggers on dispatch and release/v* pushes only" {
   [ -f "$ROUTINE_REPO_ROOT/$WF" ]
   grep -q 'workflow_dispatch' "$ROUTINE_REPO_ROOT/$WF"
   grep -q 'tag:' "$ROUTINE_REPO_ROOT/$WF"
-  ! grep -qE '^on:.*push|^  push:' "$ROUTINE_REPO_ROOT/$WF"
+  grep -q "release/v\*" "$ROUTINE_REPO_ROOT/$WF"
+  # The push trigger names only release/v* — no bare or main branches.
+  ! grep -A2 'branches:' "$ROUTINE_REPO_ROOT/$WF" | grep -qE 'main|master|\*\*'
 }
 
 @test "release workflow runs the gate before any publish step" {
@@ -17,6 +19,10 @@ WF=".github/workflows/release.yml"
   [ -n "$gate_line" ]
   [ -n "$publish_line" ]
   [ "$gate_line" -lt "$publish_line" ]
+}
+
+@test "release workflow gates main, not the trigger branch" {
+  grep -q 'ref: main' "$ROUTINE_REPO_ROOT/$WF"
 }
 
 @test "release workflow grants only contents write" {
