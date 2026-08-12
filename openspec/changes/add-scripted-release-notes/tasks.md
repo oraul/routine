@@ -5,6 +5,6 @@
 
 ## 2. Idempotent publication
 
-- [ ] 2.1 Red→green: the workflow composes notes via the script and
+- [x] 2.1 Red→green: the workflow composes notes via the script and
       edits an existing release in place; lint pins script-before-publish
       and the edit path
