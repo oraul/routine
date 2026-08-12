@@ -14,5 +14,5 @@
 
 ## 3. The computed manual
 
-- [ ] 3.1 Red→green: `bin/routine-manual` prints every script's
+- [x] 3.1 Red→green: `bin/routine-manual` prints every script's
       contract assembled from frontmatter alone
