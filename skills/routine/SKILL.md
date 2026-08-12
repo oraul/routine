@@ -66,5 +66,9 @@ Loop:
 ## 5. conclude
 
 Run `routine-conclude "$ROUTINE_TICKET_DIR"`. It refuses unless every task
-is done; on success the ticket is archived with its `report.md`. Relay the
-report location. The run is over.
+is done **and** `routine-audit` confirms the recorded run matches the
+protocol — a skipped stage or a green without its red surfaces here, with
+the violations named. Fix means going back through the rails (the missing
+evidence cannot be hand-written; telemetry is script-owned). On success
+the ticket is archived with its `report.md`; relay the printed archive
+path. The run is over.

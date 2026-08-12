@@ -67,7 +67,8 @@ Artifact rules: scenarios are Given/When/Then and individually
 testable; RFC 2119 keywords; design.md only if a real decision
 exists; every tasks.md item is one red→green unit sized for a
 single commit, ordered test-first.
-Run: openspec validate <change-id> --strict — fix until clean.
+Run: npx --yes @fission-ai/openspec@latest validate <change-id> --strict
+— fix until clean.
 Commit: spec(openspec): propose <change-id>  (trailer Change: <change-id>)
 STOP. The human reviews the proposal before any implementation.
 ```
@@ -87,7 +88,8 @@ Finish: bin/routine-selfcheck green. STOP before sync.
 ```
 /opsx:sync <change-id>   → commit: spec(openspec): sync <change-id>
 /opsx:archive <change-id> → commit: chore(openspec): archive <change-id>
-Then: openspec validate --strict && bin/routine-selfcheck — both green.
+Then: npx --yes @fission-ai/openspec@latest validate --all --strict
+&& bin/routine-selfcheck — both green.
 STOP before PR.
 ```
 

@@ -23,7 +23,11 @@ preferences; the seams you touch need protecting.
 - Extend, don't rewrite. If the existing shape genuinely cannot host the
   feature, that is a defective-spec refusal with the reason stated, not a
   quiet refactor.
-- Regression first: make the seam's current behavior green under test
-  before changing it, then red→green the new scenario.
+- Regression first: characterization tests pin the seam's current behavior
+  and are green at birth **by design** — they run inside the app's own
+  suite (the developer.sh facade), never through `routine-tdd`. Only the
+  *new* behavior's scenarios go through `routine-tdd red` → `routine-tdd
+  green`; a characterization test is not a red phase skipped, it is a
+  different instrument.
 - Match the target's tooling exactly; the developer.sh facade is the only
   definition of done.

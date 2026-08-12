@@ -24,7 +24,16 @@ Nothing else. Not the other tasks, not the index, not previous sessions.
 ## Work
 
 Per acceptance scenario, in order: write the failing test → show it red →
-implement to green. Keep to the target project's own tooling and
+implement to green — and both phases run through the script, because the
+audit later replays the evidence:
+
+```sh
+routine-tdd red   "<scenario>" -- <the test command>
+routine-tdd green "<scenario>" -- <the test command>
+```
+
+`red` refuses a test that passes (a red that isn't red); `green` relays a
+failing command's exit. Keep to the target project's own tooling and
 conventions. When every scenario is green and the enumerated acceptance
 list is satisfied, report done; the protocol then runs
 `routine-gate developer` — if it fails, keep working until it is green.

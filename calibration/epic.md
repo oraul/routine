@@ -16,8 +16,11 @@ is execution.
 - Keep every task's caffeine manifest tight; epics are where context bloat
   goes to hide.
 - If a briefing's scope only becomes clear after an earlier one lands, say
-  so in the requirement — an epic ticket may return to specify between
-  briefings by design.
+  so in the requirement — and when that point arrives, the road back to
+  specify is the defect return: the developer runs `routine-defect` on the
+  first under-specified task, and the recorded reason re-opens specify.
+  There is no other transition backwards; "return by design" still travels
+  the phase machine's rails.
 
 ## Developer
 
