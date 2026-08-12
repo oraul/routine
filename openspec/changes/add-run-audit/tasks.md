@@ -11,7 +11,7 @@
 
 ## 3. Balance
 
-- [ ] 3.1 Red→green: block/unblock events balance per task
+- [x] 3.1 Red→green: block/unblock events balance per task
 
 ## 4. Conclude fails closed
 

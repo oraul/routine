@@ -73,6 +73,14 @@ $(awk -F'"' -v task="$t_id" '
     }' "$tele")
 EOF
 
+  # Every block must have been released: passing block and unblock
+  # counts balance per task.
+  _blocks="$(count_pass ticket.block "$t_id")"
+  _unblocks="$(count_pass ticket.unblock "$t_id")"
+  if [ "$_blocks" -ne "$_unblocks" ]; then
+    fail "task $t_id: $_blocks block(s) but $_unblocks unblock(s) on record"
+  fi
+
   # Manifest topics: each needs its developer-gate evidence line.
   _taskfile="$ticket/briefings/$t_b/tasks/$t_t/task.md"
   [ -f "$_taskfile" ] || { fail "task $t_id: missing $_taskfile"; continue; }

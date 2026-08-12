@@ -116,6 +116,21 @@ EOF
   [ "$status" -eq 0 ]
 }
 
+@test "an unreleased block is a violation, a balanced one is not" {
+  make_run
+  printf '%s\n' \
+    '{"ts":"2026-01-01T00:03:30Z","event":"ticket.block","script":"bin/routine-block","ticket":"0001","task":"01-01","exit":0,"ms":1}' \
+    >> "$ticket/telemetry.jsonl"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *01-01*block*) ;; *) false ;; esac
+  printf '%s\n' \
+    '{"ts":"2026-01-01T00:03:40Z","event":"ticket.unblock","script":"bin/routine-unblock","ticket":"0001","task":"01-01","exit":0,"ms":1}' \
+    >> "$ticket/telemetry.jsonl"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -eq 0 ]
+}
+
 @test "usage without a ticket dir" {
   run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$BATS_TEST_TMPDIR/nope"
   [ "$status" -eq 2 ]
