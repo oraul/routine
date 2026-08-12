@@ -33,9 +33,12 @@ required key; `routine-script` equals the filename; `routine-usage`
 agrees **verbatim** with the `usage:` string the body prints (required
 exactly when the body prints one); the documented exit set equals the
 body's literal `exit <n>` set, where a dynamic exit (`exit "$var"`)
-covers exactly the codes 0 and 1; the `routine-test` file exists and
-mentions the script's name; `ROUTINE_TICKET_DIR` and `TARGET` are
-declared via `routine-env` if and only if the body references them. It
+covers exactly the codes 0 and 1 and code 0 is never phantom (falling
+off the end is exit 0); the `routine-test` file exists and mentions
+the script's name; `ROUTINE_TICKET_DIR` and `TARGET` are declared via
+`routine-env` if and only if the body references them — the lint
+itself exempt from the usage and env token rules, since the checker
+must name what it hunts (the convention-check precedent). It
 SHALL report every violation in one run naming file and rule, exit 0
 only when the corpus is clean, and emit one harness telemetry line per
 run.
