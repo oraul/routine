@@ -1,5 +1,5 @@
 {
   "name": "routine",
   "description": "Spec-first, two-agent development loop on deterministic bash rails",
-  "version": "0.1.0"
+  "version": "0.2.0"
 }
