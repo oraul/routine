@@ -1,6 +1,6 @@
 ## 1. No silent scripts
 
-- [ ] 1.1 Red→green: selfcheck, release-check, and convention-check emit
+- [x] 1.1 Red→green: selfcheck, release-check, and convention-check emit
       `harness.*` events to `runs/<app>/telemetry.jsonl` when app state
       exists, no-op otherwise
 

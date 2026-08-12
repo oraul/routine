@@ -6,9 +6,20 @@ set -u
 
 # shellcheck source=/dev/null
 . "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
 
 root="$(routine_root)"
 tag="${1:-}"
+
+# Verdict first, evidence on the way out; usage errors stay silent.
+finish() {
+  telemetry_harness_emit harness.release bin/routine-release-check "$1" \
+    "$(( $(routine_now_ms) - start_ms ))"
+  exit "$1"
+}
 
 if ! printf '%s' "$tag" | grep -Eq '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$'; then
   echo "usage: routine-release-check vX.Y.Z (a well-formed semver tag)" >&2
@@ -19,30 +30,30 @@ version="${tag#v}"
 manifest="$root/.claude-plugin/plugin.json"
 if [ ! -f "$manifest" ]; then
   echo "routine-release-check: no plugin manifest at $manifest" >&2
-  exit 1
+  finish 1
 fi
 declared="$(awk -F'"' '/"version"/ {print $4; exit}' "$manifest")"
 if [ "$declared" != "$version" ]; then
   echo "routine-release-check: tag says $version but plugin.json declares $declared" >&2
-  exit 1
+  finish 1
 fi
 
 branch="$(git -C "$root" symbolic-ref --short -q HEAD || true)"
 if [ "$branch" != "main" ]; then
   echo "routine-release-check: releases are cut from main (currently: ${branch:-detached})" >&2
-  exit 1
+  finish 1
 fi
 
 if [ -n "$(git -C "$root" status --porcelain)" ]; then
   echo "routine-release-check: worktree is not clean" >&2
   git -C "$root" status --short >&2
-  exit 1
+  finish 1
 fi
 
 if ! "$root/bin/routine-selfcheck"; then
   echo "routine-release-check: selfcheck is red" >&2
-  exit 1
+  finish 1
 fi
 
 echo "routine-release-check: $tag is releasable"
-exit 0
+finish 0

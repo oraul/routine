@@ -5,8 +5,20 @@
 set -u
 
 . "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
 
 root="$(routine_root)"
+
+# The verdict is computed first, recorded on the way out: emission can
+# never change the exit code.
+finish() {
+  telemetry_harness_emit harness.selfcheck bin/routine-selfcheck "$1" \
+    "$(( $(routine_now_ms) - start_ms ))"
+  exit "$1"
+}
 
 scripts=()
 for f in "$root"/bin/* "$root"/lib/*.sh "$root"/caffeine/*/*.sh; do
@@ -20,13 +32,13 @@ done
 if [ "${#scripts[@]}" -gt 0 ]; then
   if ! shellcheck "${scripts[@]}"; then
     echo "routine-selfcheck: shellcheck failed" >&2
-    exit 1
+    finish 1
   fi
 fi
 
 if ! bats "$root/test"; then
   echo "routine-selfcheck: bats suite failed" >&2
-  exit 1
+  finish 1
 fi
 
-exit 0
+finish 0
