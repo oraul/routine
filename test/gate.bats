@@ -17,6 +17,12 @@ make_gate_root() {
   ln -s "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$groot/bin/routine-spec-lint"
 }
 
+# A bare ticket dir: enough context for preflight evidence.
+make_tdir() {
+  tdir="$BATS_TEST_TMPDIR/ticket"
+  mkdir -p "$tdir"
+}
+
 # Fixture target project: a git repo with one commit, clean, on a branch.
 make_target() {
   tgt="$BATS_TEST_TMPDIR/app"
@@ -41,10 +47,11 @@ make_target() {
 @test "failing selfcheck stops preflight before the hook" {
   make_gate_root
   make_target
+  make_tdir
   printf '%s\n' '#!/usr/bin/env bash' 'echo harness red' 'exit 1' > "$groot/bin/routine-selfcheck"
   mkdir -p "$groot/runs/app/hooks"
   printf '#!/usr/bin/env bash\ntouch "%s/hook-ran"\n' "$groot" > "$groot/runs/app/hooks/preflight.sh"
-  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  run env ROUTINE_TICKET_DIR="$tdir" ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
   [ "$status" -ne 0 ]
   case "$output" in *"harness red"*) ;; *) false ;; esac
   [ ! -f "$groot/hook-ran" ]
@@ -162,8 +169,9 @@ make_good_ticket() {
 
 @test "red harness aborts preflight before any target check" {
   make_gate_root
+  make_tdir
   printf '%s\n' '#!/usr/bin/env bash' 'echo harness red' 'exit 1' > "$groot/bin/routine-selfcheck"
-  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$BATS_TEST_TMPDIR/nonexistent" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  run env ROUTINE_TICKET_DIR="$tdir" ROUTINE_ROOT="$groot" TARGET="$BATS_TEST_TMPDIR/nonexistent" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
   [ "$status" -ne 0 ]
   case "$output" in *"harness red"*) ;; *) false ;; esac
   case "$output" in *worktree*|*branch*) false ;; *) ;; esac
@@ -172,15 +180,17 @@ make_good_ticket() {
 @test "preflight passes on a clean target on a branch" {
   make_gate_root
   make_target
-  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  make_tdir
+  run env ROUTINE_TICKET_DIR="$tdir" ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
   [ "$status" -eq 0 ]
 }
 
 @test "preflight fails on a dirty target worktree" {
   make_gate_root
   make_target
+  make_tdir
   touch "$tgt/untracked-file"
-  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  run env ROUTINE_TICKET_DIR="$tdir" ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
   [ "$status" -ne 0 ]
   case "$output" in *worktree*) ;; *) false ;; esac
 }
@@ -188,8 +198,9 @@ make_good_ticket() {
 @test "preflight fails on a detached HEAD" {
   make_gate_root
   make_target
+  make_tdir
   git -C "$tgt" checkout -q --detach HEAD
-  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
+  run env ROUTINE_TICKET_DIR="$tdir" ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
   [ "$status" -ne 0 ]
   case "$output" in *branch*) ;; *) false ;; esac
 }
@@ -209,11 +220,12 @@ make_good_ticket() {
     | grep '"ticket":"ticket"' | grep -q '"task":""'
 }
 
-@test "gate emits nothing without ticket context" {
+@test "preflight fails closed without ticket context" {
   make_gate_root
   make_target
   run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
-  [ "$status" -eq 0 ]
+  [ "$status" -ne 0 ]
+  case "$output" in *ROUTINE_TICKET_DIR*) ;; *) false ;; esac
   [ -z "$(find "$BATS_TEST_TMPDIR" -name telemetry.jsonl)" ]
 }
 

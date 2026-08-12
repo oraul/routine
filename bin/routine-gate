@@ -151,7 +151,13 @@ baseline_developer() {
 
 # Preflight baseline: the target must be a git worktree that is clean
 # (nothing staged, modified, or untracked) and checked out on a branch.
+# The audit demands preflight evidence, so an unrecordable preflight is
+# a protocol error now, not a mystery at conclude.
 baseline_preflight() {
+  if [ -z "${ROUTINE_TICKET_DIR:-}" ]; then
+    echo "routine-gate: preflight requires a ticket context (set ROUTINE_TICKET_DIR)" >&2
+    return 1
+  fi
   if ! git -C "$target" rev-parse --git-dir >/dev/null 2>&1; then
     echo "routine-gate: target is not a git repository: $target" >&2
     return 1

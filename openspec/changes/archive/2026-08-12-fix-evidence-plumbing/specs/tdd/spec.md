@@ -1,12 +1,4 @@
-# tdd Specification
-
-## Purpose
-
-Red before green as checkable protocol: the TDD phases run through a
-script that enforces each phase's expectation and records it as
-telemetry evidence.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Red and green are scripted, evidence-emitting phases
 `bin/routine-tdd <red|green> <scenario> -- <command...>` SHALL require a

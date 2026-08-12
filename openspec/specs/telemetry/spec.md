@@ -24,12 +24,16 @@ dot-notation event names.
 
 ### Requirement: Telemetry is script-owned
 Only scripts SHALL write telemetry. The emit function SHALL require an
-explicit destination file; when a script runs outside any ticket context it
-SHALL skip emission rather than invent a destination.
+explicit destination file; when a script runs outside any ticket context
+it SHALL skip emission rather than invent a destination — and a script
+whose evidence is mandatory (the gates, `routine-tdd`) SHALL refuse to
+run unrecorded instead of proceeding silently.
 
 #### Scenario: No ticket context
-- **WHEN** a gate runs with no ticket directory configured
-- **THEN** no telemetry line is written and the gate's exit code is unaffected
+- **WHEN** a ticket-bound emission is attempted with no ticket directory
+  configured
+- **THEN** no telemetry line is written and no destination is invented
+
 
 ### Requirement: Durations are measured at platform precision
 Every emitting script SHALL record its measured duration in the `ms` field
