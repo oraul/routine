@@ -58,17 +58,19 @@ type and its `calibration/<type>.md` before decomposing; ground first
 and record it — `grounding.md`'s evidence, alternatives, and assumptions
 are written before the artifacts they justify; decompose the
 requirement into briefings and tasks in the spec grammar (requirement
-header, `Type:` declaration, RFC 2119 keywords, Given/When/Then scenarios,
-enumerated acceptance, and a caffeine manifest per task), shaped by the
-type's calibration; revise against the full spec-lint defect list,
-continuing the same conversation where it survives and re-grounding
-from `grounding.md` where it does not; and never write implementation
-code or touch script-owned state. It SHALL NOT restate individual lint
-rules outside the grammar it teaches (stale restatements drift), SHALL
-state the revise limit the way the gate counts it (per episode; a
-defect return opens a fresh budget), and SHALL route missing caffeine
-vocabulary to the human and `/caffeinate` — never an invented topic
-name.
+header, `Type:` declaration, RFC 2119 keywords, scenarios written as
+Given/When/Then lines under `## Scenario: <label>` headings — the
+labels the audit binds evidence to — enumerated acceptance, and a
+non-empty caffeine manifest per task, with `testing/tdd` as the floor
+when nothing domain-specific fits), shaped by the type's calibration;
+revise against the full spec-lint defect list, continuing the same
+conversation where it survives and re-grounding from `grounding.md`
+where it does not; and never write implementation code or touch
+script-owned state. It SHALL NOT restate individual lint rules outside
+the grammar it teaches (stale restatements drift), SHALL state the
+revise limit the way the gate counts it (per episode; a defect return
+opens a fresh budget), and SHALL route missing caffeine vocabulary to
+the human and `/caffeinate` — never an invented topic name.
 
 #### Scenario: Grammar named in the prompt
 - **WHEN** the agent file is read
@@ -93,17 +95,19 @@ the two handles every scripted call needs — the ticket directory
 scripts) and the target root (`TARGET`) — nothing else. It SHALL state
 the precedence when sources conflict (task > target conventions >
 calibration > caffeine; earlier manifest topic first among caffeine
-docs), SHALL bind red and green to the identical scenario string and
-identical command (the audit pairs them byte-exact) with
-characterization tests kept out of the TDD evidence, SHALL bound the
-developer-gate loop with an off-ramp (repeated gate failures or a fix
-that leaves the task's scope route to the scripted refusals, never an
-unbounded retry), SHALL return a defective spec by calling
-`routine-defect <ticket-dir> <reason>` instead of improvising, and on
-blockage SHALL write `block.md` and call `routine-block`. The Never
-list SHALL cover script-owned state, other tasks, out-of-manifest
-caffeine, `runs/<app>/hooks/*`, and calling `routine-done` (the
-protocol driver's move, not the developer's).
+docs), SHALL record TDD evidence under the task's own
+`## Scenario: <label>` headings — the label verbatim as the scenario
+string, red and green bound to the identical label and identical
+command (the audit demands a covering green per label and pairs the
+evidence byte-exact) — with characterization tests kept out of the TDD
+evidence, SHALL bound the developer-gate loop with an off-ramp
+(repeated gate failures or a fix that leaves the task's scope route to
+the scripted refusals, never an unbounded retry), SHALL return a
+defective spec by calling `routine-defect <ticket-dir> <reason>`
+instead of improvising, and on blockage SHALL write `block.md` and call
+`routine-block`. The Never list SHALL cover script-owned state, other
+tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
+`routine-done` (the protocol driver's move, not the developer's).
 
 #### Scenario: Statelessness named in the prompt
 - **WHEN** the agent file is read
@@ -121,6 +125,11 @@ protocol driver's move, not the developer's).
   task's scope
 - **THEN** the agent file routes to `routine-defect` or `routine-block`,
   never an unbounded retry
+
+#### Scenario: Evidence carries the task's labels
+- **WHEN** the agent file is read
+- **THEN** it instructs recording red and green under the task's
+  `## Scenario: <label>` headings verbatim
 
 ### Requirement: Agent files register as subagents
 `agents/analyst.md` and `agents/developer.md` SHALL open with YAML
