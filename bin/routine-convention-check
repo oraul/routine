@@ -4,6 +4,13 @@
 # (default: current directory), so fixtures are ordinary temp repositories.
 set -u
 
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
+
 target="${TARGET:-$PWD}"
 base="${1:-}"
 if [ -z "$base" ]; then
@@ -66,4 +73,6 @@ done
 if [ "$fails" -eq 0 ]; then
   echo "convention-check: clean since $base"
 fi
+telemetry_harness_emit harness.convention bin/routine-convention-check \
+  "$fails" "$(( $(routine_now_ms) - start_ms ))"
 exit "$fails"

@@ -24,6 +24,7 @@ make_ticket() {
   } > "$ticket/index.tsv"
   cat > "$ticket/telemetry.jsonl" <<'EOF'
 {"ts":"2026-01-01T00:00:00Z","event":"ticket.new","script":"bin/routine-ticket-new","ticket":"0001","task":"","exit":0,"ms":1}
+{"ts":"2026-01-01T00:00:30Z","event":"gate.preflight","script":"bin/routine-gate","ticket":"0001","task":"","exit":0,"ms":8}
 {"ts":"2026-01-01T00:01:00Z","event":"gate.analyst","script":"bin/routine-gate","ticket":"0001","task":"","exit":0,"ms":10}
 {"ts":"2026-01-01T00:02:00Z","event":"ticket.next","script":"bin/routine-next","ticket":"0001","task":"01-01","exit":0,"ms":2}
 {"ts":"2026-01-01T00:03:00Z","event":"tdd.red","script":"login","ticket":"0001","task":"01-01","exit":1,"ms":30}

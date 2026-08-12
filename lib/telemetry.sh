@@ -32,6 +32,18 @@ telemetry_emit() {
     "$_t_exit" "$_t_ms" >> "$_t_file"
 }
 
+# telemetry_harness_emit <event> <script> <exit> <ms>
+# App-level wrapper for harness scripts: writes to runs/<app>/telemetry.jsonl
+# under the routine root when that app directory already exists; otherwise a
+# clean no-op — scripts never invent a destination. Requires lib/paths.sh.
+telemetry_harness_emit() {
+  _t_root="$(routine_root)"
+  _t_app="$(routine_app_key "${TARGET:-$PWD}")"
+  [ -d "$_t_root/runs/$_t_app" ] || return 0
+  telemetry_emit "$_t_root/runs/$_t_app/telemetry.jsonl" "$1" "$2" "" "" \
+    "$3" "$4"
+}
+
 # telemetry_gate_emit <event> <script> <exit> <ms>
 # Ticket-bound wrapper: writes to $ROUTINE_TICKET_DIR/telemetry.jsonl when a
 # ticket context exists; outside one it is a clean no-op — scripts never
