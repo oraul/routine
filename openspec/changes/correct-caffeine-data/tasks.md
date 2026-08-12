@@ -1,6 +1,6 @@
 ## 1. Sidekiq truth
 
-- [ ] 1.1 Red→green: strict_args!/string-key round trip, honest OSS
+- [x] 1.1 Red→green: strict_args!/string-key round trip, honest OSS
       delivery semantics, perform_bulk, retry numbers, the
       transaction/enqueue race — wrong claims asserted absent
 
