@@ -103,12 +103,12 @@ baseline_analyst() {
 # current task derives from the in-progress index row — never chosen.
 baseline_developer() {
   if [ -z "${ROUTINE_TICKET_DIR:-}" ]; then
-    echo "routine-gate: no ticket context; developer baseline has no manifest to run"
-    return 0
+    echo "routine-gate: developer gate requires a ticket context (set ROUTINE_TICKET_DIR)" >&2
+    return 1
   fi
   if ! _row="$(index_first_with_status "$ROUTINE_TICKET_DIR/index.tsv" in_progress)"; then
-    echo "routine-gate: no task in progress; developer baseline has nothing to run"
-    return 0
+    echo "routine-gate: no task is in_progress; run routine-next before the developer gate" >&2
+    return 1
   fi
   _b="$(printf '%s' "$_row" | cut -f2)"
   _t="$(printf '%s' "$_row" | cut -f3)"

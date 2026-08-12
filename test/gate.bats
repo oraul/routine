@@ -24,9 +24,11 @@ make_target() {
 @test "hook exit code is relayed verbatim" {
   make_gate_root
   make_target
+  make_good_ticket
   mkdir -p "$groot/runs/app/hooks"
   printf '%s\n' '#!/usr/bin/env bash' 'exit 7' > "$groot/runs/app/hooks/developer.sh"
-  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
   [ "$status" -eq 7 ]
 }
 
@@ -128,10 +130,27 @@ make_good_ticket() {
 @test "missing developer hook aborts naming the file and an example" {
   make_gate_root
   make_target
-  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  make_good_ticket
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
   [ "$status" -ne 0 ]
   case "$output" in *"runs/app/hooks/developer.sh"*) ;; *) false ;; esac
   case "$output" in *'cd "$TARGET"'*) ;; *) false ;; esac
+}
+
+@test "developer gate fails closed without ticket context or in_progress" {
+  make_gate_root
+  make_target
+  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  [ "$status" -ne 0 ]
+  case "$output" in *ROUTINE_TICKET_DIR*) ;; *) false ;; esac
+  make_good_ticket
+  "$ROUTINE_REPO_ROOT/bin/routine-done" "$ticket" > /dev/null
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  [ "$status" -ne 0 ]
+  case "$output" in *in_progress*) ;; *) false ;; esac
 }
 
 @test "red harness aborts preflight before any target check" {
@@ -240,15 +259,7 @@ make_manifest_ticket() {
   case "$output" in *"ruby/nonexistent"*) ;; *) false ;; esac
 }
 
-@test "developer baseline without ticket context logs and proceeds" {
-  make_gate_root
-  make_target
-  mkdir -p "$groot/runs/app/hooks"
-  printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$groot/runs/app/hooks/developer.sh"
-  run env -u ROUTINE_TICKET_DIR ROUTINE_ROOT="$groot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
-  [ "$status" -eq 0 ]
-  case "$output" in *"no ticket context"*) ;; *) false ;; esac
-}
+
 
 @test "missing gate name exits non-zero naming the gates" {
   run "$ROUTINE_REPO_ROOT/bin/routine-gate"

@@ -1,6 +1,6 @@
 ## 1. Fail closed
 
-- [ ] 1.1 Red→green: developer gate fails naming the condition when
+- [x] 1.1 Red→green: developer gate fails naming the condition when
       `ROUTINE_TICKET_DIR` is unset or no task is `in_progress`
 
 ## 2. One root
