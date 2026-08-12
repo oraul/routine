@@ -4,7 +4,8 @@
 <!-- caffeine-source: https://github.com/sidekiq/sidekiq/wiki/Best-Practices -->
 <!-- caffeine-reviewed: 2026-08-12 -->
 
-Loaded only when your task's manifest names `ruby/sidekiq`.
+Loaded only when your task's manifest names `ruby/sidekiq`. The target's
+own conventions outrank this guide where they conflict.
 
 The sidecar mechanically rejects (fix them, don't argue with them):
 
@@ -22,18 +23,23 @@ The sidecar mechanically rejects (fix them, don't argue with them):
 class CloseOrderJob
   include Sidekiq::Job   # never the legacy Sidekiq::Worker
 
-  # Queue is a latency promise; default unless someone will page over it.
-  # Retries stay ON: at-least-once delivery is the platform's contract,
-  # and retry: false silently drops failures (state the dead-set plan if
-  # you ever must).
-  sidekiq_options queue: :default
-
-  # Arguments are JSON-native positionals: ids and scalars only. Objects
-  # and keyword args corrupt silently on the round-trip through Redis.
+  # Retries stay ON. Defaults you are accepting by writing nothing:
+  # 25 retries with exponential backoff spanning ~21 days, then the job
+  # moves to the Dead set (kept ~6 months, capped). Tune with
+  # sidekiq_retry_in / sidekiq_retries_exhausted — never retry: false
+  # without a written dead-set plan. retry: 0 (dead immediately) and
+  # retry: false (vanishes) are different decisions; know which one you
+  # are making.
   def perform(order_id)
-    # Fetch fresh — hours may have passed since enqueue; the record can
-    # have changed or vanished, and absence is a normal outcome, not an
-    # error to retry forever.
+    # Arguments are JSON-native positionals: ids and scalars only.
+    # Enable Sidekiq.strict_args! in the initializer: modern Sidekiq
+    # REFUSES non-JSON arguments loudly. The kwargs trap is concrete:
+    # JSON round-trips symbol keys to string keys and Sidekiq splats
+    # positionally, so perform(user_id:) raises on execution, hours
+    # after the enqueue looked fine.
+    #
+    # Fetch fresh — the record can have changed or vanished since
+    # enqueue; absence is a normal outcome, not an error to retry.
     order = Order.find_by(id: order_id)
     return unless order
 
@@ -45,25 +51,40 @@ class CloseOrderJob
   end
 end
 
-# Enqueue site: many small jobs beat one heroic loop — Sidekiq's
-# parallelism IS the loop, and each job survives a deploy.
-order_ids.each { |id| CloseOrderJob.perform_async(id) }
+# Enqueue site: many small jobs beat one heroic loop, and the bulk API
+# beats N round-trips to Redis — one call, one pipeline.
+CloseOrderJob.perform_bulk(order_ids.map { |id| [id] })
+
+# Enqueue AFTER the data is committed, or the job can run against a
+# transaction that never lands (the find_by above then hides the bug as
+# "absence"). Enqueue in an after_commit hook — or on Rails >=7.2 set
+# config.active_job.enqueue_after_transaction_commit and let the
+# framework hold the enqueue for you (ActiveJob adapters only).
 ```
 
-Judgment the sidecar cannot check:
+## Judgment
 
-- **Jobs are idempotent or they are bugs.** Sidekiq guarantees at-least-once
-  execution; every job must survive running twice (guard with state checks
-  or unique keys, not hope).
-- **Pass ids, not objects.** Arguments are serialized to JSON and may be
-  deserialized hours later; a record can change or vanish in between —
-  fetch it fresh inside `perform` and handle its absence.
-- **Small jobs, many jobs.** A job that loops over thousands of records
-  should enqueue thousands of jobs; Sidekiq's parallelism is the loop.
+The target's own conventions outrank this skeleton where they conflict.
+
+- **Delivery is honest, not magical.** OSS Sidekiq's basic fetch pops the
+  job before running it: a hard kill (OOM, SIGKILL, node loss) LOSES the
+  in-flight job — it does not re-run. Sidekiq Pro's super_fetch recovers
+  such jobs. On OSS, idempotency protects against *repeats*; you still
+  need a reconciliation path for *losses* (a sweeper that re-enqueues
+  work the state machine says is missing).
+- **Pass ids, not objects.** Arguments are serialized to JSON with string
+  keys and may be deserialized hours later; fetch fresh inside `perform`
+  and handle absence. If the app enqueues through ActiveJob, GlobalID
+  hides this — prefer ids anyway so the argument log stays readable.
+- **Small jobs, many jobs, one push.** A job that loops over thousands of
+  records should enqueue thousands of jobs via `perform_bulk`; Sidekiq's
+  parallelism is the loop, and each small job survives a deploy.
 - **`retry: false` needs a story.** Legitimate only when a failure is
-  handled some other way (a dead-set monitor, a reconciliation task);
-  write that story next to the option or take the retries.
+  handled some other way (a dead-set monitor via
+  `sidekiq_retries_exhausted`, a reconciliation task); write that story
+  next to the option or take the 25 retries.
 - **Queue names are a latency contract**: put a job on `critical` only if
   someone will notice its latency; everything else earns `default`.
-- **Time limits**: long-running work belongs in batches with checkpoints,
-  not one heroic job that dies at deploy time.
+- **Deploys interrupt.** SIGTERM gives jobs ~25 seconds (the -t timeout)
+  before a hard stop; long work belongs in checkpointed batches that can
+  resume, not one heroic job that dies mid-flight.

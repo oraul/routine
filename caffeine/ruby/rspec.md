@@ -61,6 +61,33 @@ RSpec.describe Order do
       end
     end
   end
+
+  # let is LAZY: a let no example calls never runs. The classic trap is
+  # a record the database needs that nothing references — it is never
+  # created and the spec passes for the wrong reason. let! forces
+  # creation per example; use it only when presence IS the point.
+  describe '#duplicate_number?' do
+    let!(:existing) { create(:order, number: 'A-1') }  # must exist unreferenced
+
+    it 'detects the clash' do
+      expect(described_class.new(number: 'A-1')).to be_duplicate_number
+    end
+  end
+end
+
+# spec/support/shared_examples/order_repository.rb — shared examples are
+# PORT CONTRACT tests: the in-memory fake and the real adapter must pass
+# the same set, or the fake drifts and a green suite lies.
+RSpec.shared_examples 'an order repository' do
+  it 'returns nil for an unknown id' do
+    expect(repository.find('nope')).to be_nil
+  end
+end
+
+RSpec.describe InMemoryOrderRepository do
+  it_behaves_like 'an order repository' do
+    let(:repository) { described_class.new }
+  end
 end
 ```
 
@@ -72,9 +99,19 @@ end
 - **Expect the mock only when the message *is* the behavior** (a command
   sent to a collaborator); for queries, stub the return and assert on the
   outcome instead.
+- **The `any_instance` the sidecar bans has a named replacement**: build
+  the double yourself and inject it — `instance_double(PriceLookup)`
+  verifies the stubbed methods actually exist (a bare `double` verifies
+  nothing), and constructor injection is the structural fix that makes
+  `any_instance` unnecessary.
+- **Test data has a speed ladder**: `build_stubbed` (no database) beats
+  `build` (no save) beats `create` (full persistence); reach for
+  `create` only when the example genuinely needs a row. This is the
+  concrete form of "slow specs are design feedback".
 - **Slow specs are design feedback**: needing the database or the clock in
-  a unit spec means a seam is missing — extract the port before reaching
-  for `sleep`, `Timecop`, or a real connection.
+  a unit spec means a seam is missing — extract the port, or in a Rails
+  app use the built-in travel helpers (`travel_to`, `freeze_time` from
+  ActiveSupport::Testing::TimeHelpers) rather than `sleep` or a gem.
 - **The failure message is the audience**: before committing, break the
   code mentally and ask whether the spec's failure output would tell a
   stranger what promise broke and where.
