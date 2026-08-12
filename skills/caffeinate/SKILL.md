@@ -29,29 +29,37 @@ pair already exists in `caffeine/`.
 
 ## 3. Generate — per selected topic
 
-For each topic `<eco>/<name>`, create the pair the caffeine spec demands:
+For each topic `<ns>/<topic>`, create the pair `routine-caffeine-lint`
+enforces (it runs first in selfcheck; see `caffeine/ruby/rails.*` as the
+reference):
 
-- **`caffeine/<eco>/<name>.md`** — judgment guidance: the practices an
+- **`caffeine/<ns>/<topic>.md`** — judgment guidance: the practices an
   experienced reviewer checks that no grep can, written for the developer
-  agent who will load it mid-task.
-- **`caffeine/<eco>/<name>.sh`** — a sidecar following the existing
-  contract exactly (see `caffeine/ruby/rails.sh` as the reference):
-  bash 3.2 + BSD grep, `TARGET`-parameterized, 3–5 rules that are
-  genuinely mechanical (grep-able), every hit printed with file, line, and
-  rule, exit 0 only when clean.
-- **one bats fixture per rule** in `test/` — each rule must demonstrate a
-  real catch and the clean fixture must pass. No rule without a fixture.
+  agent who will load it mid-task. The lint demands its shape: the exact
+  H1 `# caffeine: <ns>/<topic>`, then the metadata comment headers
+  `caffeine-topic`, `caffeine-applies`, `caffeine-source`, and
+  `caffeine-reviewed`. Every sidecar rule string appears **verbatim** in
+  the doc — the lint rejects a doc drifted from its sidecar.
+- **`caffeine/<ns>/<topic>.sh`** — a sidecar sourcing `lib/sidecar.sh`:
+  bash 3.2 + BSD grep, `set -u`, 3–5 rules that are genuinely mechanical,
+  each a `check <id> "<rule>"` call, ending `exit "$fails"`. The library
+  owns TARGET resolution, vendor excludes, and the
+  `caffeine/<ns>/<topic>[<id>]` hit format.
+- **one bats fixture per topic** at `test/caffeine_<ns>_<topic>.bats` —
+  it must demonstrate a real catch and a clean pass. No sidecar without
+  its fixture.
 
 Rules must encode the package's documented footguns, not invented style
 opinions. When you cannot find 3 genuinely mechanical rules for a topic,
-say so and write only the `.md` — a weak sidecar is worse than none.
-Doc-only topics are first-class: the developer gate accepts a topic whose
-`.md` exists without a `.sh` (the `architecture/` namespace is doc-only by
+say so and write only the `.md`, declaring `caffeine-mode: doc-only` in
+its headers — a weak sidecar is worse than none, and doc-only topics are
+first-class in any manifest (the `architecture/` namespace is doc-only by
 design — judgment in any language, no fake greps).
 
 ## 4. Accept
 
-Run `bin/routine-selfcheck`. Generation is complete **only** when it exits
-0 — shellcheck-clean sidecars, every fixture green. Then take the generated
-pair through the normal OpenSpec change loop (propose → apply → PR); never
-commit generated caffeine straight to main.
+Run `bin/routine-caffeine-lint`, then `bin/routine-selfcheck`. Generation
+is complete **only** when both exit 0 — lint-clean pairs, shellcheck-clean
+sidecars, every fixture green. Then take the generated pair through the
+normal OpenSpec change loop (propose → apply → PR); never commit generated
+caffeine straight to main.

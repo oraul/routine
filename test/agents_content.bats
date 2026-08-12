@@ -43,6 +43,21 @@ load test_helper
   ! grep -q 'a bug additionally requires' "$doc"
 }
 
+@test "the unblock skill matches its script's signature" {
+  doc="$ROUTINE_REPO_ROOT/skills/unblock/SKILL.md"
+  grep -q '<ticket-dir> \[task-id\]' "$doc"
+}
+
+@test "the caffeinate skill teaches the enforced generation contract" {
+  doc="$ROUTINE_REPO_ROOT/skills/caffeinate/SKILL.md"
+  grep -q 'caffeine-mode' "$doc"
+  grep -q 'lib/sidecar.sh' "$doc"
+  grep -q 'routine-caffeine-lint' "$doc"
+  grep -q 'test/caffeine_<ns>_<topic>.bats' "$doc"
+  grep -qi 'verbatim' "$doc"
+  ! grep -q 'one bats fixture per rule' "$doc"
+}
+
 @test "the skill hands agents their payload and aborts by script" {
   doc="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
   grep -q 'TARGET' "$doc"

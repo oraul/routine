@@ -16,7 +16,7 @@
 
 ## 3. The auxiliary skills
 
-- [ ] 3.1 Red→green: `skills/unblock/SKILL.md` matches the script's
+- [x] 3.1 Red→green: `skills/unblock/SKILL.md` matches the script's
       argument form; `skills/caffeinate/SKILL.md` teaches the enforced
       generation contract (metadata headers, sidecar library, verbatim
       rule agreement, one fixture per topic, caffeine-lint acceptance)
