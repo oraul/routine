@@ -1,0 +1,121 @@
+#!/usr/bin/env bash
+# routine-script: routine-script-lint
+# routine-description: The script contract as exit codes — frontmatter cross-checked against every bin script's body
+# routine-exit: 0 — every bin script satisfies the contract
+# routine-exit: 1 — violations found (each named on stderr)
+# routine-test: test/script_lint.bats
+#
+# The frontmatter grammar is fixed-form comment lines (the caffeine
+# metadata move applied to bin/): routine-script, routine-description,
+# routine-exit per code, routine-test, routine-usage when the body
+# prints one, routine-env iff the body references a context variable.
+# Cross-agreement, not presence, is the point — a contract that can
+# drift from its body is decoration.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
+
+root="$(routine_root)"
+viol=0
+fail() { echo "script-lint: $1" >&2; viol=$((viol + 1)); }
+
+finish() {
+  telemetry_harness_emit harness.script bin/routine-script-lint "$1" \
+    "$(( $(routine_now_ms) - start_ms ))"
+  exit "$1"
+}
+
+for f in "$root"/bin/*; do
+  [ -f "$f" ] || continue
+  n="$(basename "$f")"
+
+  # The frontmatter is the comment run directly after the shebang; the
+  # body is everything from the first non-comment line on.
+  fm="$(awk 'NR==1 {next} /^#/ {print; next} {exit}' "$f")"
+  body="$(awk 'NR==1 {next} !b && /^#/ {next} {b=1; print}' "$f")"
+
+  fm_script="$(printf '%s\n' "$fm" | sed -n 's/^# routine-script: //p' | head -1)"
+  if [ -z "$fm_script" ]; then
+    fail "$n: no frontmatter (missing '# routine-script:' line)"
+    continue
+  fi
+  [ "$fm_script" = "$n" ] \
+    || fail "$n: routine-script says '$fm_script'; the filename is the name"
+
+  printf '%s\n' "$fm" | grep -q '^# routine-description: ..*' \
+    || fail "$n: missing or empty routine-description"
+
+  # Exit coverage: documented set == literal set, where a dynamic exit
+  # (exit "$var") covers exactly the verdict codes 0 and 1.
+  doc_exits="$(printf '%s\n' "$fm" \
+    | sed -n 's/^# routine-exit: \([0-9][0-9]*\) .*/\1/p' | sort -un)"
+  [ -n "$doc_exits" ] || fail "$n: no routine-exit lines (a script IS its exit codes)"
+  lit_exits="$(printf '%s\n' "$body" \
+    | grep -oE 'exit "?[0-9]+"?' | grep -oE '[0-9]+' | sort -un || true)"
+  dynamic=0
+  printf '%s\n' "$body" | grep -qE 'exit "\$[A-Za-z_{]' && dynamic=1
+
+  for c in $lit_exits; do
+    printf '%s\n' "$doc_exits" | grep -qx "$c" \
+      || fail "$n: body exits $c but no routine-exit documents it"
+  done
+  for c in $doc_exits; do
+    if ! printf '%s\n' "$lit_exits" | grep -qx "$c"; then
+      if [ "$dynamic" -eq 1 ] && { [ "$c" = 0 ] || [ "$c" = 1 ]; }; then
+        continue
+      fi
+      fail "$n: routine-exit documents $c but the body never exits with it"
+    fi
+  done
+  if [ "$dynamic" -eq 1 ]; then
+    for c in 0 1; do
+      printf '%s\n' "$doc_exits" | grep -qx "$c" \
+        || fail "$n: dynamic exit present — verdict code $c must be documented"
+    done
+  fi
+
+  # Usage: required and verbatim exactly when the body prints one.
+  body_usage="$(printf '%s\n' "$body" \
+    | sed -n 's/.*"usage: \([^"]*\)".*/\1/p' | head -1)"
+  fm_usage="$(printf '%s\n' "$fm" | sed -n 's/^# routine-usage: //p' | head -1)"
+  if [ -n "$body_usage" ] && [ "$fm_usage" != "$body_usage" ]; then
+    fail "$n: routine-usage disagrees with the usage the body prints"
+  elif [ -z "$body_usage" ] && [ -n "$fm_usage" ]; then
+    fail "$n: routine-usage present but the body prints no usage string"
+  fi
+
+  # Acceptance is a pointer, and the pointer must be live.
+  fm_test="$(printf '%s\n' "$fm" | sed -n 's/^# routine-test: //p' | head -1)"
+  if [ -z "$fm_test" ]; then
+    fail "$n: missing routine-test (acceptance is a pointer, not a mystery)"
+  elif [ ! -f "$root/$fm_test" ]; then
+    fail "$n: routine-test names $fm_test which does not exist"
+  elif ! grep -q "$n" "$root/$fm_test"; then
+    fail "$n: routine-test names $fm_test which never mentions the script"
+  fi
+
+  # Context env vars: declared iff referenced.
+  for v in ROUTINE_TICKET_DIR TARGET; do
+    body_has=0
+    printf '%s\n' "$body" | grep -q "$v" && body_has=1
+    fm_has=0
+    printf '%s\n' "$fm" | grep -q "^# routine-env: $v " && fm_has=1
+    if [ "$body_has" -eq 1 ] && [ "$fm_has" -eq 0 ]; then
+      fail "$n: body references $v but no routine-env declares it"
+    elif [ "$body_has" -eq 0 ] && [ "$fm_has" -eq 1 ]; then
+      fail "$n: routine-env declares $v but the body never references it"
+    fi
+  done
+done
+
+if [ "$viol" -gt 0 ]; then
+  echo "script-lint: $viol violation(s)" >&2
+  finish 1
+fi
+echo "script-lint: every bin script honors its contract"
+finish 0

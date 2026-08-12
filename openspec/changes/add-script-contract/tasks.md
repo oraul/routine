@@ -1,6 +1,6 @@
 ## 1. The lint
 
-- [ ] 1.1 Red→green: `bin/routine-script-lint` enforces the frontmatter
+- [x] 1.1 Red→green: `bin/routine-script-lint` enforces the frontmatter
       grammar with the cross-agreement rules (name, verbatim usage,
       exit coverage with the dynamic convention, live test pointer,
       env iff referenced), fixture-tested under a `ROUTINE_ROOT`
