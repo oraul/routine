@@ -68,5 +68,8 @@ EOF
   printf '%s\n' "$output" | grep -qx 'ruby/rails'
   printf '%s\n' "$output" | grep -qx 'ruby/pg'
   printf '%s\n' "$output" | grep -qx 'ruby/puma'
-  printf '%s\n' "$output" | grep -qx 'ruby/rspec-rails'
+  # Canonicalized through the alias table: dead strings never print.
+  printf '%s\n' "$output" | grep -qx 'ruby/rspec'
+  ! printf '%s\n' "$output" | grep -qx 'ruby/rspec-rails'
+  printf '%s\n' "$output" | grep -qx 'ruby/active_record'
 }

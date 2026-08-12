@@ -6,7 +6,7 @@
 
 ## 2. Honest discovery
 
-- [ ] 2.1 Red→green: `caffeine/aliases.tsv` canonicalizes deps output
+- [x] 2.1 Red→green: `caffeine/aliases.tsv` canonicalizes deps output
       (activerecord, rspec-rails, rails-implies-active_record); dead
       strings leave the deps tests
 
