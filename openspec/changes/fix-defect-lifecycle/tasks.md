@@ -11,7 +11,7 @@
 
 ## 3. Scripted abort
 
-- [ ] 3.1 Red→green: `bin/routine-abort` refuses without a reason,
+- [x] 3.1 Red→green: `bin/routine-abort` refuses without a reason,
       writes `abort.md`, emits `ticket.abort`, archives the ticket with
       artifacts intact, prints the path; the skill's exhausted branch
       calls it

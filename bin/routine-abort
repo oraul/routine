@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# The scripted abort: a specify that cannot converge ends on the rails,
+# not in prose. Refuses without a reason, records the reason and the
+# ticket.abort evidence, and archives the ticket with every artifact
+# intact — an aborted ticket never lingers where the next run adopts it.
+# Archive (not a separate root) keeps ticket-id allocation collision-free.
+set -u
+
+lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
+# shellcheck source=/dev/null
+. "$lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
+
+ticket="${1:-}"
+reason="${2:-}"
+if [ ! -d "$ticket" ] || [ -z "$reason" ]; then
+  echo "usage: routine-abort <ticket-dir> <reason>  (the reason is the record)" >&2
+  exit 2
+fi
+
+id="$(basename "$ticket")"
+ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
+{
+  echo "# Aborted: ticket $id"
+  echo
+  echo "Aborted: $ts"
+  echo
+  printf '%s\n' "$reason"
+} > "$ticket/abort.md"
+
+telemetry_emit "$ticket/telemetry.jsonl" ticket.abort bin/routine-abort \
+  "$id" "" 1 "$(( $(routine_now_ms) - start_ms ))"
+
+archive="$(dirname "$ticket")/archive"
+mkdir -p "$archive"
+mv "$ticket" "$archive/$id"
+echo "routine-abort: ticket $id aborted and archived at $archive/$id"
+exit 0
