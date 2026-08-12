@@ -1,11 +1,6 @@
-# operation Specification
+# operation Specification (delta)
 
-## Purpose
-
-The operational protocol the prompt files must encode: how the phase machine
-runs, where humans decide, and what each agent may and may not do.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: The routine skill encodes the gated phase machine
 `skills/routine/SKILL.md` SHALL be human-invoked only
@@ -45,17 +40,6 @@ violations on a task already marked done cannot be re-evidenced
 - **WHEN** the skill file is read
 - **THEN** it names `routine-manual` (or the script head) as the
   contract source instead of restating contracts from memory
-
-### Requirement: The unblock skill captures human context as evidence
-`skills/unblock/SKILL.md` SHALL be human-invoked only and SHALL instruct:
-converse with the human about the named ticket and task, write their
-unblocking context to the task's `unblock.md`, then call `routine-unblock` —
-never editing the index directly.
-
-#### Scenario: Evidence before release
-- **WHEN** the skill file is read
-- **THEN** it orders unblock.md before routine-unblock and forbids index
-  edits
 
 ### Requirement: The analyst decomposes and never implements
 `agents/analyst.md` SHALL instruct: read the requirement's declared work
@@ -145,14 +129,3 @@ tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
 - **WHEN** the agent file is read
 - **THEN** it points at the script head or `routine-manual` for script
   contracts
-
-### Requirement: Agent files register as subagents
-`agents/analyst.md` and `agents/developer.md` SHALL open with YAML
-frontmatter carrying `name` and `description`, so the files are
-loadable as subagents by the host, and the `name` SHALL match the
-filename stem.
-
-#### Scenario: Frontmatter present
-- **WHEN** either agent file is read
-- **THEN** it opens with `---`, a `name:` matching its filename, and a
-  non-empty `description:`

@@ -71,6 +71,12 @@ load test_helper
   ! grep -q 'one bats fixture per rule' "$doc"
 }
 
+@test "the prompts consult the contract, never recall it" {
+  grep -q 'routine-manual' "$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  grep -q 'routine-manual' "$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -q 'routine-manual' "$ROUTINE_REPO_ROOT/agents/developer.md"
+}
+
 @test "the skill hands agents their payload and aborts by script" {
   doc="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
   grep -q 'TARGET' "$doc"
