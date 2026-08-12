@@ -25,7 +25,7 @@ explicitly, because a stateless agent's payload is its whole world.
 The conclude phase SHALL state the honest failure road: audit
 violations on a task already marked done cannot be re-evidenced
 (telemetry is script-owned and append-only), so the road is
-`routine-abort` and a fresh ticket, never a rail back.
+`routine-abort` and a fresh ticket, never a rail back. Phase 0 SHALL name the script frontmatter and `routine-manual` as the authoritative contract for every script the protocol calls — consulted, never recalled.
 
 #### Scenario: Protocol present in the skill
 - **WHEN** the skill file is read
@@ -40,6 +40,11 @@ violations on a task already marked done cannot be re-evidenced
 - **THEN** phase 0 exports `ROUTINE_TICKET_DIR` and `TARGET`, the
   delegation steps hand the agent its ticket directory and target, and
   conclude routes a refused done task to `routine-abort`
+
+#### Scenario: The manual is the authority in the skill
+- **WHEN** the skill file is read
+- **THEN** it names `routine-manual` (or the script head) as the
+  contract source instead of restating contracts from memory
 
 ### Requirement: The unblock skill captures human context as evidence
 `skills/unblock/SKILL.md` SHALL be human-invoked only and SHALL instruct:
@@ -70,7 +75,7 @@ script-owned state. It SHALL NOT restate individual lint rules outside
 the grammar it teaches (stale restatements drift), SHALL state the
 revise limit the way the gate counts it (per episode; a defect return
 opens a fresh budget), and SHALL route missing caffeine vocabulary to
-the human and `/caffeinate` — never an invented topic name.
+the human and `/caffeinate` — never an invented topic name. It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract.
 
 #### Scenario: Grammar named in the prompt
 - **WHEN** the agent file is read
@@ -82,6 +87,11 @@ the human and `/caffeinate` — never an invented topic name.
 - **WHEN** the agent file is read
 - **THEN** it instructs referral to `/caffeinate` when no existing
   topic fits, instead of guessing a topic name
+
+#### Scenario: The analyst consults the contract
+- **WHEN** the agent file is read
+- **THEN** it points at the script head or `routine-manual` for script
+  contracts
 
 ### Requirement: The developer is stateless and evidence-bound
 `agents/developer.md` SHALL instruct: consume exactly one task from
@@ -107,7 +117,7 @@ defective spec by calling `routine-defect <ticket-dir> <reason>`
 instead of improvising, and on blockage SHALL write `block.md` and call
 `routine-block`. The Never list SHALL cover script-owned state, other
 tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
-`routine-done` (the protocol driver's move, not the developer's).
+`routine-done` (the protocol driver's move, not the developer's). It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract.
 
 #### Scenario: Statelessness named in the prompt
 - **WHEN** the agent file is read
@@ -130,6 +140,11 @@ tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
 - **WHEN** the agent file is read
 - **THEN** it instructs recording red and green under the task's
   `## Scenario: <label>` headings verbatim
+
+#### Scenario: The developer consults the contract
+- **WHEN** the agent file is read
+- **THEN** it points at the script head or `routine-manual` for script
+  contracts
 
 ### Requirement: Agent files register as subagents
 `agents/analyst.md` and `agents/developer.md` SHALL open with YAML
