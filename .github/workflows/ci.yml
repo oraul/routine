@@ -44,15 +44,34 @@ jobs:
           export PATH="$PWD/.bats-core/bin:$PATH"
           bin/routine-selfcheck
 
+  # Runs on both events: PRs check the branch, pushes to main check what
+  # the push introduced — the merge commit's message included, which no
+  # PR-side run can ever see (GitHub writes it at merge time).
   conventions:
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+      - name: Resolve the diff base
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            base="origin/$BASE_REF"
+          elif printf '%s' "$BEFORE_SHA" | grep -Eq '^0+$' \
+            || ! git cat-file -e "$BEFORE_SHA^{commit}" 2>/dev/null; then
+            # First push or force push: check only the tip, never rescan
+            # history that predates the harness.
+            base="$(git rev-parse HEAD~1 2>/dev/null || git rev-list --max-parents=0 HEAD)"
+          else
+            base="$BEFORE_SHA"
+          fi
+          echo "CONVENTION_BASE=$base" >> "$GITHUB_ENV"
       - name: convention check
-        run: bin/routine-convention-check "origin/${{ github.base_ref }}"
+        run: bin/routine-convention-check "$CONVENTION_BASE"
 
   openspec-validate:
     runs-on: ubuntu-latest
