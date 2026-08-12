@@ -48,7 +48,10 @@ Inside the active ticket directory, write — **grounding first**:
   requirement, numbered in execution order.
 - `briefings/<nn>-<slug>/tasks/<nn>-<slug>/task.md` — one per task, numbered
   in execution order within the briefing. Every task carries:
-  - at least one scenario written as Given/When/Then lines,
+  - at least one scenario written as Given/When/Then lines under a
+    `## Scenario: <label>` heading — the label is the join key: the
+    developer records its TDD evidence under it verbatim, and the audit
+    refuses a done task whose labels lack their covering green,
   - a `## Acceptance` section with an enumerated, non-empty list,
   - a `## Caffeine` section naming the topics **this task** needs, each on
     its own line in the exact form `- <namespace>/<topic>` (e.g.
@@ -56,8 +59,10 @@ Inside the active ticket directory, write — **grounding first**:
     the lint rejects malformed bullets and unresolvable topics. Browse
     the vocabulary with `routine-caffeine-list` — never guess topic
     names, and when no existing topic fits a real need, tell the human
-    to grow one with `/caffeinate` rather than inventing a name. Empty
-    beneath the heading when none apply. You select each task's
+    to grow one with `/caffeinate` rather than inventing a name. Never
+    empty: when nothing domain-specific fits, the floor is
+    `- testing/tdd` — it applies to any task that goes red to green,
+    and the lint rejects a topicless manifest. You select each task's
     manifest; the developer loads nothing outside its own task's list.
 
 Every briefing has at least one task. Size tasks so one developer session

@@ -1,12 +1,6 @@
-# spec-grammar Specification
+# spec-grammar Specification (delta)
 
-## Purpose
-
-The structural contract for ticket artifacts: what a requirement, briefing,
-and task file must contain before development may start, enforced by grep/awk
-alone.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Spec lint checks ticket grammar structurally
 `bin/routine-spec-lint <ticket-dir>` SHALL verify, with structural checks
@@ -53,46 +47,3 @@ check passes.
 - **WHEN** a `task.md`'s `## Caffeine` section carries no topics
 - **THEN** the lint exits non-zero naming that task file and pointing
   at `testing/tdd` as the floor
-
-### Requirement: Lint failures name file and rule
-Every lint failure SHALL print the offending file path and the violated rule;
-the linter SHALL report all failures in a run, not just the first.
-
-#### Scenario: Two defects reported together
-- **WHEN** a ticket has a briefing without tasks and a task without
-  acceptance items
-- **THEN** one run reports both, each naming its file
-
-### Requirement: Lint emits evidence
-`routine-spec-lint` SHALL emit exactly one `spec.lint` telemetry line per run
-into the ticket's `telemetry.jsonl`, recording the exit code.
-
-#### Scenario: Failed lint recorded
-- **WHEN** the lint fails
-- **THEN** the ticket's `telemetry.jsonl` gains one `spec.lint` line with a
-  non-zero exit value
-
-### Requirement: Grounding is part of the ticket grammar
-Every ticket SHALL carry a ticket-level `grounding.md` holding the
-evidence behind the contract: a `## Evidence` section with at least one
-`- ` bullet (files read and why they matter), a `## Alternatives`
-section (decompositions rejected, with reasons), and a `## Assumptions`
-section (claims to re-verify). `bin/routine-spec-lint` SHALL check the
-structure — headers present, Evidence non-empty — and, once any task
-carries a `defect.md`, SHALL additionally require a `## Reconciliation`
-section naming each defective task's id, so grounding never outlives
-the evidence that invalidated it. All checks are structural; the linter
-never judges content.
-
-#### Scenario: Missing grounding fails the lint
-- **WHEN** a ticket has no `grounding.md`
-- **THEN** the lint exits non-zero naming the file
-
-#### Scenario: Empty evidence fails the lint
-- **WHEN** `grounding.md` exists but `## Evidence` has no bullet
-- **THEN** the lint exits non-zero naming the section
-
-#### Scenario: A defect return demands reconciliation
-- **WHEN** `briefings/01-x/tasks/02-y/defect.md` exists and
-  `grounding.md` has no `## Reconciliation` line naming `01-02`
-- **THEN** the lint exits non-zero naming the task id

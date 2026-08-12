@@ -1,12 +1,6 @@
-# audit Specification
+# audit Specification (delta)
 
-## Purpose
-
-The run-level check: one script that replays a ticket's telemetry
-against the protocol and says whether every expected script really
-ran, in order, with the evidence to prove it.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: The run audit replays evidence against the protocol
 `bin/routine-audit <ticket-dir>` SHALL read the ticket's

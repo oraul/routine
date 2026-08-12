@@ -87,6 +87,24 @@ EOF
   # Manifest topics: each needs its developer-gate evidence line.
   _taskfile="$ticket/briefings/$t_b/tasks/$t_t/task.md"
   [ -f "$_taskfile" ] || { fail "task $t_id: missing $_taskfile"; continue; }
+
+  # Coverage is per labeled scenario, not per task: every label in the
+  # task file needs a passing green recorded under it — the label
+  # exactly, or with routine-tdd's ' [<hash>]' command-binding suffix.
+  while IFS= read -r _label; do
+    [ -n "$_label" ] || continue
+    if [ "$(awk -F'"' -v task="$t_id" -v sc="$_label" '
+        $8 == "tdd.green" && $20 == task \
+          && ($12 == sc || index($12, sc " [") == 1) {
+          ex = $23; gsub(/[^0-9-]/, "", ex)
+          if (ex + 0 == 0) n++
+        }
+        END { print n + 0 }' "$tele")" -eq 0 ]; then
+      fail "task $t_id: labeled scenario '$_label' has no passing tdd.green"
+    fi
+  done <<EOF_LABELS
+$(awk '/^## Scenario: / {sub(/^## Scenario: /, ""); print}' "$_taskfile")
+EOF_LABELS
   _topics="$(awk '/^## Caffeine/ {a=1; next} a && /^#/ {a=0} a && /^- / {print substr($0, 3)}' "$_taskfile")"
   for _topic in $_topics; do
     if [ -f "$root/caffeine/$_topic.sh" ]; then

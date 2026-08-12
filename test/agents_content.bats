@@ -43,6 +43,19 @@ load test_helper
   ! grep -q 'a bug additionally requires' "$doc"
 }
 
+@test "the analyst emits labels and never an empty manifest" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -q '## Scenario:' "$doc"
+  grep -q 'testing/tdd' "$doc"
+  ! grep -q 'Empty beneath the heading' "$doc"
+}
+
+@test "the developer records evidence under the task's labels" {
+  doc="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -q '## Scenario:' "$doc"
+  grep -qi 'verbatim' "$doc"
+}
+
 @test "the unblock skill matches its script's signature" {
   doc="$ROUTINE_REPO_ROOT/skills/unblock/SKILL.md"
   grep -q '<ticket-dir> \[task-id\]' "$doc"

@@ -11,11 +11,12 @@ make_ticket() {
   ticket="$tickets/0001"
   mkdir -p "$ticket/briefings/01-auth/tasks/01-login" \
            "$ticket/briefings/01-auth/tasks/02-session"
-  for t in 01-login 02-session; do
-    printf '%s\n' '# Task: x' '- Given a' '- When b' '- Then c' \
-      '## Acceptance' '1. works' '## Caffeine' \
-      > "$ticket/briefings/01-auth/tasks/$t/task.md"
-  done
+  printf '%s\n' '# Task: x' '## Scenario: login' '- Given a' '- When b' '- Then c' \
+    '## Acceptance' '1. works' '## Caffeine' \
+    > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  printf '%s\n' '# Task: x' '## Scenario: session' '- Given a' '- When b' '- Then c' \
+    '## Acceptance' '1. works' '## Caffeine' \
+    > "$ticket/briefings/01-auth/tasks/02-session/task.md"
   {
     printf '01-01%s01-auth%s01-login%sdone%s2026-01-01T00:00:00Z\n' \
       "$TAB" "$TAB" "$TAB" "$TAB"

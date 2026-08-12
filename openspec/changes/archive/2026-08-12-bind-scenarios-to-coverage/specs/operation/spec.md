@@ -1,56 +1,6 @@
-# operation Specification
+# operation Specification (delta)
 
-## Purpose
-
-The operational protocol the prompt files must encode: how the phase machine
-runs, where humans decide, and what each agent may and may not do.
-
-## Requirements
-
-### Requirement: The routine skill encodes the gated phase machine
-`skills/routine/SKILL.md` SHALL be human-invoked only
-(`disable-model-invocation: true`) and SHALL instruct the protocol
-`preflight → specify → approve → develop → conclude`, where every phase
-transition calls its gate or lifecycle script and a non-zero exit stops
-the run. It SHALL forbid direct writes to `index.tsv` and
-`telemetry.jsonl`, SHALL make approve a hard stop for the human whose
-proceed is recorded by `routine-approve` (with any remarks the human
-made), SHALL limit specify to 3 revise attempts per episode with the
-exhausted branch calling `routine-abort` (never an abort in prose), and
-SHALL distinguish `routine-next`'s exits: 0 a task, 2 a caller bug (bad
-ticket dir), 3 a blocked line, 4 all done. Phase 0 SHALL export both
-handles later calls need — `ROUTINE_TICKET_DIR` and `TARGET` — and
-delegation SHALL hand each agent its ticket directory and target
-explicitly, because a stateless agent's payload is its whole world.
-The conclude phase SHALL state the honest failure road: audit
-violations on a task already marked done cannot be re-evidenced
-(telemetry is script-owned and append-only), so the road is
-`routine-abort` and a fresh ticket, never a rail back.
-
-#### Scenario: Protocol present in the skill
-- **WHEN** the skill file is read
-- **THEN** it names the five phases in order, the gate call per transition,
-  the stop-on-non-zero rule, the approve hard stop recorded by
-  `routine-approve`, and the 3-revise limit
-  with the `routine-abort` exhausted branch and every `routine-next` exit
-  code explained
-
-#### Scenario: The delegation payload is explicit
-- **WHEN** the skill file is read
-- **THEN** phase 0 exports `ROUTINE_TICKET_DIR` and `TARGET`, the
-  delegation steps hand the agent its ticket directory and target, and
-  conclude routes a refused done task to `routine-abort`
-
-### Requirement: The unblock skill captures human context as evidence
-`skills/unblock/SKILL.md` SHALL be human-invoked only and SHALL instruct:
-converse with the human about the named ticket and task, write their
-unblocking context to the task's `unblock.md`, then call `routine-unblock` —
-never editing the index directly.
-
-#### Scenario: Evidence before release
-- **WHEN** the skill file is read
-- **THEN** it orders unblock.md before routine-unblock and forbids index
-  edits
+## MODIFIED Requirements
 
 ### Requirement: The analyst decomposes and never implements
 `agents/analyst.md` SHALL instruct: read the requirement's declared work
@@ -130,14 +80,3 @@ tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
 - **WHEN** the agent file is read
 - **THEN** it instructs recording red and green under the task's
   `## Scenario: <label>` headings verbatim
-
-### Requirement: Agent files register as subagents
-`agents/analyst.md` and `agents/developer.md` SHALL open with YAML
-frontmatter carrying `name` and `description`, so the files are
-loadable as subagents by the host, and the `name` SHALL match the
-filename stem.
-
-#### Scenario: Frontmatter present
-- **WHEN** either agent file is read
-- **THEN** it opens with `---`, a `name:` matching its filename, and a
-  non-empty `description:`
