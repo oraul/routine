@@ -23,6 +23,7 @@ make_ticket() {
   case "$output" in *01-02*) ;; *) false ;; esac
   [ -d "$ticket" ]
   [ ! -d "$tickets/archive/0001" ]
+  grep '"event":"ticket.conclude"' "$ticket/telemetry.jsonl" | grep -q '"exit":1'
 }
 
 @test "conclude archives a finished ticket with report and telemetry" {

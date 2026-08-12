@@ -5,7 +5,7 @@
 
 ## 2. Refusals leave evidence
 
-- [ ] 2.1 Red→green: done/block/unblock/next/conclude emit their event
+- [x] 2.1 Red→green: done/block/unblock/next/conclude emit their event
       with the real exit code on refusal and protocol outcomes
 
 ## 3. App-level evidence
