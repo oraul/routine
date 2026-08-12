@@ -6,28 +6,14 @@
 # caffeine-reviewed: 2026-08-12
 set -u
 
-target="${TARGET:-$PWD}"
-fails=0
+# shellcheck source-path=SCRIPTDIR/../..
+# shellcheck source=lib/sidecar.sh
+. "$(cd "$(dirname "$0")/../.." && pwd)/lib/sidecar.sh"
+sidecar_init ruby/rails
 
-# scan <ere> <scope-dir> — prints hits excluding vendored code.
-scan() {
-  grep -rnE --include='*.rb' "$1" "$2" 2>/dev/null \
-    | grep -v -e '/vendor/' -e '/node_modules/'
-}
-
-check() {
-  _rule="$1" _pattern="$2" _scope="$3"
-  [ -d "$_scope" ] || return 0
-  _hits="$(scan "$_pattern" "$_scope")" || true
-  if [ -n "$_hits" ]; then
-    printf '%s\n' "$_hits" | sed "s|^|caffeine/ruby/rails: $_rule: |" >&2
-    fails=1
-  fi
-}
-
-check "leftover debugger" 'binding\.(irb|pry)|(^|[^a-z_.])byebug|(^|[^a-z_.])debugger' "$target"
-check "string-interpolated SQL" '(where|order|group|having|find_by_sql)\("[^"]*#\{' "$target"
-check "puts in app code (use the logger)" '^[[:space:]]*puts([[:space:]]|\()' "$target/app"
-check "rescue Exception (rescue StandardError instead)" 'rescue[[:space:]]+Exception' "$target"
+check R1 "leftover debugger" 'binding\.(irb|pry)|(^|[^a-z_.])byebug|(^|[^a-z_.])debugger' "$target"
+check R2 "string-interpolated SQL" '(where|order|group|having|find_by_sql)\("[^"]*#\{' "$target"
+check R3 "puts in app code (use the logger)" '^[[:space:]]*puts([[:space:]]|\()' "$target/app"
+check R4 "rescue Exception (rescue StandardError instead)" 'rescue[[:space:]]+Exception' "$target"
 
 exit "$fails"

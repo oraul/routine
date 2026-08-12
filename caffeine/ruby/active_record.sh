@@ -6,26 +6,14 @@
 # caffeine-reviewed: 2026-08-12
 set -u
 
-target="${TARGET:-$PWD}"
-fails=0
+# shellcheck source-path=SCRIPTDIR/../..
+# shellcheck source=lib/sidecar.sh
+. "$(cd "$(dirname "$0")/../.." && pwd)/lib/sidecar.sh"
+sidecar_init ruby/active_record
 
-scan() {
-  grep -rnE --include='*.rb' "$1" "$target" 2>/dev/null \
-    | grep -v -e '/vendor/' -e '/node_modules/'
-}
-
-check() {
-  _rule="$1" _pattern="$2"
-  _hits="$(scan "$_pattern")" || true
-  if [ -n "$_hits" ]; then
-    printf '%s\n' "$_hits" | sed "s|^|caffeine/ruby/active_record: $_rule: |" >&2
-    fails=1
-  fi
-}
-
-check "update_attribute skips validations (use update!)" 'update_attribute\('
-check "unbatched iteration (use find_each)" '\.all\.each'
-check "save(validate: false) skips validations" 'save\(validate:[[:space:]]*false\)'
-check "default_scope (prefer named scopes)" '(^|[[:space:]])default_scope'
+check A1 "update_attribute skips validations (use update!)" 'update_attribute\(' "$target"
+check A2 "unbatched iteration (use find_each)" '\.all\.each' "$target"
+check A3 "save(validate: false) skips validations" 'save\(validate:[[:space:]]*false\)' "$target"
+check A4 "default_scope (prefer named scopes)" '(^|[[:space:]])default_scope' "$target"
 
 exit "$fails"

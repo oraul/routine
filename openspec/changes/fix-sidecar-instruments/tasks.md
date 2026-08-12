@@ -1,6 +1,6 @@
 ## 1. One instrument library
 
-- [ ] 1.1 Red→green: `lib/sidecar.sh` with id-bearing `check`,
+- [x] 1.1 Red→green: `lib/sidecar.sh` with id-bearing `check`,
       directory-based vendor exclusion, and exit-2 internal errors; all
       four sidecars migrate; the caffeine lint reads the new signature
 

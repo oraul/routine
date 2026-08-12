@@ -75,13 +75,14 @@ for _sh in "$root"/caffeine/*/*.sh; do
     || fail "$_topic.sh: missing or malformed caffeine-applies header"
   grep -qE "^# caffeine-reviewed: [0-9]{4}-[0-9]{2}-[0-9]{2}$" "$_sh" \
     || fail "$_topic.sh: missing or malformed caffeine-reviewed header"
-  grep -q 'TARGET:-' "$_sh" || fail "$_topic.sh: does not resolve TARGET"
+  grep -qE 'TARGET:-|lib/sidecar\.sh' "$_sh" \
+    || fail "$_topic.sh: does not resolve TARGET (directly or via lib/sidecar.sh)"
   grep -q '^set -u' "$_sh" || fail "$_topic.sh: missing set -u"
   # The $ below is a literal in the searched text, not an expansion.
   # shellcheck disable=SC2016
   grep -qF 'exit "$fails"' "$_sh" || fail "$_topic.sh: must end exit \"\$fails\""
 
-  _rules="$(sed -nE 's/^[[:space:]]*check "([^"]+)".*/\1/p' "$_sh")"
+  _rules="$(sed -nE 's/^[[:space:]]*check [A-Za-z0-9_]+ "([^"]+)".*/\1/p' "$_sh" | sort -u)"
   _count="$(printf '%s\n' "$_rules" | grep -c . || true)"
   if [ "$_count" -lt 3 ] || [ "$_count" -gt 5 ]; then
     fail "$_topic.sh: rule count is $_count rules; the contract is 3-5"
