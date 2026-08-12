@@ -1,11 +1,6 @@
-# operation Specification
+# operation Specification (delta)
 
-## Purpose
-
-The operational protocol the prompt files must encode: how the phase machine
-runs, where humans decide, and what each agent may and may not do.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: The routine skill encodes the gated phase machine
 `skills/routine/SKILL.md` SHALL be human-invoked only
@@ -40,17 +35,6 @@ violations on a task already marked done cannot be re-evidenced
 - **THEN** phase 0 exports `ROUTINE_TICKET_DIR` and `TARGET`, the
   delegation steps hand the agent its ticket directory and target, and
   conclude routes a refused done task to `routine-abort`
-
-### Requirement: The unblock skill captures human context as evidence
-`skills/unblock/SKILL.md` SHALL be human-invoked only and SHALL instruct:
-converse with the human about the named ticket and task, write their
-unblocking context to the task's `unblock.md`, then call `routine-unblock` —
-never editing the index directly.
-
-#### Scenario: Evidence before release
-- **WHEN** the skill file is read
-- **THEN** it orders unblock.md before routine-unblock and forbids index
-  edits
 
 ### Requirement: The analyst decomposes and never implements
 `agents/analyst.md` SHALL instruct: read the requirement's declared work
@@ -121,6 +105,8 @@ protocol driver's move, not the developer's).
   task's scope
 - **THEN** the agent file routes to `routine-defect` or `routine-block`,
   never an unbounded retry
+
+## ADDED Requirements
 
 ### Requirement: Agent files register as subagents
 `agents/analyst.md` and `agents/developer.md` SHALL open with YAML

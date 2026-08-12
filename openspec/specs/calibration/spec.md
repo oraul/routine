@@ -19,8 +19,13 @@ a missing or unknown type naming the valid values.
 
 ### Requirement: Type-specific structure is enforced mechanically
 For `Type: bug`, `requirement.md` SHALL contain a `## Reproduction`
-section. For `Type: epic`, the ticket SHALL contain at least two briefing
-directories. Other types add no structural rule.
+section; for `Type: feature`, a `## Touchpoints` section; for
+`Type: greenfield`, a `## Contracts` section; for `Type: epic`, an
+`## Order` section, and the ticket SHALL contain at least two briefing
+directories. `routine-spec-lint` SHALL reject each missing typed
+section naming it (the contract capability owns the section
+definitions; this requirement agrees with it — no type is
+structure-free).
 
 #### Scenario: Bug without reproduction
 - **WHEN** a `Type: bug` requirement lacks `## Reproduction`
@@ -30,6 +35,10 @@ directories. Other types add no structural rule.
 - **WHEN** a `Type: epic` ticket has one briefing
 - **THEN** the lint exits non-zero saying an epic decomposes into at least
   two briefings
+
+#### Scenario: Feature without touchpoints
+- **WHEN** a `Type: feature` requirement lacks `## Touchpoints`
+- **THEN** the lint exits non-zero naming the missing section
 
 ### Requirement: Calibration docs exist per type and agents load them
 The repository SHALL provide `calibration/<type>.md` for each of the four
