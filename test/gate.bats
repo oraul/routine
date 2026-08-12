@@ -35,6 +35,7 @@ make_target() {
   run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
     "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
   [ "$status" -eq 7 ]
+  grep '"event":"gate.hook"' "$ticket/telemetry.jsonl" | grep -q '"exit":7'
 }
 
 @test "failing selfcheck stops preflight before the hook" {
@@ -73,6 +74,7 @@ make_good_ticket() {
     "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
   [ "$status" -eq 0 ]
   [ "$(printf '%s\n' "$output" | grep -c 'no analyst hook')" -eq 1 ]
+  [ "$(grep -c '"event":"gate.hook.absent"' "$ticket/telemetry.jsonl")" -eq 1 ]
 }
 
 @test "analyst gate passes a fresh ticket by syncing the index" {
@@ -200,7 +202,8 @@ make_good_ticket() {
   run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$tdir" \
     "$ROUTINE_REPO_ROOT/bin/routine-gate" preflight
   [ "$status" -eq 0 ]
-  [ "$(wc -l < "$tdir/telemetry.jsonl")" -eq 1 ]
+  [ "$(wc -l < "$tdir/telemetry.jsonl")" -eq 2 ]
+  grep -q '"event":"gate.hook.absent"' "$tdir/telemetry.jsonl"
   grep -q '"event":"gate.preflight"' "$tdir/telemetry.jsonl"
 }
 
@@ -249,6 +252,8 @@ make_manifest_ticket() {
     "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
   [ "$status" -eq 0 ]
   case "$output" in *doc-only*) ;; *) false ;; esac
+  grep '"event":"gate.developer.doc"' "$ticket/telemetry.jsonl" \
+    | grep -q '"script":"caffeine/architecture/oop.md"'
 }
 
 @test "fixture root redirects the whole gate including sidecars" {

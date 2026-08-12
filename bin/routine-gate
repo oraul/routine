@@ -32,17 +32,26 @@ app_key() {
 
 # Seam contract: optional hooks log one line and pass when missing; the
 # developer hook is mandatory because it is the app's lint+test facade.
+# Either outcome is evidence: gate.hook when it ran, gate.hook.absent when
+# an optional hook was missing — a pass-by-run and a pass-by-absence must
+# never be byte-identical in telemetry.
 run_hook() {
   _app="$(app_key)"
   _hook="$root/runs/$_app/hooks/$1.sh"
   if [ -f "$_hook" ]; then
+    _h0="$(routine_now_ms)"
     TARGET="$target" bash "$_hook"
+    _hcode="$?"
+    telemetry_gate_emit gate.hook "runs/$_app/hooks/$1.sh" "$_hcode" \
+      "$(( $(routine_now_ms) - _h0 ))"
+    return "$_hcode"
   elif [ "$1" = developer ]; then
     echo "routine-gate: missing mandatory hook: runs/$_app/hooks/developer.sh" >&2
     echo "routine-gate: create it with one line delegating to the app's own tooling, e.g.: cd \"\$TARGET\" && bin/ci" >&2
     return 1
   else
     echo "routine-gate: no $1 hook for $_app; passing"
+    telemetry_gate_emit gate.hook.absent "runs/$_app/hooks/$1.sh" 0 0
     return 0
   fi
 }
@@ -121,6 +130,7 @@ baseline_developer() {
     if [ ! -f "$_sidecar" ]; then
       if [ -f "$root/caffeine/$_topic.md" ]; then
         echo "routine-gate: $_topic is doc-only; guidance loads, nothing to run"
+        telemetry_gate_emit gate.developer.doc "caffeine/$_topic.md" 0 0
         continue
       fi
       echo "routine-gate: manifest names $_topic but neither caffeine/$_topic.sh nor caffeine/$_topic.md exists" >&2

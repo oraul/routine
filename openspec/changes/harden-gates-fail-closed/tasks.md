@@ -11,7 +11,7 @@
 
 ## 3. Stage evidence
 
-- [ ] 3.1 Red→green: `gate.hook`, `gate.hook.absent`, and
+- [x] 3.1 Red→green: `gate.hook`, `gate.hook.absent`, and
       `gate.developer.doc` events emitted per stage outcome
 
 ## 4. Lifecycle honesty
