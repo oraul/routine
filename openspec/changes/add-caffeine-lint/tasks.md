@@ -12,6 +12,6 @@
 
 ## 3. The deepening queue
 
-- [ ] 3.1 Red→green: retro prints a fail-rate-ranked `caffeine topics:`
+- [x] 3.1 Red→green: retro prints a fail-rate-ranked `caffeine topics:`
       section with per-script run counts, doc-only topics included,
       deterministic order

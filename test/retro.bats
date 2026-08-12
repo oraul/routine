@@ -11,6 +11,9 @@ make_telemetry() {
   cat > "$groot/runs/app1/tickets/0001/telemetry.jsonl" <<'EOF'
 {"ts":"2026-08-11T09:00:00Z","event":"gate.developer","script":"bin/routine-gate","ticket":"0001","task":"01-01","exit":0,"ms":100}
 {"ts":"2026-08-11T09:01:00Z","event":"gate.developer","script":"bin/routine-gate","ticket":"0001","task":"01-01","exit":1,"ms":200}
+{"ts":"2026-08-11T09:30:00Z","event":"gate.developer.script","script":"caffeine/ruby/rails.sh","ticket":"0001","task":"01-01","exit":0,"ms":40}
+{"ts":"2026-08-11T09:31:00Z","event":"gate.developer.script","script":"caffeine/ruby/rails.sh","ticket":"0001","task":"01-01","exit":1,"ms":45}
+{"ts":"2026-08-11T09:32:00Z","event":"gate.developer.doc","script":"caffeine/architecture/oop.md","ticket":"0001","task":"01-01","exit":0,"ms":0}
 {"ts":"2026-08-11T10:00:00Z","event":"ticket.block","script":"bin/routine-block","ticket":"0001","task":"01-02","exit":0,"ms":0}
 {"ts":"2026-08-11T11:00:00Z","event":"ticket.unblock","script":"bin/routine-unblock","ticket":"0001","task":"01-02","exit":0,"ms":0}
 EOF
@@ -35,6 +38,25 @@ EOF
   [ "$status" -eq 0 ]
   printf '%s\n' "$output" | grep -E 'app2 0001 01-02 +still blocked' > /dev/null
   ! printf '%s\n' "$output" | grep -E '01-02 +1800' > /dev/null
+}
+
+@test "retro ranks caffeine topics by failure rate — the deepening queue" {
+  make_telemetry
+  run env ROUTINE_ROOT="$groot" "$ROUTINE_REPO_ROOT/bin/routine-retro"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -E '0\.50 +caffeine/ruby/rails\.sh +runs=2 fails=1' > /dev/null
+  printf '%s\n' "$output" | grep -E '0\.00 +caffeine/architecture/oop\.md +runs=1 fails=0' > /dev/null
+  rails_at="$(printf '%s\n' "$output" | grep -nE '^  0\.50 +caffeine/ruby/rails' | head -1 | cut -d: -f1)"
+  oop_at="$(printf '%s\n' "$output" | grep -nE '^  0\.00 +caffeine/architecture/oop' | head -1 | cut -d: -f1)"
+  [ "$rails_at" -lt "$oop_at" ]
+}
+
+@test "retro output is deterministic across runs" {
+  make_telemetry
+  first="$(env ROUTINE_ROOT="$groot" "$ROUTINE_REPO_ROOT/bin/routine-retro")"
+  second="$(env ROUTINE_ROOT="$groot" "$ROUTINE_REPO_ROOT/bin/routine-retro")"
+  [ "$first" = "$second" ]
+  printf '%s\n' "$first" | grep -q 'caffeine topics:'
 }
 
 @test "retro aggregates events and script failures across apps" {
