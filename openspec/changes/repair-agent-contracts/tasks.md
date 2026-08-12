@@ -1,6 +1,6 @@
 ## 1. The developer contract
 
-- [ ] 1.1 Red→green: `agents/developer.md` names the true closed list
+- [x] 1.1 Red→green: `agents/developer.md` names the true closed list
       (ticket dir, target, typed contract section), the precedence
       ladder, the verbatim red/green binding with the characterization
       carve-out, the bounded gate off-ramp, and the grown Never list —
