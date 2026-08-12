@@ -19,7 +19,9 @@ preferences; the seams you touch need protecting.
 
 - Read before writing: the surrounding file's idioms — naming, error
   handling, test style — are the spec for *how*, as much as task.md is the
-  spec for *what*.
+  spec for *what*. When a seam needs design judgment (a conditional edited
+  twice, a boundary leaking), `architecture/oop` in the task's manifest
+  carries the extraction playbook.
 - Extend, don't rewrite. If the existing shape genuinely cannot host the
   feature, that is a defective-spec refusal with the reason stated, not a
   quiet refactor.

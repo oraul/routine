@@ -23,10 +23,27 @@ emit() {
     "" "" "$1" "$(( $(routine_now_ms) - start_ms ))"
 }
 
-found=0
+# Canonicalization: discovery output maps through caffeine/aliases.tsv
+# (<emitted> TAB <topic> [<topic>...]) so package spellings land on real
+# topics and implied topics ride along; unknown names pass through.
+canonicalize() {
+  if [ -f "$root/caffeine/aliases.tsv" ]; then
+    awk -F'\t' '
+      NR == FNR { if (NF >= 2) map[$1] = $2; next }
+      {
+        if ($0 in map) {
+          n = split(map[$0], t, " ")
+          for (i = 1; i <= n; i++) print t[i]
+        } else print
+      }
+    ' "$root/caffeine/aliases.tsv" -
+  else
+    cat
+  fi
+}
 
+discover() {
 if [ -f "$target/Gemfile" ]; then
-  found=1
   awk '/^[[:space:]]*gem[[:space:]]+["'\'']/ {
          line = $0
          sub(/^[[:space:]]*gem[[:space:]]+["'\'']/, "", line)
@@ -36,7 +53,6 @@ if [ -f "$target/Gemfile" ]; then
 fi
 
 if [ -f "$target/package.json" ]; then
-  found=1
   awk -F'"' '
     /"(dependencies|devDependencies)"[[:space:]]*:/ { indeps = 1; next }
     indeps && /}/ { indeps = 0 }
@@ -45,7 +61,6 @@ if [ -f "$target/package.json" ]; then
 fi
 
 if [ -f "$target/requirements.txt" ]; then
-  found=1
   awk '/^[[:space:]]*[A-Za-z0-9]/ {
          line = $0
          sub(/[<>=!~;[:space:]\[].*$/, "", line)
@@ -53,10 +68,15 @@ if [ -f "$target/requirements.txt" ]; then
        }' "$target/requirements.txt"
 fi
 
-if [ "$found" -eq 0 ]; then
+}
+
+if [ ! -f "$target/Gemfile" ] && [ ! -f "$target/package.json" ] \
+  && [ ! -f "$target/requirements.txt" ]; then
   echo "routine-deps: no manifest found in $target (looked for Gemfile, package.json, requirements.txt)" >&2
   emit 1
   exit 1
 fi
+
+discover | canonicalize
 emit 0
 exit 0

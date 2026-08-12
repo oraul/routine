@@ -40,9 +40,11 @@ Inside the active ticket directory, write:
   - a `## Caffeine` section naming the topics **this task** needs, each on
     its own line in the exact form `- <namespace>/<topic>` (e.g.
     `- ruby/active_record`) and resolving to a real `caffeine/` pair —
-    the lint rejects malformed bullets and unresolvable topics. Empty
-    beneath the heading when none apply. You select each task's manifest;
-    the developer loads nothing outside its own task's list.
+    the lint rejects malformed bullets and unresolvable topics. Browse
+    the vocabulary with `routine-caffeine-list` — never guess topic
+    names. Empty beneath the heading when none apply. You select each
+    task's manifest; the developer loads nothing outside its own task's
+    list.
 
 Every briefing has at least one task. Size tasks so one developer session
 takes each from failing test to green.

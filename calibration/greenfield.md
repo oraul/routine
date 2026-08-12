@@ -11,6 +11,9 @@ Structure is the first deliverable.
   contract is not.
 - First briefing establishes the skeleton — layout, entry points, the first
   end-to-end walking path. Later briefings flesh it out feature by feature.
+  When the structure itself needs judgment, put `architecture/hexagonal`
+  in the first tasks' manifests — direction-of-dependency decided on day
+  one is the cheapest architecture the project will ever buy.
 - Prefer more, smaller scenarios: with no existing behavior to lean on, the
   scenarios are the only description of the system there is.
 - Name things from the domain, not the technology; those names outlive the

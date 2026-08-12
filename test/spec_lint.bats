@@ -149,6 +149,8 @@ EOF
   run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
   [ "$status" -ne 0 ]
   case "$output" in *"ruby/nonexistent"*) ;; *) false ;; esac
+  # Refusals teach: the failure lists the available vocabulary.
+  case "$output" in *"available topics"*"ruby/rails"*) ;; *) false ;; esac
   printf '%s\n' '# Task: login form' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' '- ruby/rails' '- architecture/oop' > "$ticket/briefings/01-auth/tasks/01-login/task.md"
   run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
   [ "$status" -eq 0 ]

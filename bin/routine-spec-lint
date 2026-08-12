@@ -93,7 +93,10 @@ for bdir in "$ticket"/briefings/*/; do
           "- "*)
             topic="${mline#- }"
             if [ ! -f "$caffeine_root/$topic.sh" ] && [ ! -f "$caffeine_root/$topic.md" ]; then
-              fail "$t/task.md" "manifest topic '$topic' resolves to no caffeine/$topic.{sh,md}"
+              # Refusals teach: name the vocabulary, not just the miss.
+              available="$(find "$caffeine_root" -mindepth 2 -maxdepth 2 -name '*.md' 2>/dev/null \
+                | sed "s|^$caffeine_root/||; s|\.md$||" | sort | tr '\n' ' ')"
+              fail "$t/task.md" "manifest topic '$topic' resolves to no caffeine/$topic.{sh,md}; available topics: ${available:-none}"
             fi
             ;;
           *)

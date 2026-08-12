@@ -109,3 +109,9 @@ load test_helper
     grep -qi 'outrank' "$doc" || { echo "no deference line: $doc"; false; }
   done
 }
+
+@test "the architecture docs have inbound edges and the analyst has the menu" {
+  grep -q 'architecture/hexagonal' "$ROUTINE_REPO_ROOT/calibration/greenfield.md"
+  grep -q 'architecture/oop' "$ROUTINE_REPO_ROOT/calibration/feature.md"
+  grep -q 'routine-caffeine-list' "$ROUTINE_REPO_ROOT/agents/analyst.md"
+}
