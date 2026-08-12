@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# routine-script: routine-defect
+# routine-description: The developer's defective-spec return: record the reason, rewind the task to pending
+# routine-usage: routine-defect <ticket-dir> <reason>
+# routine-exit: 0 — recorded — defect.md appended, task returned to the line
+# routine-exit: 1 — refused — no task is in_progress
+# routine-exit: 2 — usage — a directory and a stated defect are both required
+# routine-test: test/defect.bats
 # The developer's defective-spec return: evidence first, then the task goes
 # back to pending and the run rewinds to specify. Mirrors the blockage
 # pattern — a sequencing decision is never carried by prose (Law 1).

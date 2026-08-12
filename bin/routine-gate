@@ -1,4 +1,13 @@
 #!/usr/bin/env bash
+# routine-script: routine-gate
+# routine-description: Run one named gate's checks and record the verdict as telemetry
+# routine-usage: routine-gate <preflight|analyst|developer>
+# routine-env: ROUTINE_TICKET_DIR — the active ticket; preflight fails closed without it
+# routine-env: TARGET — the target project the developer gate's hook runs in
+# routine-exit: 0 — gate passed
+# routine-exit: 1 — gate failed — the output is the reason
+# routine-exit: 2 — usage — the gate name must be one of the three
+# routine-test: test/gate.bats
 # Gate runner: composes selfcheck (preflight only) -> gate baseline -> app
 # hook into one exit-code decision. Exit 0 passes; the first non-zero stage
 # aborts the run and its output is the reason.

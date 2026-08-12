@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# routine-script: routine-caffeine-lint
+# routine-description: The caffeine topic contract as exit codes: pair integrity, metadata, verbatim rules, fixtures
+# routine-env: TARGET — named as the token every sidecar must resolve
+# routine-exit: 0 — corpus clean
+# routine-exit: 1 — violations found — each named on stderr
+# routine-test: test/caffeine_lint.bats
 # The caffeine lint: the topic contract as exit codes. Walks caffeine/
 # itself — pair integrity, H1/path agreement, provenance metadata,
 # verbatim rule lists, declared doc-only mode, fixture derivation —

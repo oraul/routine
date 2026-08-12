@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# routine-script: routine-deps
+# routine-description: Read the target's manifests and print one caffeine topic per line
+# routine-env: TARGET — the target project whose manifests are read (default: current directory)
+# routine-exit: 0 — topics printed
+# routine-exit: 1 — no known manifest in the target
+# routine-test: test/deps.bats
 # Dependency discovery: read the target's manifests and print one caffeine
 # topic per line (ruby/<gem>, js/<package>, python/<package>). Extraction is
 # grep/awk only — drafting best practices is the /caffeinate skill's job.

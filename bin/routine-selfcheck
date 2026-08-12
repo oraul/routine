@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+# routine-script: routine-selfcheck
+# routine-description: Harness integrity gate: caffeine lint, script lint, shellcheck, then the full bats suite
+# routine-exit: 0 — all stages green
+# routine-exit: 1 — a stage failed — its output is the reason
+# routine-test: test/selfcheck.bats
 # Harness integrity gate: shellcheck over bin/, lib/, and caffeine
 # sidecars, then the full bats suite. Lint failure aborts before tests —
 # results from an unparseable script prove nothing.
@@ -25,6 +30,12 @@ finish() {
 # resolution: fixture roots need no copy of the lint.
 if ! "$(cd "$(dirname "$0")" && pwd)/routine-caffeine-lint"; then
   echo "routine-selfcheck: caffeine topic contract violated" >&2
+  finish 1
+fi
+
+# A script whose contract lies fails before its tests can pass.
+if ! "$(cd "$(dirname "$0")" && pwd)/routine-script-lint"; then
+  echo "routine-selfcheck: script contract violated" >&2
   finish 1
 fi
 

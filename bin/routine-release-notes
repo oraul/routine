@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# routine-script: routine-release-notes
+# routine-description: Compose owner-free release notes from the merge-title grammar since the previous tag
+# routine-usage: routine-release-notes vX.Y.Z [repo-dir]
+# routine-exit: 0 — notes printed
+# routine-exit: 2 — usage — a well-formed semver tag is required
+# routine-test: test/release_notes.bats
 # Owner-free release notes: one bullet per first-parent merge subject in
 # the release's range. The merge-title grammar is convention-checked to
 # carry no account identifiers, so the notes inherit that guarantee —

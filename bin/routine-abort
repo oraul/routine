@@ -1,4 +1,10 @@
 #!/usr/bin/env bash
+# routine-script: routine-abort
+# routine-description: Archive a ticket that cannot proceed, with the reason as the record
+# routine-usage: routine-abort <ticket-dir> <reason>  (the reason is the record)
+# routine-exit: 0 — aborted — abort.md written, ticket archived, path printed
+# routine-exit: 2 — usage — a directory and a reason are both required
+# routine-test: test/abort.bats
 # The scripted abort: a specify that cannot converge ends on the rails,
 # not in prose. Refuses without a reason, records the reason and the
 # ticket.abort evidence, and archives the ticket with every artifact

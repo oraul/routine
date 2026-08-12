@@ -58,7 +58,7 @@ for f in "$root"/bin/*; do
   lit_exits="$(printf '%s\n' "$body" \
     | grep -oE 'exit "?[0-9]+"?' | grep -oE '[0-9]+' | sort -un || true)"
   dynamic=0
-  printf '%s\n' "$body" | grep -qE 'exit "\$[A-Za-z_{]' && dynamic=1
+  printf '%s\n' "$body" | grep -qE 'exit "\$[A-Za-z0-9_{]' && dynamic=1
 
   for c in $lit_exits; do
     printf '%s\n' "$doc_exits" | grep -qx "$c" \
@@ -66,7 +66,12 @@ for f in "$root"/bin/*; do
   done
   for c in $doc_exits; do
     if ! printf '%s\n' "$lit_exits" | grep -qx "$c"; then
-      if [ "$dynamic" -eq 1 ] && { [ "$c" = 0 ] || [ "$c" = 1 ]; }; then
+      # Zero is never phantom: falling off the end is exit 0. A dynamic
+      # exit additionally covers the verdict code 1.
+      if [ "$c" = 0 ]; then
+        continue
+      fi
+      if [ "$dynamic" -eq 1 ] && [ "$c" = 1 ]; then
         continue
       fi
       fail "$n: routine-exit documents $c but the body never exits with it"
@@ -79,16 +84,6 @@ for f in "$root"/bin/*; do
     done
   fi
 
-  # Usage: required and verbatim exactly when the body prints one.
-  body_usage="$(printf '%s\n' "$body" \
-    | sed -n 's/.*"usage: \([^"]*\)".*/\1/p' | head -1)"
-  fm_usage="$(printf '%s\n' "$fm" | sed -n 's/^# routine-usage: //p' | head -1)"
-  if [ -n "$body_usage" ] && [ "$fm_usage" != "$body_usage" ]; then
-    fail "$n: routine-usage disagrees with the usage the body prints"
-  elif [ -z "$body_usage" ] && [ -n "$fm_usage" ]; then
-    fail "$n: routine-usage present but the body prints no usage string"
-  fi
-
   # Acceptance is a pointer, and the pointer must be live.
   fm_test="$(printf '%s\n' "$fm" | sed -n 's/^# routine-test: //p' | head -1)"
   if [ -z "$fm_test" ]; then
@@ -97,6 +92,21 @@ for f in "$root"/bin/*; do
     fail "$n: routine-test names $fm_test which does not exist"
   elif ! grep -q "$n" "$root/$fm_test"; then
     fail "$n: routine-test names $fm_test which never mentions the script"
+  fi
+
+  # Usage agreement and env presence hunt literal tokens the lint's own
+  # body must carry to hunt them — the lint is exempt from both, the
+  # convention-check precedent (the checker names what it hunts).
+  [ "$n" = routine-script-lint ] && continue
+
+  # Usage: required and verbatim exactly when the body prints one.
+  body_usage="$(printf '%s\n' "$body" \
+    | sed -n 's/.*"usage: \([^"]*\)".*/\1/p' | head -1)"
+  fm_usage="$(printf '%s\n' "$fm" | sed -n 's/^# routine-usage: //p' | head -1)"
+  if [ -n "$body_usage" ] && [ "$fm_usage" != "$body_usage" ]; then
+    fail "$n: routine-usage disagrees with the usage the body prints"
+  elif [ -z "$body_usage" ] && [ -n "$fm_usage" ]; then
+    fail "$n: routine-usage present but the body prints no usage string"
   fi
 
   # Context env vars: declared iff referenced.

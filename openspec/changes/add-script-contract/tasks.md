@@ -8,7 +8,7 @@
 
 ## 2. The corpus complies
 
-- [ ] 2.1 Red→green: every `bin/` script carries compliant frontmatter
+- [x] 2.1 Red→green: every `bin/` script carries compliant frontmatter
       and `routine-selfcheck` runs the script lint after the caffeine
       lint — the repo-level lint run is the red
 

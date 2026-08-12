@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# routine-script: routine-conclude
+# routine-description: Archive a finished ticket with its report; refuses unfinished tasks or a failing audit
+# routine-usage: routine-conclude <ticket-dir>
+# routine-exit: 0 — concluded — report written, ticket archived, path printed
+# routine-exit: 1 — refused — unfinished tasks or audit violations, each named
+# routine-exit: 2 — usage
+# routine-test: test/conclude.bats
 # The scripted ticket ending: refuses while work remains, writes report.md
 # from the index, emits ticket.conclude, and archives the ticket directory.
 set -u

@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# routine-script: routine-approve
+# routine-description: Record the human checkpoint: the proceed and any remarks become ticket evidence
+# routine-usage: routine-approve <ticket-dir> [note]
+# routine-exit: 0 — recorded — ticket.approve on the record, note appended when given
+# routine-exit: 1 — refused — no passing gate.analyst on record
+# routine-exit: 2 — usage — a ticket directory with telemetry is required
+# routine-test: test/approve.bats
 # The human checkpoint as evidence: records the proceed (and any remarks)
 # the approve phase used to lose to the transcript. Refuses to approve
 # artifacts the analyst gate never passed — approval orders after the

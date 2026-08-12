@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# routine-script: routine-block
+# routine-description: Mark the in_progress task blocked; refuses without the developer's block.md
+# routine-usage: routine-block <ticket-dir>
+# routine-exit: 0 — blocked — status flipped, ticket.block recorded
+# routine-exit: 1 — refused — no in_progress task or no block.md
+# routine-exit: 2 — usage
+# routine-test: test/lifecycle.bats
 # Parks the line: marks the in_progress task blocked, refusing unless the
 # developer wrote block.md first — the block must carry its evidence.
 set -u

@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# routine-script: routine-retro
+# routine-description: Aggregate archived tickets' telemetry into the retro report; pure reader
+# routine-exit: 0 — report printed
+# routine-test: test/retro.bats
 # The feedback loop: aggregate every ticket's telemetry into a plain-text
 # report. Computes, never stores. Pure awk over the fixed-key-order lines;
 # timestamp math via the civil-days algorithm (BSD awk has no mktime).
