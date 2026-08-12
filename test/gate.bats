@@ -66,8 +66,8 @@ make_good_ticket() {
     '- app/models/user.rb' > "$ticket/requirement.md"
   printf '%s\n' '# Briefing: auth' 'Covers login.' \
     > "$ticket/briefings/01-auth/briefing.md"
-  printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
-    '## Acceptance' '1. works' '## Caffeine' \
+  printf '%s\n' '# Task: login' '## Scenario: login works' '- Given a' '- When b' '- Then c' \
+    '## Acceptance' '1. works' '## Caffeine' '- testing/tdd' \
     > "$ticket/briefings/01-auth/tasks/01-login/task.md"
   cat > "$ticket/grounding.md" <<'GRD'
 # Grounding: 0001
@@ -261,7 +261,7 @@ GRD
 # Ticket whose in-progress task manifests ruby/rails.
 make_manifest_ticket() {
   make_good_ticket
-  printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
+  printf '%s\n' '# Task: login' '## Scenario: login works' '- Given a' '- When b' '- Then c' \
     '## Acceptance' '1. works' '## Caffeine' '- ruby/rails' \
     > "$ticket/briefings/01-auth/tasks/01-login/task.md"
 }
@@ -288,7 +288,7 @@ make_manifest_ticket() {
   make_gate_root
   make_target
   make_good_ticket
-  printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
+  printf '%s\n' '# Task: login' '## Scenario: login works' '- Given a' '- When b' '- Then c' \
     '## Acceptance' '1. works' '## Caffeine' '- architecture/oop' \
     > "$ticket/briefings/01-auth/tasks/01-login/task.md"
   mkdir -p "$groot/runs/app/hooks"
@@ -309,7 +309,7 @@ make_manifest_ticket() {
   mkdir -p "$groot/caffeine/fixture"
   printf '%s\n' '#!/usr/bin/env bash' 'echo fixture sidecar ran' 'exit 0' \
     > "$groot/caffeine/fixture/probe.sh"
-  printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
+  printf '%s\n' '# Task: login' '## Scenario: login works' '- Given a' '- When b' '- Then c' \
     '## Acceptance' '1. works' '## Caffeine' '- fixture/probe' \
     > "$ticket/briefings/01-auth/tasks/01-login/task.md"
   mkdir -p "$groot/runs/app/hooks"
@@ -324,7 +324,7 @@ make_manifest_ticket() {
   make_gate_root
   make_target
   make_manifest_ticket
-  printf '%s\n' '# Task: login' '- Given a' '- When b' '- Then c' \
+  printf '%s\n' '# Task: login' '## Scenario: login works' '- Given a' '- When b' '- Then c' \
     '## Acceptance' '1. works' '## Caffeine' '- ruby/nonexistent' \
     > "$ticket/briefings/01-auth/tasks/01-login/task.md"
   run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \

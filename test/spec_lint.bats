@@ -122,7 +122,7 @@ GRD
   case "$output" in *"two briefings"*) ;; *) false ;; esac
   mkdir -p "$ticket/briefings/02-api/tasks/01-endpoints"
   printf '%s\n' '# Briefing: api' > "$ticket/briefings/02-api/briefing.md"
-  printf '%s\n' '# Task: endpoints' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' > "$ticket/briefings/02-api/tasks/01-endpoints/task.md"
+  printf '%s\n' '# Task: endpoints' '## Scenario: endpoints respond' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' '- testing/tdd' > "$ticket/briefings/02-api/tasks/01-endpoints/task.md"
   printf '%s\n' '## Order' '1. auth first, api second' >> "$ticket/requirement.md"
   run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
   [ "$status" -eq 0 ]
@@ -145,7 +145,7 @@ GRD
   sed -i.bak 's/^Type: feature/Type: epic/' "$ticket/requirement.md" && rm -f "$ticket/requirement.md.bak"
   mkdir -p "$ticket/briefings/02-api/tasks/01-endpoints"
   printf '%s\n' '# Briefing: api' > "$ticket/briefings/02-api/briefing.md"
-  printf '%s\n' '# Task: endpoints' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' > "$ticket/briefings/02-api/tasks/01-endpoints/task.md"
+  printf '%s\n' '# Task: endpoints' '## Scenario: endpoints respond' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' '- testing/tdd' > "$ticket/briefings/02-api/tasks/01-endpoints/task.md"
   run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
   [ "$status" -ne 0 ]
   case "$output" in *Order*) ;; *) false ;; esac
@@ -153,19 +153,38 @@ GRD
 
 @test "malformed manifest bullets and unresolvable topics fail" {
   make_good_ticket
-  printf '%s\n' '# Task: login form' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' '* ruby/rails' > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  printf '%s\n' '# Task: login form' '## Scenario: submit' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' '* ruby/rails' > "$ticket/briefings/01-auth/tasks/01-login/task.md"
   run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
   [ "$status" -ne 0 ]
   case "$output" in *"- <topic>"*) ;; *) false ;; esac
-  printf '%s\n' '# Task: login form' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' '- ruby/nonexistent' > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  printf '%s\n' '# Task: login form' '## Scenario: submit' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' '- ruby/nonexistent' > "$ticket/briefings/01-auth/tasks/01-login/task.md"
   run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
   [ "$status" -ne 0 ]
   case "$output" in *"ruby/nonexistent"*) ;; *) false ;; esac
   # Refusals teach: the failure lists the available vocabulary.
   case "$output" in *"available topics"*"ruby/rails"*) ;; *) false ;; esac
-  printf '%s\n' '# Task: login form' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' '- ruby/rails' '- architecture/oop' > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  printf '%s\n' '# Task: login form' '## Scenario: submit' '- Given a' '- When b' '- Then c' '## Acceptance' '1. works' '## Caffeine' '- ruby/rails' '- architecture/oop' > "$ticket/briefings/01-auth/tasks/01-login/task.md"
   run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
   [ "$status" -eq 0 ]
+}
+
+@test "a task without a scenario label fails" {
+  make_good_ticket
+  sed -i.bak '/^## Scenario: submit/d' "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  rm -f "$ticket/briefings/01-auth/tasks/01-login/task.md.bak"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *01-login/task.md*"## Scenario:"*) ;; *) false ;; esac
+}
+
+@test "an empty manifest fails naming the floor" {
+  make_good_ticket
+  printf '%s\n' '# Task: login form' '## Scenario: submit' '- Given a' '- When b' '- Then c' \
+    '## Acceptance' '1. works' '## Caffeine' \
+    > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *01-login/task.md*testing/tdd*) ;; *) false ;; esac
 }
 
 # Grounding: the evidence behind the contract, ticket-level.

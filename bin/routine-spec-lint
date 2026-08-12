@@ -108,16 +108,22 @@ for bdir in "$ticket"/briefings/*/; do
       || ! grep -Eq '(^|[-*[:space:]])Then' "$tm"; then
       fail "$t/task.md" "no Given/When/Then scenario"
     fi
+    # Scenario labels are the join key the audit binds evidence to.
+    if ! grep -Eq '^## Scenario: .+' "$tm"; then
+      fail "$t/task.md" "no '## Scenario: <label>' heading (the audit binds tdd evidence to labels)"
+    fi
     if ! grep -q '^## Caffeine' "$tm"; then
       fail "$t/task.md" "no '## Caffeine' section"
     else
       # Manifest validity at the handoff: exact '- <topic>' form, and every
       # topic resolves — an unbuildable manifest fails the analyst's side.
       manifest_lines="$(awk '/^## Caffeine/ {a=1; next} a && /^#/ {a=0} a && NF {print}' "$tm")"
+      manifest_topics=0
       while IFS= read -r mline; do
         [ -n "$mline" ] || continue
         case "$mline" in
           "- "*)
+            manifest_topics=$((manifest_topics + 1))
             topic="${mline#- }"
             if [ ! -f "$caffeine_root/$topic.sh" ] && [ ! -f "$caffeine_root/$topic.md" ]; then
               # Refusals teach: name the vocabulary, not just the miss.
@@ -133,6 +139,11 @@ for bdir in "$ticket"/briefings/*/; do
       done <<EOF_MANIFEST
 $manifest_lines
 EOF_MANIFEST
+      # An empty manifest is unconsidered, not inapplicable: testing/tdd
+      # applies to any task that goes red -> green, which is every task.
+      if [ "$manifest_topics" -eq 0 ]; then
+        fail "$t/task.md" "empty caffeine manifest — every task names at least one topic (testing/tdd applies to any task)"
+      fi
     fi
     if ! grep -q '^## Acceptance' "$tm"; then
       fail "$t/task.md" "no '## Acceptance' section"

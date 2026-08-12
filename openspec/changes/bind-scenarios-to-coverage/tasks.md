@@ -1,6 +1,6 @@
 ## 1. Labels and non-empty manifests in the lint
 
-- [ ] 1.1 Red→green: `routine-spec-lint` rejects a task without a
+- [x] 1.1 Red→green: `routine-spec-lint` rejects a task without a
       `## Scenario: <label>` heading and a manifest without topics;
       lint and gate fixtures carry both
 
