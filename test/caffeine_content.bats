@@ -83,3 +83,29 @@ load test_helper
   grep -q 'travel_to' "$doc"
   ! grep -q 'Timecop' "$doc"
 }
+
+@test "oop teaches with worked material, not aphorisms alone" {
+  doc="$ROUTINE_REPO_ROOT/caffeine/architecture/oop.md"
+  grep -q '```' "$doc"
+  grep -qi 'rule of three' "$doc"
+  grep -qi 'when NOT' "$doc"
+  grep -q 'eql?' "$doc"
+  grep -qi 'actor' "$doc"
+}
+
+@test "hexagonal shows the structure it preaches" {
+  doc="$ROUTINE_REPO_ROOT/caffeine/architecture/hexagonal.md"
+  grep -q '```' "$doc"
+  grep -q 'adapters/' "$doc"
+  grep -qi 'primary' "$doc"
+  grep -qi 'secondary' "$doc"
+  grep -qi 'transaction' "$doc"
+  grep -qi 'when NOT' "$doc"
+}
+
+@test "every guide carries the Judgment heading and the deference line" {
+  for doc in "$ROUTINE_REPO_ROOT"/caffeine/*/*.md; do
+    grep -q '^## Judgment' "$doc" || { echo "no Judgment heading: $doc"; false; }
+    grep -qi 'outrank' "$doc" || { echo "no deference line: $doc"; false; }
+  done
+}

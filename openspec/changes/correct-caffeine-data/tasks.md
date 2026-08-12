@@ -22,7 +22,7 @@
 
 ## 5. Architecture docs teach
 
-- [ ] 5.1 Red→green: oop before/after extraction + SRP-as-actor +
+- [x] 5.1 Red→green: oop before/after extraction + SRP-as-actor +
       rule-of-three + value-object mechanics; hexagonal directory tree +
       port vocabulary + transactions + when-not-to; format normalized
       everywhere; skeleton requirement extends to all guidance docs
