@@ -50,6 +50,7 @@ awk -F'"' '
     ex = $23; gsub(/[^0-9-]/, "", ex)
     ms = $25; gsub(/[^0-9-]/, "", ms)
     runs[event]++
+    sruns[script]++
     if (ex + 0 != 0) { fails[event]++; sfails[script]++ }
     durs[event] = durs[event] " " ms
     bkey = app "\t" ticket "\t" task
@@ -59,23 +60,41 @@ awk -F'"' '
       delete bstart[bkey]
     }
   }
+  # Sections print through sort so the report is deterministic — output
+  # is evidence, never hash order. The caffeine section ranks by failure
+  # rate descending: the printed order IS the deepening queue.
   END {
     print "routine retro"
     print ""
     print "events:"
+    fflush()
     for (e in runs) {
       n = split(substr(durs[e], 2), a, " ")
       isort(a, n)
-      printf "  %-22s runs=%-3d fails=%-3d ms min=%s p50=%s p95=%s max=%s\n", \
-        e, runs[e], fails[e] + 0, a[1], a[rank(n, 0.5)], a[rank(n, 0.95)], a[n]
+      printf("  %-22s runs=%-3d fails=%-3d ms min=%s p50=%s p95=%s max=%s\n", \
+        e, runs[e], fails[e] + 0, a[1], a[rank(n, 0.5)], a[rank(n, 0.95)], a[n]) | "sort"
     }
+    close("sort")
     print ""
     print "script failures:"
-    for (s in sfails) printf "  %-26s %d\n", s, sfails[s]
+    fflush()
+    for (s in sfails) printf("  %-26s %d\n", s, sfails[s]) | "sort"
+    close("sort")
+    print ""
+    print "caffeine topics:"
+    fflush()
+    for (s in sruns) {
+      if (s !~ /^caffeine\//) continue
+      f = sfails[s] + 0
+      printf("  %.2f  %-36s runs=%d fails=%d\n", f / sruns[s], s, sruns[s], f) | "sort -rn"
+    }
+    close("sort -rn")
     print ""
     print "blocked seconds:"
-    for (k in blocked) { split(k, p, "\t"); printf "  %s %s %s  %d\n", p[1], p[2], p[3], blocked[k] }
-    for (k in bstart) { split(k, p, "\t"); printf "  %s %s %s  still blocked\n", p[1], p[2], p[3] }
+    fflush()
+    for (k in blocked) { split(k, p, "\t"); printf("  %s %s %s  %d\n", p[1], p[2], p[3], blocked[k]) | "sort" }
+    for (k in bstart) { split(k, p, "\t"); printf("  %s %s %s  still blocked\n", p[1], p[2], p[3]) | "sort" }
+    close("sort")
   }
 ' "${files[@]}"
 exit 0

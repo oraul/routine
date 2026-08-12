@@ -1,0 +1,108 @@
+#!/usr/bin/env bash
+# The caffeine lint: the topic contract as exit codes. Walks caffeine/
+# itself — pair integrity, H1/path agreement, provenance metadata,
+# verbatim rule lists, declared doc-only mode, fixture derivation —
+# and reports every violation in one run. Pure grep/sed; the metadata
+# is fixed-form comment lines, never parsed semantically.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
+
+root="$(routine_root)"
+viol=0
+fail() { echo "caffeine-lint: $1" >&2; viol=$((viol + 1)); }
+
+finish() {
+  telemetry_harness_emit harness.caffeine bin/routine-caffeine-lint "$1" \
+    "$(( $(routine_now_ms) - start_ms ))"
+  exit "$1"
+}
+
+if [ ! -d "$root/caffeine" ]; then
+  echo "caffeine-lint: no caffeine/ directory; nothing to check"
+  finish 0
+fi
+
+# Topics live at exactly depth two: caffeine/<ns>/<topic>.{sh,md}.
+while IFS= read -r _f; do
+  [ -n "$_f" ] || continue
+  fail "topic outside depth two: ${_f#"$root"/}"
+done <<EOF
+$(find "$root/caffeine" -mindepth 3 -type f \( -name '*.sh' -o -name '*.md' \) 2>/dev/null
+  find "$root/caffeine" -maxdepth 1 -type f \( -name '*.sh' -o -name '*.md' \) 2>/dev/null)
+EOF
+
+# md_field <file> <regex> <label>
+md_field() {
+  grep -qE "$2" "$1" || fail "$(basename "$(dirname "$1")")/$(basename "$1"): missing or malformed $3"
+}
+
+for _md in "$root"/caffeine/*/*.md; do
+  [ -f "$_md" ] || continue
+  _ns="$(basename "$(dirname "$_md")")"
+  _t="$(basename "$_md" .md)"
+  _topic="$_ns/$_t"
+  if [ "$(head -n 1 "$_md")" != "# caffeine: $_topic" ]; then
+    fail "$_topic.md: H1 must be exactly '# caffeine: $_topic'"
+  fi
+  md_field "$_md" "^<!-- caffeine-topic: $_topic -->$" "caffeine-topic"
+  md_field "$_md" "^<!-- caffeine-applies: .+ -->$" "caffeine-applies"
+  md_field "$_md" "^<!-- caffeine-source: .+ -->$" "caffeine-source"
+  md_field "$_md" "^<!-- caffeine-reviewed: [0-9]{4}-[0-9]{2}-[0-9]{2} -->$" "caffeine-reviewed"
+  if [ ! -f "$root/caffeine/$_topic.sh" ]; then
+    grep -qE "^<!-- caffeine-mode: doc-only -->$" "$_md" \
+      || fail "$_topic.md: no sidecar and no 'caffeine-mode: doc-only' declaration"
+  fi
+done
+
+for _sh in "$root"/caffeine/*/*.sh; do
+  [ -f "$_sh" ] || continue
+  _ns="$(basename "$(dirname "$_sh")")"
+  _t="$(basename "$_sh" .sh)"
+  _topic="$_ns/$_t"
+  _md="$root/caffeine/$_topic.md"
+  if [ ! -f "$_md" ]; then
+    fail "$_topic.sh: judgment must live in a sibling doc — caffeine/$_topic.md is missing"
+  fi
+  grep -qE "^# caffeine-topic: $_topic$" "$_sh" \
+    || fail "$_topic.sh: missing or malformed caffeine-topic header"
+  grep -qE "^# caffeine-applies: .+$" "$_sh" \
+    || fail "$_topic.sh: missing or malformed caffeine-applies header"
+  grep -qE "^# caffeine-reviewed: [0-9]{4}-[0-9]{2}-[0-9]{2}$" "$_sh" \
+    || fail "$_topic.sh: missing or malformed caffeine-reviewed header"
+  grep -q 'TARGET:-' "$_sh" || fail "$_topic.sh: does not resolve TARGET"
+  grep -q '^set -u' "$_sh" || fail "$_topic.sh: missing set -u"
+  # The $ below is a literal in the searched text, not an expansion.
+  # shellcheck disable=SC2016
+  grep -qF 'exit "$fails"' "$_sh" || fail "$_topic.sh: must end exit \"\$fails\""
+
+  _rules="$(sed -nE 's/^[[:space:]]*check "([^"]+)".*/\1/p' "$_sh")"
+  _count="$(printf '%s\n' "$_rules" | grep -c . || true)"
+  if [ "$_count" -lt 3 ] || [ "$_count" -gt 5 ]; then
+    fail "$_topic.sh: rule count is $_count rules; the contract is 3-5"
+  fi
+  if [ -f "$_md" ]; then
+    while IFS= read -r _rule; do
+      [ -n "$_rule" ] || continue
+      grep -qF "$_rule" "$_md" \
+        || fail "$_topic: rule '$_rule' is not named in $_topic.md (doc drifted from sidecar)"
+    done <<EOF
+$_rules
+EOF
+  fi
+  if [ ! -f "$root/test/caffeine_${_ns}_${_t}.bats" ]; then
+    fail "$_topic.sh: no fixture file at test/caffeine_${_ns}_${_t}.bats"
+  fi
+done
+
+if [ "$viol" -gt 0 ]; then
+  echo "caffeine-lint: $viol violation(s)" >&2
+  finish 1
+fi
+echo "caffeine-lint: topic contract satisfied"
+finish 0

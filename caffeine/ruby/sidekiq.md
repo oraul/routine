@@ -1,10 +1,17 @@
 # caffeine: ruby/sidekiq
+<!-- caffeine-topic: ruby/sidekiq -->
+<!-- caffeine-applies: sidekiq >=6.3 -->
+<!-- caffeine-source: https://github.com/sidekiq/sidekiq/wiki/Best-Practices -->
+<!-- caffeine-reviewed: 2026-08-12 -->
 
 Loaded only when your task's manifest names `ruby/sidekiq`.
 
-The sidecar mechanically rejects: `include Sidekiq::Worker`, keyword
-arguments to `perform_async`/`perform_in`/`perform_at`, `sleep` inside job
-classes, and `sidekiq_options retry: false`. Fix, don't argue.
+The sidecar mechanically rejects (fix them, don't argue with them):
+
+- legacy include Sidekiq::Worker (use Sidekiq::Job)
+- keyword args to perform_* (arguments must be JSON-native)
+- sleep inside a job pins a Sidekiq thread
+- retry: false silently drops failures (state the dead-set plan)
 
 ## The skeleton
 

@@ -1,10 +1,17 @@
 # caffeine: ruby/rails
+<!-- caffeine-topic: ruby/rails -->
+<!-- caffeine-applies: rails >=7.0 -->
+<!-- caffeine-source: https://guides.rubyonrails.org -->
+<!-- caffeine-reviewed: 2026-08-12 -->
 
-Loaded only when your briefing's manifest names `ruby/rails`.
+Loaded only when your task's manifest names `ruby/rails`.
 
-The sidecar mechanically rejects: leftover debuggers, string-interpolated
-SQL in query methods, `puts` inside `app/`, and `rescue Exception`. Those
-come back as gate failures — fix them, don't argue with them.
+The sidecar mechanically rejects (fix them, don't argue with them):
+
+- leftover debugger
+- string-interpolated SQL
+- puts in app code (use the logger)
+- rescue Exception (rescue StandardError instead)
 
 ## The skeleton
 

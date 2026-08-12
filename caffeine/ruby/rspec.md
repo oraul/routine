@@ -1,10 +1,20 @@
 # caffeine: ruby/rspec
+<!-- caffeine-topic: ruby/rspec -->
+<!-- caffeine-applies: rspec >=3.0 -->
+<!-- caffeine-source: https://www.betterspecs.org -->
+<!-- caffeine-reviewed: 2026-08-12 -->
 
-Loaded only when your task's manifest names `ruby/rspec`. The sidecar
-mechanically rejects legacy `.should`, leftover focus marks, `sleep`, and
-`any_instance`. The structure below is Better Specs distilled — copy the
-shape, and read the comments as your insight channel. The target's own
-spec conventions outrank this skeleton where they conflict.
+Loaded only when your task's manifest names `ruby/rspec`. The structure
+below is Better Specs distilled — copy the shape, and read the comments
+as your insight channel. The target's own spec conventions outrank this
+skeleton where they conflict.
+
+The sidecar mechanically rejects (fix them, don't argue with them):
+
+- legacy should syntax (use expect)
+- leftover focus mark
+- sleep in a spec (use test doubles or travel helpers)
+- any_instance stubs objects the example never built
 
 ## The skeleton
 

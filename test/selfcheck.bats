@@ -19,6 +19,18 @@ make_fixture() {
   [ "$status" -eq 0 ]
 }
 
+@test "malformed caffeine topic aborts before shellcheck" {
+  make_fixture
+  mkdir -p "$fixture/caffeine/ruby"
+  printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$fixture/caffeine/ruby/orphan.sh"
+  printf '%s\n' '#!/usr/bin/env bash' 'cat $1' > "$fixture/bin/bad"
+  chmod +x "$fixture/bin/bad"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-selfcheck"
+  [ "$status" -ne 0 ]
+  case "$output" in *caffeine-lint*orphan*) ;; *) false ;; esac
+  case "$output" in *"shellcheck failed"*) false ;; *) ;; esac
+}
+
 @test "lint failure exits non-zero and skips the test stage" {
   make_fixture
   printf '%s\n' '#!/usr/bin/env bash' 'cat $1' > "$fixture/bin/bad"

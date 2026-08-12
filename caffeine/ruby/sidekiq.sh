@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 # Caffeine sidecar: mechanical Sidekiq rules. Judges nothing a grep cannot
 # see; judgment guidance lives in sidekiq.md. TARGET = the app repo.
+# caffeine-topic: ruby/sidekiq
+# caffeine-applies: sidekiq >=6.3
+# caffeine-reviewed: 2026-08-12
 set -u
 
 target="${TARGET:-$PWD}"

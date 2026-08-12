@@ -23,21 +23,6 @@ exit 0 only when no rule matches, and SHALL judge nothing a grep cannot see
 - **WHEN** a target file trips a rule
 - **THEN** the sidecar exits non-zero printing the file, line, and rule
 
-### Requirement: The Ruby seeds cover rails and active_record
-`caffeine/ruby/rails.sh` SHALL flag leftover debugger calls,
-string-interpolated SQL in query methods, `puts` in `app/` code, and
-`rescue Exception`. `caffeine/ruby/active_record.sh` SHALL flag
-`update_attribute(`, `.all.each`, `save(validate: false)`, and
-`default_scope`. Each rule SHALL have its own test fixture.
-
-#### Scenario: Interpolated SQL caught
-- **WHEN** a target file calls `where("name = #{params[:n]}")`
-- **THEN** `rails.sh` exits non-zero naming that line
-
-#### Scenario: Unbatched iteration caught
-- **WHEN** a target file calls `User.all.each`
-- **THEN** `active_record.sh` exits non-zero naming that line
-
 ### Requirement: Dependency discovery is scripted
 `bin/routine-deps` SHALL detect the target project's dependency manifests —
 `Gemfile`, `package.json`, `requirements.txt` — under `TARGET` (default:
@@ -67,7 +52,6 @@ SHALL emit nothing rather than invent a destination.
 - **WHEN** `routine-deps` runs for a target whose `runs/<app>/` exists
 - **THEN** `runs/<app>/telemetry.jsonl` gains one `app.deps` line
 
-
 ### Requirement: Caffeine generation is gated, not trusted
 `skills/caffeinate/SKILL.md` SHALL be human-invoked only and SHALL
 instruct: discover topics via `routine-deps`; let the human select which to
@@ -83,23 +67,6 @@ change loop, never by direct commit to main.
 - **THEN** it names routine-deps discovery, human topic selection, the
   3–5-rule sidecar contract with per-rule fixtures, and the
   selfcheck-green completion condition
-
-### Requirement: The ruby/sidekiq pair covers job hygiene
-`caffeine/ruby/sidekiq.sh` SHALL flag `include Sidekiq::Worker` (legacy
-API), keyword arguments passed to `perform_async`, `perform_in`, or
-`perform_at` (arguments must be JSON-native), `sleep` inside job class
-files, and `sidekiq_options` declaring `retry: false`. Each rule SHALL have
-its own test fixture, and `caffeine/ruby/sidekiq.md` SHALL carry the
-judgment guidance the greps cannot.
-
-#### Scenario: Keyword arguments caught
-- **WHEN** a target file calls `HardJob.perform_async(user_id: 1)`
-- **THEN** `sidekiq.sh` exits non-zero naming that line
-
-#### Scenario: Clean job code passes
-- **WHEN** jobs use `Sidekiq::Job`, positional JSON-native arguments, and
-  default retry behavior
-- **THEN** `sidekiq.sh` exits 0
 
 ### Requirement: Doc-only topics carry judgment without a sidecar
 A caffeine topic MAY ship only its `caffeine/<topic>.md` when its rules are
@@ -128,18 +95,49 @@ same read.
 - **WHEN** a ruby caffeine doc is read
 - **THEN** it contains a fenced code skeleton with insight-bearing comments
 
-### Requirement: The ruby/rspec pair covers spec structure and hygiene
-`caffeine/ruby/rspec.md` SHALL present the Better Specs file skeleton
-(method-named describes, `subject`/`let` over shared state, sentence-style
-contexts, one behavior per example). `caffeine/ruby/rspec.sh` SHALL flag
-legacy `.should` syntax, leftover focus marks (`fit`, `fdescribe`,
-`fcontext`, `focus:`), `sleep` inside specs, and `any_instance` stubbing —
-each rule with its own fixture.
+### Requirement: Every topic satisfies the topic contract
+Every caffeine topic SHALL live at depth two (`caffeine/<ns>/<topic>`)
+and open with the H1 `# caffeine: <ns>/<topic>` matching its path. Every
+`.md` SHALL carry, immediately after the H1, the metadata comment lines
+`caffeine-topic` (matching the path), `caffeine-applies` (a non-empty
+version constraint), `caffeine-source` (a non-empty upstream reference),
+and `caffeine-reviewed` (an ISO date). Every `.sh` SHALL carry
+`caffeine-topic`, `caffeine-applies`, and `caffeine-reviewed` header
+comments, SHALL have a sibling `.md`, SHALL resolve `TARGET` with a
+`$PWD` default, set `-u`, and end `exit "$fails"`, SHALL declare between
+3 and 5 `check` rules, and each rule string SHALL appear verbatim in the
+sibling `.md`. A `.md` without a sidecar SHALL declare
+`caffeine-mode: doc-only`. Every sidecar SHALL have a bats file at
+`test/caffeine_<ns>_<topic>.bats`.
 
-#### Scenario: Leftover focus caught
-- **WHEN** a spec file contains `fdescribe`
-- **THEN** `rspec.sh` exits non-zero naming that line
+#### Scenario: A sidecar without its doc is malformed
+- **WHEN** a `caffeine/<ns>/<topic>.sh` exists with no sibling `.md`
+- **THEN** the caffeine lint exits non-zero naming the missing doc
 
-#### Scenario: Clean spec passes
-- **WHEN** specs use `expect`, unfocused examples, and no sleeps
-- **THEN** `rspec.sh` exits 0
+#### Scenario: Rule drift is caught
+- **WHEN** a sidecar's `check` rule string does not appear in the
+  sibling doc
+- **THEN** the lint exits non-zero naming the topic and rule
+
+#### Scenario: Doc-only is declared, never inferred
+- **WHEN** a `.md` has no sidecar and no `caffeine-mode: doc-only` line
+- **THEN** the lint exits non-zero naming the missing declaration
+
+#### Scenario: Missing provenance is a defect
+- **WHEN** a topic doc lacks any of the four metadata fields
+- **THEN** the lint exits non-zero naming the file and field
+
+### Requirement: The caffeine lint is scripted
+`bin/routine-caffeine-lint` SHALL walk every topic under the routine
+root's `caffeine/` directory, check the topic contract, report every
+violation in one run, and exit non-zero when any exists; an absent or
+empty `caffeine/` SHALL pass. It SHALL emit one `harness.caffeine` line
+per run under the harness-evidence rule.
+
+#### Scenario: All violations in one run
+- **WHEN** two topics each violate the contract
+- **THEN** one lint run reports both and exits non-zero
+
+#### Scenario: Empty corpus passes
+- **WHEN** the routine root has no `caffeine/` topics
+- **THEN** the lint exits 0

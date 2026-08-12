@@ -1,4 +1,9 @@
 # caffeine: architecture/oop
+<!-- caffeine-topic: architecture/oop -->
+<!-- caffeine-applies: any -->
+<!-- caffeine-source: https://www.poodr.com -->
+<!-- caffeine-reviewed: 2026-08-12 -->
+<!-- caffeine-mode: doc-only -->
 
 Language-agnostic, doc-only: no grep judges design. Loaded when your task's
 manifest names `architecture/oop`.
