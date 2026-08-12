@@ -12,7 +12,7 @@
 
 ## 3. The agents speak the labels
 
-- [ ] 3.1 Red→green: the analyst emits `## Scenario: <label>` headings
+- [x] 3.1 Red→green: the analyst emits `## Scenario: <label>` headings
       and never an empty manifest (`testing/tdd` is the floor); the
       developer records evidence under the task's labels verbatim —
       pinned in `test/agents_content.bats`

@@ -42,18 +42,21 @@ on — never by improvising a middle way.
 
 ## Work
 
-Per acceptance scenario, in order: write the failing test → show it red →
+Per labeled scenario, in order: write the failing test → show it red →
 implement to green — and both phases run through the script, because the
 audit later replays the evidence:
 
 ```sh
-routine-tdd red   "<scenario>" -- <the test command>
-routine-tdd green "<scenario>" -- <the test command>
+routine-tdd red   "<the task's scenario label>" -- <the test command>
+routine-tdd green "<the task's scenario label>" -- <the test command>
 ```
 
-Red and green must use the **identical scenario string and the identical
-command** — the audit pairs the evidence byte-exact, and a renamed
-scenario or a swapped command is an unpaired green. Characterization
+The scenario string IS the task's `## Scenario: <label>` label,
+**verbatim** — the audit demands a covering green per label, so a
+paraphrase leaves that scenario uncovered. Red and green must use the
+identical label and the identical command — the audit pairs the
+evidence byte-exact, and a renamed scenario or a swapped command is an
+unpaired green. Characterization
 tests (existing behavior pinned as-is) pass from birth and are not TDD
 evidence: keep them in the ordinary suite the gate runs, never route
 them through `routine-tdd red`.
