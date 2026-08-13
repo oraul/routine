@@ -1,6 +1,6 @@
 ## 1. The anchor in the grammar
 
-- [ ] 1.1 Red→green: the lint requires a `Grounded-at: <40-hex sha>`
+- [x] 1.1 Red→green: the lint requires a `Grounded-at: <40-hex sha>`
       line in grounding.md; fixtures comply
 
 ## 2. Re-entry trusts the anchor

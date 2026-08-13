@@ -71,6 +71,7 @@ make_good_ticket() {
     > "$ticket/briefings/01-auth/tasks/01-login/task.md"
   cat > "$ticket/grounding.md" <<'GRD'
 # Grounding: 0001
+Grounded-at: 0123456789abcdef0123456789abcdef01234567
 
 ## Evidence
 - app/models/user.rb — the touchpoint the feature extends
