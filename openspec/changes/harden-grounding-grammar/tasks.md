@@ -1,6 +1,6 @@
 ## 1. The line grammars in the lint
 
-- [ ] 1.1 Red→green: per-line Evidence form `- <path> — <claim>`,
+- [x] 1.1 Red→green: per-line Evidence form `- <path> — <claim>`,
       anchored metacharacter-proof Reconciliation lines, non-empty
       Alternatives/Assumptions with the `- none — <why>` floor;
       fixtures comply

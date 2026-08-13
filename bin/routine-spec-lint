@@ -53,14 +53,33 @@ else
   if ! awk '/^## Evidence/ {a=1; next} a && /^#/ {a=0} a && /^- / {found=1} END {exit !found}' "$grounding"; then
     fail "grounding.md" "'## Evidence' has no '- ' bullet"
   fi
+  # Evidence is claim-bearing, checked per line: one well-formed bullet
+  # never masks a malformed sibling. The claim's content stays judgment;
+  # only its shape is grammar.
+  while IFS= read -r _eline; do
+    [ -n "$_eline" ] || continue
+    printf '%s\n' "$_eline" | grep -Eq '^- [^[:space:]]+ — .+' \
+      || fail "grounding.md" "Evidence line '$_eline' must use the form '- <path> — <what the file was found to contain or do>'"
+  done <<EOF_EVIDENCE
+$(awk '/^## Evidence/ {a=1; next} a && /^#/ {a=0} a && NF {print}' "$grounding")
+EOF_EVIDENCE
+  # Silence is unconsidered, not inapplicable: each of these sections
+  # carries at least one bullet, with '- none — <why>' the honest floor.
+  for _gsec in Alternatives Assumptions; do
+    if ! awk -v sec="$_gsec" '$0 == "## " sec {a=1; next} a && /^#/ {a=0} a && /^- / {found=1} END {exit !found}' "$grounding"; then
+      fail "grounding.md" "empty $_gsec — record at least one bullet, or '- none — <why nothing qualifies>'"
+    fi
+  done
   for _dfile in "$ticket"/briefings/*/tasks/*/defect.md; do
     [ -f "$_dfile" ] || continue
     _db="$(basename "$(dirname "$(dirname "$(dirname "$_dfile")")")")"
     _dt="$(basename "$(dirname "$_dfile")")"
     _dtid="${_db%%-*}-${_dt%%-*}"
-    if ! awk '/^## Reconciliation/ {a=1; next} a && /^#/ {a=0} a {print}' "$grounding" \
-      | grep -q "$_dtid"; then
-      fail "grounding.md" "defect on $_dtid needs a '## Reconciliation' line naming it"
+    # Anchored line form, matched as bytes — the id is never a pattern.
+    if ! awk -v id="$_dtid" '/^## Reconciliation/ {a=1; next} a && /^#/ {a=0}
+        a && substr($0, 1, length("- " id " — ")) == "- " id " — " {found=1}
+        END {exit !found}' "$grounding"; then
+      fail "grounding.md" "defect on $_dtid needs a '## Reconciliation' line of the form '- $_dtid — <what the defect invalidated>'"
     fi
   done
 fi
