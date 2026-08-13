@@ -5,6 +5,6 @@
 
 ## 2. The prompts read the survivor
 
-- [ ] 2.1 Red→green: the skill's fresh-context branch and the analyst's
+- [x] 2.1 Red→green: the skill's fresh-context branch and the analyst's
       re-entry list hand over `lint.log` — pinned in
       `test/agents_content.bats`

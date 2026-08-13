@@ -48,9 +48,11 @@ Then run `routine-gate analyst`.
 - Non-zero: hand the full defect list back to the analyst to revise —
   continuing the **same analyst conversation** where it survives, so the
   grounding context is not re-derived. When that context is gone (a
-  fresh session, a defect return), the analyst re-grounds from the
-  ticket's `grounding.md` first; that fallback is sufficient on its own,
-  never optional.
+  fresh session, a defect return), hand the analyst the surviving
+  record instead: the ticket's `grounding.md`, its `lint.log` (the
+  last run's defect list, script-owned), and every task's `defect.md`.
+  Recovery reads those files — never a re-run of the gate, which would
+  spend a counted revise on information recovery.
 - At most **3 revise attempts** per episode (the gate counts them); still
   failing → run `routine-abort "$ROUTINE_TICKET_DIR" "<why>"` and tell
   the human — never an abort in prose.
