@@ -187,6 +187,27 @@ GRD
   case "$output" in *01-login/task.md*testing/tdd*) ;; *) false ;; esac
 }
 
+@test "defects persist on lint.log and a passing run clears it" {
+  make_good_ticket
+  sed -i.bak '/^## Scenario: submit/d' "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  rm -f "$ticket/briefings/01-auth/tasks/01-login/task.md.bak"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  [ -f "$ticket/lint.log" ]
+  grep -q "## Scenario:" "$ticket/lint.log"
+  make_good_ticket
+  printf 'stale defect line\n' > "$ticket/lint.log"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -eq 0 ]
+  [ ! -s "$ticket/lint.log" ]
+}
+
+@test "usage errors never touch a lint.log" {
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$BATS_TEST_TMPDIR/nope"
+  [ "$status" -eq 2 ]
+  [ ! -e "$BATS_TEST_TMPDIR/nope/lint.log" ]
+}
+
 # Grounding: the evidence behind the contract, ticket-level.
 write_grounding() {
   cat > "$ticket/grounding.md" <<'GEOF'

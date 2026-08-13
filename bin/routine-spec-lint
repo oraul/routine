@@ -22,9 +22,16 @@ if [ ! -d "$ticket" ]; then
   exit 2
 fi
 
+# The defect list survives the run: every stderr line mirrors to
+# script-owned lint.log, truncated per run (only after the usage check,
+# so an exit-2 run never touches the ticket). Recovery reads this file;
+# it never re-runs the lint against the revise budget.
+: > "$ticket/lint.log"
+
 fails=0
 fail() {
   echo "spec-lint: $1: $2" >&2
+  echo "spec-lint: $1: $2" >> "$ticket/lint.log"
   fails=$((fails + 1))
 }
 

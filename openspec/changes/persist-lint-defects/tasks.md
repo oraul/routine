@@ -1,6 +1,6 @@
 ## 1. The list survives the run
 
-- [ ] 1.1 Red→green: `routine-spec-lint` mirrors every defect line to
+- [x] 1.1 Red→green: `routine-spec-lint` mirrors every defect line to
       `<ticket>/lint.log`, truncated per run, untouched on usage errors
 
 ## 2. The prompts read the survivor
