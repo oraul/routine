@@ -33,7 +33,11 @@ Inside the active ticket directory, write — **grounding first**:
 
 - `grounding.md` — the evidence behind the contract, written BEFORE the
   artifacts it justifies, and the file a re-entering analyst must be
-  able to trust *instead of* re-searching the target:
+  able to trust *instead of* re-searching the target. It opens with the
+  vintage anchor: `Grounded-at: <sha>` (column 0, under the title) —
+  the target's HEAD when you gathered the evidence, from
+  `git -C "$TARGET" rev-parse HEAD`. Reading the target, never writing
+  it. Then:
   - `## Evidence` — one `- <path> — <claim>` bullet per target file you
     actually read, where the claim states **what the file was found to
     contain or do** ("authenticates via has_secure_password; no session
@@ -90,7 +94,17 @@ re-deriving**: read `grounding.md`, the ticket's `lint.log` (the last
 lint run's defect list — script-owned, read it, never write it), and
 every task's `defect.md` first — they carry the evidence, the exact
 defects, and the reason for the rewind. Never re-run the gate just to
-see what failed; the list survives on `lint.log`. Amend the
+see what failed; the list survives on `lint.log`.
+
+Decide staleness by the anchor, never by anxiety: the Evidence bullets
+are current when `Grounded-at` equals `git -C "$TARGET" rev-parse
+HEAD` **and** `git -C "$TARGET" status --porcelain` prints nothing —
+then trust every claim and do not re-open the files. Otherwise
+re-verify **only** the bullets whose paths appear in
+`git -C "$TARGET" diff --name-only <sha>` (the anchor against the
+worktree, so committed and uncommitted changes both count) plus any
+untracked paths the status listed — then refresh `Grounded-at`. A full
+re-search is never the road. Amend the
 existing decomposition; **never rename or renumber existing task
 directories** — the index is append-only and an orphaned row fails the
 gate on a defect you cannot fix. If the shape truly cannot survive,

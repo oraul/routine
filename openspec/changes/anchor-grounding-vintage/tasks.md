@@ -5,7 +5,7 @@
 
 ## 2. Re-entry trusts the anchor
 
-- [ ] 2.1 Red→green: `agents/analyst.md` states the mechanical-first
+- [x] 2.1 Red→green: `agents/analyst.md` states the mechanical-first
       re-entry rule (clean tree + same HEAD → trust; else re-verify
       only diff-named and untracked paths, then refresh the anchor) —
       pinned in `test/agents_content.bats`
