@@ -25,7 +25,7 @@ explicitly, because a stateless agent's payload is its whole world.
 The conclude phase SHALL state the honest failure road: audit
 violations on a task already marked done cannot be re-evidenced
 (telemetry is script-owned and append-only), so the road is
-`routine-abort` and a fresh ticket, never a rail back. Phase 0 SHALL name the script frontmatter and `routine-manual` as the authoritative contract for every script the protocol calls — consulted, never recalled.
+`routine-abort` and a fresh ticket, never a rail back. Phase 0 SHALL name the script frontmatter and `routine-manual` as the authoritative contract for every script the protocol calls — consulted, never recalled. When the revising context is fresh, the skill SHALL hand the analyst the surviving record — `grounding.md`, the ticket's `lint.log`, and every `defect.md` — instead of re-running the gate to regenerate it.
 
 #### Scenario: Protocol present in the skill
 - **WHEN** the skill file is read
@@ -45,6 +45,11 @@ violations on a task already marked done cannot be re-evidenced
 - **WHEN** the skill file is read
 - **THEN** it names `routine-manual` (or the script head) as the
   contract source instead of restating contracts from memory
+
+#### Scenario: Recovery reads, never re-runs
+- **WHEN** a fresh context resumes a specify episode
+- **THEN** the skill hands over grounding.md, lint.log, and defect.md
+  files rather than spending a counted lint run on recovery
 
 ### Requirement: The unblock skill captures human context as evidence
 `skills/unblock/SKILL.md` SHALL be human-invoked only and SHALL instruct:
@@ -75,7 +80,7 @@ script-owned state. It SHALL NOT restate individual lint rules outside
 the grammar it teaches (stale restatements drift), SHALL state the
 revise limit the way the gate counts it (per episode; a defect return
 opens a fresh budget), and SHALL route missing caffeine vocabulary to
-the human and `/caffeinate` — never an invented topic name. It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract.
+the human and `/caffeinate` — never an invented topic name. It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract. Its re-entry sources SHALL include the ticket's `lint.log` alongside `grounding.md` and the `defect.md` files.
 
 #### Scenario: Grammar named in the prompt
 - **WHEN** the agent file is read
@@ -92,6 +97,10 @@ the human and `/caffeinate` — never an invented topic name. It SHALL name a `r
 - **WHEN** the agent file is read
 - **THEN** it points at the script head or `routine-manual` for script
   contracts
+
+#### Scenario: Re-entry reads the surviving defect list
+- **WHEN** the agent file's re-entry section is read
+- **THEN** it names lint.log among the files to read before re-deriving
 
 ### Requirement: The developer is stateless and evidence-bound
 `agents/developer.md` SHALL instruct: consume exactly one task from
