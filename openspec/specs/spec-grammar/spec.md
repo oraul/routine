@@ -87,7 +87,7 @@ never masks a malformed sibling) and, once any task carries a
 each defective task id matching `- <tid> — <what the defect
 invalidated>`, matched without interpreting the id as a pattern. All
 checks are mechanical form checks; the linter never judges the claim's
-content — a false claim is the approve reader's catch, not the lint's.
+content — a false claim is the approve reader's catch, not the lint's. The file SHALL also carry a `Grounded-at: <sha>` header line (column 0, a 40-hex commit id — the target's HEAD when the evidence was gathered, obtained by reading the target, never writing it); the lint checks presence and form only.
 
 #### Scenario: Missing grounding fails the lint
 - **WHEN** a ticket has no `grounding.md`
@@ -118,6 +118,11 @@ content — a false claim is the approve reader's catch, not the lint's.
 - **WHEN** `## Assumptions` carries no bullet
 - **THEN** the lint exits non-zero naming the section and the
   `- none — <why nothing qualifies>` floor
+
+#### Scenario: A missing or malformed anchor fails
+- **WHEN** `grounding.md` has no `Grounded-at:` line, or its value is
+  not a 40-hex commit id
+- **THEN** the lint exits non-zero naming the line and the form
 
 ### Requirement: The defect list survives the run
 `routine-spec-lint` SHALL mirror every defect line it prints to stderr

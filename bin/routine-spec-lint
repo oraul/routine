@@ -46,6 +46,11 @@ grounding="$ticket/grounding.md"
 if [ ! -f "$grounding" ]; then
   fail "grounding.md" "missing (the evidence behind the contract)"
 else
+  # The vintage anchor: staleness is decidable only when grounding says
+  # when it was true. Presence and form only; truth is the analyst's.
+  if ! grep -Eq '^Grounded-at: [0-9a-f]{40}$' "$grounding"; then
+    fail "grounding.md" "missing or malformed 'Grounded-at: <sha>' line (a 40-hex commit id of the target at grounding time)"
+  fi
   for _gsec in Evidence Alternatives Assumptions; do
     grep -q "^## $_gsec" "$grounding" \
       || fail "grounding.md" "missing '## $_gsec' section"

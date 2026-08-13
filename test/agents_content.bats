@@ -71,6 +71,14 @@ load test_helper
   ! grep -q 'one bats fixture per rule' "$doc"
 }
 
+@test "re-entry is anchor-first, not re-search-first" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -q 'Grounded-at' "$doc"
+  grep -q 'rev-parse HEAD' "$doc"
+  grep -q 'status --porcelain' "$doc"
+  grep -q 'diff --name-only' "$doc"
+}
+
 @test "the analyst grounds with claims, ruled-outs, and floors" {
   doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
   grep -q 'contain or do' "$doc"

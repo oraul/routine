@@ -30,6 +30,7 @@ EOF
 EOF
   cat > "$ticket/grounding.md" <<'GRD'
 # Grounding: 0001
+Grounded-at: 0123456789abcdef0123456789abcdef01234567
 
 ## Evidence
 - app/models/user.rb — the touchpoint the feature extends
@@ -212,6 +213,7 @@ GRD
 write_grounding() {
   cat > "$ticket/grounding.md" <<'GEOF'
 # Grounding: 0001
+Grounded-at: 0123456789abcdef0123456789abcdef01234567
 
 ## Evidence
 - app/models/user.rb — the touchpoint the feature extends
@@ -244,6 +246,20 @@ PYEOF
   run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
   [ "$status" -ne 0 ]
   case "$output" in *Evidence*) ;; *) false ;; esac
+}
+
+@test "a missing or malformed vintage anchor fails" {
+  make_good_ticket
+  sed -i.bak '/^Grounded-at: /d' "$ticket/grounding.md" && rm -f "$ticket/grounding.md.bak"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *Grounded-at*) ;; *) false ;; esac
+  make_good_ticket
+  sed -i.bak 's/^Grounded-at: .*/Grounded-at: not-a-sha/' "$ticket/grounding.md" \
+    && rm -f "$ticket/grounding.md.bak"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *Grounded-at*40*) ;; *) false ;; esac
 }
 
 @test "a claim-less evidence bullet fails even beside a well-formed one" {
