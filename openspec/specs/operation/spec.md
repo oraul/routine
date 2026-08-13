@@ -80,7 +80,7 @@ script-owned state. It SHALL NOT restate individual lint rules outside
 the grammar it teaches (stale restatements drift), SHALL state the
 revise limit the way the gate counts it (per episode; a defect return
 opens a fresh budget), and SHALL route missing caffeine vocabulary to
-the human and `/caffeinate` — never an invented topic name. It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract. Its re-entry sources SHALL include the ticket's `lint.log` alongside `grounding.md` and the `defect.md` files.
+the human and `/caffeinate` — never an invented topic name. It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract. Its re-entry sources SHALL include the ticket's `lint.log` alongside `grounding.md` and the `defect.md` files. Its grounding instruction SHALL describe Evidence bullets as claim-bearing — `- <path> — <what the file was found to contain or do>` — with the ruled-out form and the `- none — <why>` floors for Alternatives and Assumptions.
 
 #### Scenario: Grammar named in the prompt
 - **WHEN** the agent file is read
@@ -101,6 +101,11 @@ the human and `/caffeinate` — never an invented topic name. It SHALL name a `r
 #### Scenario: Re-entry reads the surviving defect list
 - **WHEN** the agent file's re-entry section is read
 - **THEN** it names lint.log among the files to read before re-deriving
+
+#### Scenario: Evidence carries findings, not relevance
+- **WHEN** the agent file's grounding output is read
+- **THEN** it teaches the claim-bearing bullet form, the ruled-out
+  form, and the non-empty floors
 
 ### Requirement: The developer is stateless and evidence-bound
 `agents/developer.md` SHALL instruct: consume exactly one task from
