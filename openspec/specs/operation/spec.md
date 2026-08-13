@@ -80,7 +80,7 @@ script-owned state. It SHALL NOT restate individual lint rules outside
 the grammar it teaches (stale restatements drift), SHALL state the
 revise limit the way the gate counts it (per episode; a defect return
 opens a fresh budget), and SHALL route missing caffeine vocabulary to
-the human and `/caffeinate` — never an invented topic name. It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract. Its re-entry sources SHALL include the ticket's `lint.log` alongside `grounding.md` and the `defect.md` files. Its grounding instruction SHALL describe Evidence bullets as claim-bearing — `- <path> — <what the file was found to contain or do>` — with the ruled-out form and the `- none — <why>` floors for Alternatives and Assumptions. Its re-entry rule SHALL be anchor-first: Evidence bullets are current when `Grounded-at` equals the target's current HEAD and the worktree is clean; otherwise only bullets whose paths the diff against the worktree (plus untracked files) names are re-verified, and the anchor is refreshed — never a full re-search.
+the human and `/caffeinate` — never an invented topic name. It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract. Its re-entry sources SHALL include the ticket's `lint.log` alongside `grounding.md` and the `defect.md` files. Its grounding instruction SHALL describe Evidence bullets as claim-bearing — `- <path> — <what the file was found to contain or do>` — with the ruled-out form and the `- none — <why>` floors for Alternatives and Assumptions. Its re-entry rule SHALL be anchor-first: Evidence bullets are current when `Grounded-at` equals the target's current HEAD and the worktree is clean; otherwise only bullets whose paths the diff against the worktree (plus untracked files) names are re-verified, and the anchor is refreshed — never a full re-search. Its context handles SHALL be named: `TARGET`, the repository it grounds against, and `ROUTINE_TICKET_DIR`, where its artifacts land. It MAY use cheap read-only scouts to survey the target when the host provides delegation — scout prompts are transcript-only and never load-bearing; every accepted scout claim SHALL land as an Evidence bullet naming a real path, and unverified scout claims SHALL go under `## Assumptions` — however evidence is gathered, only the ticket artifacts are contract.
 
 #### Scenario: Grammar named in the prompt
 - **WHEN** the agent file is read
@@ -111,6 +111,17 @@ the human and `/caffeinate` — never an invented topic name. It SHALL name a `r
 - **WHEN** the agent file's re-entry section is read
 - **THEN** it decides staleness by the Grounded-at anchor and re-verifies
   only diff-named and untracked paths
+
+#### Scenario: Scout output is evidence or nothing
+- **WHEN** the agent file is read
+- **THEN** it admits read-only scouting with transcript-only prompts and
+  routes accepted claims to Evidence bullets and unverified ones to
+  Assumptions
+
+#### Scenario: The analyst's handles are named
+- **WHEN** the agent file is read
+- **THEN** it names TARGET and ROUTINE_TICKET_DIR as its context
+  handles
 
 ### Requirement: The developer is stateless and evidence-bound
 `agents/developer.md` SHALL instruct: consume exactly one task from
