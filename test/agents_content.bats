@@ -71,6 +71,14 @@ load test_helper
   ! grep -q 'one bats fixture per rule' "$doc"
 }
 
+@test "the analyst grounds with claims, ruled-outs, and floors" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -q 'contain or do' "$doc"
+  grep -q 'ruled out:' "$doc"
+  grep -q -- '- none —' "$doc"
+  ! grep -q 'why it matters' "$doc"
+}
+
 @test "recovery reads lint.log instead of re-running the gate" {
   grep -q 'lint.log' "$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
   grep -q 'lint.log' "$ROUTINE_REPO_ROOT/agents/analyst.md"

@@ -7,6 +7,6 @@
 
 ## 2. The analyst teaches the forms
 
-- [ ] 2.1 Red→green: `agents/analyst.md` rewords Evidence to carry the
+- [x] 2.1 Red→green: `agents/analyst.md` rewords Evidence to carry the
       claim, blesses ruled-out bullets, names the floors — pinned in
       `test/agents_content.bats`
