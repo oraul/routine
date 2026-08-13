@@ -71,6 +71,11 @@ load test_helper
   ! grep -q 'one bats fixture per rule' "$doc"
 }
 
+@test "recovery reads lint.log instead of re-running the gate" {
+  grep -q 'lint.log' "$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  grep -q 'lint.log' "$ROUTINE_REPO_ROOT/agents/analyst.md"
+}
+
 @test "the prompts consult the contract, never recall it" {
   grep -q 'routine-manual' "$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
   grep -q 'routine-manual' "$ROUTINE_REPO_ROOT/agents/analyst.md"

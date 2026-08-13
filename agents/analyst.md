@@ -75,8 +75,11 @@ takes each from failing test to green.
 
 When you are invoked against a ticket that already has artifacts (a
 defect return, a fresh specify episode), **re-ground before
-re-deriving**: read `grounding.md` and every task's `defect.md` first —
-they carry the evidence and the reason for the rewind. Amend the
+re-deriving**: read `grounding.md`, the ticket's `lint.log` (the last
+lint run's defect list — script-owned, read it, never write it), and
+every task's `defect.md` first — they carry the evidence, the exact
+defects, and the reason for the rewind. Never re-run the gate just to
+see what failed; the list survives on `lint.log`. Amend the
 existing decomposition; **never rename or renumber existing task
 directories** — the index is append-only and an orphaned row fails the
 gate on a defect you cannot fix. If the shape truly cannot survive,

@@ -1,11 +1,6 @@
-# operation Specification
+# operation Specification (delta)
 
-## Purpose
-
-The operational protocol the prompt files must encode: how the phase machine
-runs, where humans decide, and what each agent may and may not do.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: The routine skill encodes the gated phase machine
 `skills/routine/SKILL.md` SHALL be human-invoked only
@@ -51,17 +46,6 @@ violations on a task already marked done cannot be re-evidenced
 - **THEN** the skill hands over grounding.md, lint.log, and defect.md
   files rather than spending a counted lint run on recovery
 
-### Requirement: The unblock skill captures human context as evidence
-`skills/unblock/SKILL.md` SHALL be human-invoked only and SHALL instruct:
-converse with the human about the named ticket and task, write their
-unblocking context to the task's `unblock.md`, then call `routine-unblock` —
-never editing the index directly.
-
-#### Scenario: Evidence before release
-- **WHEN** the skill file is read
-- **THEN** it orders unblock.md before routine-unblock and forbids index
-  edits
-
 ### Requirement: The analyst decomposes and never implements
 `agents/analyst.md` SHALL instruct: read the requirement's declared work
 type and its `calibration/<type>.md` before decomposing; ground first
@@ -101,67 +85,3 @@ the human and `/caffeinate` — never an invented topic name. It SHALL name a `r
 #### Scenario: Re-entry reads the surviving defect list
 - **WHEN** the agent file's re-entry section is read
 - **THEN** it names lint.log among the files to read before re-deriving
-
-### Requirement: The developer is stateless and evidence-bound
-`agents/developer.md` SHALL instruct: consume exactly one task from
-`routine-next`; context is the task file, the requirement's typed
-contract section (`## Reproduction`/`## Touchpoints`/`## Contracts`/
-`## Order` — the type's evidence, nothing else from the requirement),
-the caffeine docs named in that task's own `## Caffeine` manifest, the
-ticket's `calibration/<type>.md`, block/unblock files when present, and
-the two handles every scripted call needs — the ticket directory
-(`ROUTINE_TICKET_DIR`, the `<ticket-dir>` argument of the refusal
-scripts) and the target root (`TARGET`) — nothing else. It SHALL state
-the precedence when sources conflict (task > target conventions >
-calibration > caffeine; earlier manifest topic first among caffeine
-docs), SHALL record TDD evidence under the task's own
-`## Scenario: <label>` headings — the label verbatim as the scenario
-string, red and green bound to the identical label and identical
-command (the audit demands a covering green per label and pairs the
-evidence byte-exact) — with characterization tests kept out of the TDD
-evidence, SHALL bound the developer-gate loop with an off-ramp
-(repeated gate failures or a fix that leaves the task's scope route to
-the scripted refusals, never an unbounded retry), SHALL return a
-defective spec by calling `routine-defect <ticket-dir> <reason>`
-instead of improvising, and on blockage SHALL write `block.md` and call
-`routine-block`. The Never list SHALL cover script-owned state, other
-tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
-`routine-done` (the protocol driver's move, not the developer's). It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract.
-
-#### Scenario: Statelessness named in the prompt
-- **WHEN** the agent file is read
-- **THEN** it names the one-task rule, the closed context list including
-  the calibration doc, the scripted defect return, and the block procedure
-
-#### Scenario: The context list matches what the scripts demand
-- **WHEN** the agent file is read
-- **THEN** the closed list admits `ROUTINE_TICKET_DIR`, `TARGET`, and
-  the requirement's typed contract section, and states the precedence
-  ladder
-
-#### Scenario: The gate loop has a floor
-- **WHEN** the developer gate keeps failing or the fix would leave the
-  task's scope
-- **THEN** the agent file routes to `routine-defect` or `routine-block`,
-  never an unbounded retry
-
-#### Scenario: Evidence carries the task's labels
-- **WHEN** the agent file is read
-- **THEN** it instructs recording red and green under the task's
-  `## Scenario: <label>` headings verbatim
-
-#### Scenario: The developer consults the contract
-- **WHEN** the agent file is read
-- **THEN** it points at the script head or `routine-manual` for script
-  contracts
-
-### Requirement: Agent files register as subagents
-`agents/analyst.md` and `agents/developer.md` SHALL open with YAML
-frontmatter carrying `name` and `description`, so the files are
-loadable as subagents by the host, and the `name` SHALL match the
-filename stem.
-
-#### Scenario: Frontmatter present
-- **WHEN** either agent file is read
-- **THEN** it opens with `---`, a `name:` matching its filename, and a
-  non-empty `description:`
