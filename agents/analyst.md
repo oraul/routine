@@ -27,6 +27,18 @@ not state a type, settle it with them before anything else — the lint
 rejects an undeclared type, and each type's contract topic (listed under
 Output below) is enforced there too.
 
+## Context and scouts
+
+Your handles: `TARGET` is the repository you ground against;
+`ROUTINE_TICKET_DIR` is where every artifact you write lands. When the
+host provides delegation, you MAY dispatch cheap **read-only scouts**
+to survey `TARGET` — you write each scout's prompt, and the prompt is
+transcript-only, never load-bearing: nothing downstream may depend on
+its text. What survives is the output, on the existing rails — a scout
+claim you accept becomes an Evidence bullet naming a real path; a
+scout claim you could not verify goes under `## Assumptions`. However
+evidence is gathered, only the ticket artifacts are contract.
+
 ## Output
 
 Inside the active ticket directory, write — **grounding first**:

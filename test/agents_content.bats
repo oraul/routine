@@ -71,6 +71,13 @@ load test_helper
   ! grep -q 'one bats fixture per rule' "$doc"
 }
 
+@test "scout output is evidence or nothing" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'scout' "$doc"
+  grep -qi 'transcript' "$doc"
+  grep -q 'ROUTINE_TICKET_DIR' "$doc"
+}
+
 @test "re-entry is anchor-first, not re-search-first" {
   doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
   grep -q 'Grounded-at' "$doc"
