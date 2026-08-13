@@ -246,6 +246,45 @@ PYEOF
   case "$output" in *Evidence*) ;; *) false ;; esac
 }
 
+@test "a claim-less evidence bullet fails even beside a well-formed one" {
+  make_good_ticket
+  python3 - "$ticket/grounding.md" <<'PYEOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace(
+  '- app/models/user.rb — the touchpoint the feature extends',
+  '- app/models/user.rb — has_secure_password lives here\n- app/models/session.rb')
+open(p, 'w').write(s)
+PYEOF
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *"app/models/session.rb"*"— <"*) ;; *) false ;; esac
+}
+
+@test "silent alternatives or assumptions fail naming the floor" {
+  make_good_ticket
+  python3 - "$ticket/grounding.md" <<'PYEOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace('- local auth only; no SSO in scope\n', '')
+open(p, 'w').write(s)
+PYEOF
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *Assumptions*"- none —"*) ;; *) false ;; esac
+}
+
+@test "a bare id inside prose does not reconcile" {
+  make_good_ticket
+  printf '## 2026-08-12T00:00:00Z\n\nscenario contradicts acceptance\n' \
+    > "$ticket/briefings/01-auth/tasks/01-login/defect.md"
+  printf '\n## Reconciliation\nreconciled per the defect on 01-01 as discussed\n' \
+    >> "$ticket/grounding.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *01-01*) ;; *) false ;; esac
+}
+
 @test "a defect return demands reconciliation naming the task id" {
   make_good_ticket
   write_grounding

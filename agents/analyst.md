@@ -32,13 +32,24 @@ Output below) is enforced there too.
 Inside the active ticket directory, write — **grounding first**:
 
 - `grounding.md` — the evidence behind the contract, written BEFORE the
-  artifacts it justifies: `## Evidence` (one `- <path> — <why it
-  matters>` bullet per target file you actually read), `## Alternatives`
-  (decompositions weighed and rejected, with the reason), and
-  `## Assumptions` (claims a later reader should re-verify). The lint
-  refuses a ticket without it. On re-entry after a defect return, add
-  a `## Reconciliation` line naming each defective task id and what the
-  defect invalidated.
+  artifacts it justifies, and the file a re-entering analyst must be
+  able to trust *instead of* re-searching the target:
+  - `## Evidence` — one `- <path> — <claim>` bullet per target file you
+    actually read, where the claim states **what the file was found to
+    contain or do** ("authenticates via has_secure_password; no session
+    model exists"), never merely why you opened it. A surveyed path
+    that turned out irrelevant is worth keeping:
+    `- <path> — ruled out: <reason>` (here only — never in a task's
+    caffeine manifest).
+  - `## Alternatives` — decompositions weighed and rejected, with the
+    reason; never empty — when nothing was rejected, write
+    `- none — <why nothing qualifies>`.
+  - `## Assumptions` — claims a later reader should re-verify; same
+    floor: `- none — <why nothing qualifies>` when there are none.
+  The lint enforces the line forms (a claim-less bullet fails); the
+  claims' truth is yours. On re-entry after a defect return, add a
+  `## Reconciliation` line per defective task in the exact form
+  `- <task-id> — <what the defect invalidated>`.
 - `requirement.md` — opens with a `# Requirement: <name>` header and a
   `Type: <type>` line (column 0, one space); the body states what the
   system SHALL/MUST do (RFC 2119 keywords: SHALL, MUST, SHOULD, MAY), and
