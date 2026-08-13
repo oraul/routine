@@ -63,6 +63,22 @@ awk -F'"' '
       blocked[bkey] += epoch(ts) - bstart[bkey]
       delete bstart[bkey]
     }
+    # Re-specify cost, gate-identical semantics: the per-episode failed
+    # lint counter resets on spec.defective; recovery is defect to the
+    # next passing lint. App-scoped key — ticket ids collide across apps.
+    rkey = app "\t" ticket
+    if (event == "spec.defective") {
+      repi[rkey]++; rcur[rkey] = 0; rstart[rkey] = epoch(ts)
+    }
+    if (event == "spec.lint") {
+      if (ex + 0 != 0) {
+        rcur[rkey]++; rfail[rkey]++
+        if (rcur[rkey] > rworst[rkey]) rworst[rkey] = rcur[rkey]
+      } else if (rkey in rstart) {
+        rrec[rkey] += epoch(ts) - rstart[rkey]
+        delete rstart[rkey]
+      }
+    }
   }
   # Sections print through sort so the report is deterministic — output
   # is evidence, never hash order. The caffeine section ranks by failure
@@ -93,6 +109,18 @@ awk -F'"' '
       printf("  %.2f  %-36s runs=%d fails=%d\n", f / sruns[s], s, sruns[s], f) | "sort -rn"
     }
     close("sort -rn")
+    print ""
+    print "re-specify cost:"
+    fflush()
+    for (k in rfail) seen_cost[k] = 1
+    for (k in repi) seen_cost[k] = 1
+    for (k in seen_cost) {
+      split(k, p, "\t")
+      tail = (k in rstart) ? "unrecovered" : "recovery_s=" rrec[k] + 0
+      printf("  %s %s  episodes=%d failed_lints=%d worst_episode=%d %s\n", \
+        p[1], p[2], repi[k] + 1, rfail[k] + 0, rworst[k] + 0, tail) | "sort"
+    }
+    close("sort")
     print ""
     print "blocked seconds:"
     fflush()
