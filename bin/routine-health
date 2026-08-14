@@ -96,6 +96,12 @@ if [ -f "$index.new" ]; then
   echo "warning:  stale $index.new — a lifecycle script was killed mid-write; index.tsv is intact, removal is yours to make"
 fi
 
+# The last gate's reasons, if that run left any: reading them is free,
+# re-running the gate is not.
+if [ -s "$ticket/gate.log" ]; then
+  echo "gate log: $ticket/gate.log holds the last gate run's reasons — read it, never re-run the gate for them"
+fi
+
 revises="$(episode_revise_count "$tele")"
 
 if ! passing_ever gate.preflight; then

@@ -195,3 +195,11 @@ plant() {
   case "$output" in *index.tsv.new*) ;; *) false ;; esac
   case "$output" in *"intact"*) ;; *) false ;; esac
 }
+
+@test "a surviving gate reason is named by the reader" {
+  make_ticket
+  tel gate.preflight bin/routine-gate "" 0
+  printf 'routine-gate: index row 01-01 has no directory\n' > "$ticket/gate.log"
+  health
+  case "$output" in *gate.log*) ;; *) false ;; esac
+}
