@@ -81,7 +81,7 @@ count, because re-specified work is new work — SHALL run
 for existing task directories (the same append-only, file-ordered sync
 `routine-next` performs), and SHALL verify the index is coherent with
 the directory tree: every index row's task directory exists and every
-task directory has an index row.
+task directory has an index row. The episode revise count SHALL come from one shared implementation (`lib/episode.sh`), so the gate that spends the budget and any reader that reports it can never disagree.
 
 #### Scenario: No ticket context
 - **WHEN** `routine-gate analyst` runs without `ROUTINE_TICKET_DIR`
@@ -109,6 +109,10 @@ task directory has an index row.
   `spec.defective` line, then 1 failed `spec.lint`
 - **THEN** the analyst gate does not name the revise limit
 
+#### Scenario: One counter, two consumers
+- **WHEN** the same telemetry is counted by the analyst gate and by a
+  reader of the budget
+- **THEN** both derive the count from the shared library function
 
 ### Requirement: Developer baseline runs the task's manifest sidecars
 The developer gate baseline SHALL require a ticket context
