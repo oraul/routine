@@ -25,7 +25,7 @@ explicitly, because a stateless agent's payload is its whole world.
 The conclude phase SHALL state the honest failure road: audit
 violations on a task already marked done cannot be re-evidenced
 (telemetry is script-owned and append-only), so the road is
-`routine-abort` and a fresh ticket, never a rail back. Phase 0 SHALL name the script frontmatter and `routine-manual` as the authoritative contract for every script the protocol calls — consulted, never recalled. When the revising context is fresh, the skill SHALL hand the analyst the surviving record — `grounding.md`, the ticket's `lint.log`, and every `defect.md` — instead of re-running the gate to regenerate it. Phase 0 SHALL resolve state by script: after `routine-scaffold` it runs `routine-health` and branches on its exit code — no active ticket means `routine-ticket-new`, one active ticket is adopted and the run resumes at the phase health derived, and a needs-human exit stops for the human. The skill SHALL NOT infer which ticket is live or where a run stopped.
+`routine-abort` and a fresh ticket, never a rail back. Phase 0 SHALL name the script frontmatter and `routine-manual` as the authoritative contract for every script the protocol calls — consulted, never recalled. When the revising context is fresh, the skill SHALL hand the analyst the surviving record — `grounding.md`, the ticket's `lint.log`, and every `defect.md` — instead of re-running the gate to regenerate it. Phase 0 SHALL resolve state by script: after `routine-scaffold` it runs `routine-health` and branches on its exit code — no active ticket means `routine-ticket-new`, one active ticket is adopted and the run resumes at the phase health derived, and a needs-human exit stops for the human. The skill SHALL NOT infer which ticket is live or where a run stopped. It SHALL state how a run resumes after an interrupted develop phase: re-entry is at `routine-next`, which hands back the same in_progress task, never at preflight; when that task already holds a passing developer gate the move is `routine-done`, since the evidence is on record. It SHALL also name the dirty-target triage — a preflight failing on a dirty target while a task is in_progress is an interrupted develop, whose roads are committing the partial work or resetting it to resume from the recorded red.
 
 #### Scenario: Protocol present in the skill
 - **WHEN** the skill file is read
@@ -55,6 +55,12 @@ violations on a task already marked done cannot be re-evidenced
 - **WHEN** the skill file's phase 0 is read
 - **THEN** it runs `routine-health` and branches on the exit code rather
   than judging whether an active ticket exists
+
+#### Scenario: A resumed develop phase re-enters at the task line
+- **WHEN** the skill file is read
+- **THEN** it states that resuming develop calls `routine-next` rather
+  than restarting at preflight, and that a task with a passing gate
+  goes straight to `routine-done`
 
 ### Requirement: The unblock skill captures human context as evidence
 `skills/unblock/SKILL.md` SHALL be human-invoked only and SHALL instruct:
@@ -152,7 +158,7 @@ defective spec by calling `routine-defect <ticket-dir> <reason>`
 instead of improvising, and on blockage SHALL write `block.md` and call
 `routine-block`. The Never list SHALL cover script-owned state, other
 tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
-`routine-done` (the protocol driver's move, not the developer's). It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract.
+`routine-done` (the protocol driver's move, not the developer's). It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract. On a re-served task — one an interrupted session left in_progress — it SHALL re-record red and green under the identical scenario label and the identical command, because the audit pairs on the recorded string and a rename or a changed command records an unpaired green.
 
 #### Scenario: Statelessness named in the prompt
 - **WHEN** the agent file is read
@@ -180,6 +186,11 @@ tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
 - **WHEN** the agent file is read
 - **THEN** it points at the script head or `routine-manual` for script
   contracts
+
+#### Scenario: A re-served task keeps its evidence identical
+- **WHEN** the agent file is read
+- **THEN** it instructs re-recording red and green with the identical
+  label and command on a task that was interrupted
 
 ### Requirement: Agent files register as subagents
 `agents/analyst.md` and `agents/developer.md` SHALL open with YAML
