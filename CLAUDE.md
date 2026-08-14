@@ -28,6 +28,25 @@ Accidental leak = history rewrite + credential rotation, immediately.
 - Script-owned state is untouchable: never edit `index.tsv` or
   `telemetry.jsonl` by hand — call the `bin/` scripts.
 
+## Who runs at which tier
+
+Three agent files, each declaring a `model:` in its frontmatter. The
+tier follows **who grades that role's output**, never seniority or cost:
+`agents/developer.md` is graded by a failing test, a gate and the audit;
+`agents/analyst.md` is graded by a lint and a human, so it inherits the
+driving session rather than sitting below it; `agents/scout.md` reads
+only, and is graded by whether its caller could then do its job.
+
+**The record is never delegated** — every `routine-tdd` call, the
+refusal scripts, and the judgment that a test is red belong to the agent
+that owns the task. The evidence rails must not run inside a context
+nobody graded.
+
+Routine checks that a tier is declared and its value recognised. It
+cannot check **which model answered** — no script here can observe that,
+so the declaration is a record of intent, and it stays accurate whether
+or not the host honours it.
+
 ## Commands that decide
 
 ```sh
