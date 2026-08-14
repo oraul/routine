@@ -1,6 +1,6 @@
 ## 1. The tier is declared data
 
-- [ ] 1.1 Red→green: both agent files declare a `model:` tier and the
+- [x] 1.1 Red→green: both agent files declare a `model:` tier and the
       content pins check the field's presence and its recognised value
 
 ## 2. The orchestrator's contract
