@@ -1,0 +1,215 @@
+#!/usr/bin/env bash
+# routine-script: routine-panel
+# routine-description: Print a self-contained live view of every run, computed from script-owned state; pure reader
+# routine-exit: 0 — the page is printed
+# routine-test: test/panel.bats
+#
+#   bin/routine-panel > panel.html          one snapshot
+#   while :; do bin/routine-panel > panel.html; sleep 5; done   live
+#
+# Mission control for the loop: one HTML page, computed at run time from
+# telemetry, index files and the caffeine corpus — the routine-retro
+# discipline (computes, never stores) with a face. No server, no
+# dependency, no external asset: redirect it to a file, open the file,
+# and re-run it on an interval to watch a run as it happens. The status
+# panel is routine-health's own output, so the two can never disagree.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+
+root="$(routine_root)"
+bindir="$(cd "$(dirname "$0")" && pwd)"
+
+files=""
+for f in "$root"/runs/*/tickets/*/telemetry.jsonl \
+         "$root"/runs/*/tickets/archive/*/telemetry.jsonl; do
+  [ -f "$f" ] || continue
+  files="$files $f"
+done
+
+esc() { sed -e 's/&/\&amp;/g' -e 's/</\&lt;/g' -e 's/>/\&gt;/g'; }
+
+page_head() {
+  cat <<'HEAD'
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="refresh" content="5">
+<title>routine mission control</title>
+<style>
+:root{--void:#0B0F0D;--panel:#121815;--edge:#1F2A24;--ink:#CFE0D6;
+--dim:#6B7F74;--go:#3FD68A;--warn:#E8B04B;--alarm:#FF5C4D;--cool:#59B3C7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--void);color:var(--ink);
+font:13px/1.6 ui-monospace,"SF Mono",Menlo,Consolas,monospace}
+.wrap{max-width:1180px;margin:0 auto;padding:18px 16px 48px}
+.masthead{display:flex;justify-content:space-between;align-items:baseline;
+border-bottom:1px solid var(--edge);padding-bottom:10px;margin-bottom:16px;
+flex-wrap:wrap;gap:8px}
+.masthead h1{margin:0;font-size:14px;letter-spacing:.28em;text-transform:uppercase;
+color:var(--go);font-weight:600}
+.masthead .stamp{color:var(--dim);font-size:11px;letter-spacing:.12em}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:12px}
+.bay{background:var(--panel);border:1px solid var(--edge);border-radius:3px;
+padding:12px 14px;overflow-x:auto}
+.bay.wide{grid-column:1/-1}
+.bay h2{margin:0 0 10px;font-size:10px;letter-spacing:.24em;text-transform:uppercase;
+color:var(--dim);font-weight:600;display:flex;justify-content:space-between}
+pre{margin:0;white-space:pre;font:12px/1.65 inherit;color:var(--ink)}
+table{border-collapse:collapse;width:100%;font-size:12px}
+th{text-align:left;color:var(--dim);font-weight:500;padding:2px 10px 6px 0;
+border-bottom:1px solid var(--edge)}
+td{padding:3px 10px 3px 0;font-variant-numeric:tabular-nums;white-space:nowrap}
+td.n{text-align:right}
+.go{color:var(--go)}.warn{color:var(--warn)}.alarm{color:var(--alarm)}
+.cool{color:var(--cool)}.dim{color:var(--dim)}
+.strip{display:flex;gap:0;margin:2px 0 4px;flex-wrap:wrap}
+.leg{flex:1;min-width:96px;border:1px solid var(--edge);border-left-width:3px;
+border-left-color:var(--edge);padding:6px 8px;background:#0E1411}
+.leg.on{border-left-color:var(--go);background:#101d17}
+.leg .nm{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim)}
+.leg.on .nm{color:var(--go)}
+.bar{height:3px;background:var(--edge);margin-top:3px;position:relative}
+.bar i{position:absolute;left:0;top:0;bottom:0;background:var(--cool);display:block}
+.bar i.hot{background:var(--alarm)}
+.empty{color:var(--dim);padding:10px 0}
+footer{margin-top:18px;color:var(--dim);font-size:11px;letter-spacing:.1em}
+</style>
+</head>
+<body><div class="wrap">
+HEAD
+}
+
+if [ -z "$files" ]; then
+  page_head
+  cat <<'NONE'
+<div class="masthead"><h1>routine mission control</h1>
+<span class="stamp">no telemetry</span></div>
+<div class="bay wide"><h2>status</h2>
+<p class="empty">Nothing in flight: no run has recorded telemetry yet.</p></div>
+</div></body></html>
+NONE
+  exit 0
+fi
+
+page_head
+printf '<div class="masthead"><h1>routine mission control</h1><span class="stamp">%s</span></div>\n' \
+  "$(date -u +%Y-%m-%dT%H:%M:%SZ) &middot; computed, never stored"
+
+# ── status: routine-health's own derivation, per live ticket ──────────
+printf '<div class="bay wide"><h2><span>status</span><span class="dim">routine-health</span></h2>\n'
+_live=0
+for _t in "$root"/runs/*/tickets/[0-9][0-9][0-9][0-9]; do
+  [ -d "$_t" ] || continue
+  _live=$((_live + 1))
+  _out="$("$bindir/routine-health" "$_t" 2>&1)"
+  _phase="$(printf '%s\n' "$_out" | awk '/^phase:/ {print $2; exit}')"
+  printf '<div class="strip">\n'
+  for _p in preflight specify approve develop conclude; do
+    case "$_phase" in
+      "$_p"*) printf '<span class="leg on"><span class="nm">%s</span></span>\n' "$_p" ;;
+      *) printf '<span class="leg"><span class="nm">%s</span></span>\n' "$_p" ;;
+    esac
+  done
+  printf '</div>\n<pre>%s</pre>\n' "$(printf '%s\n' "$_out" | esc)"
+done
+[ "$_live" -eq 0 ] && printf '<p class="empty">No live ticket: every run is archived.</p>\n'
+printf '</div>\n'
+
+printf '<div class="grid">\n'
+
+# ── the golden signals, all from the fixed telemetry key order ────────
+# shellcheck disable=SC2086
+awk -F'"' '
+  function epoch(t,  y,m,d,H,M,S,era,yoe,doy,doe) {
+    y=substr(t,1,4)+0; m=substr(t,6,2)+0; d=substr(t,9,2)+0
+    H=substr(t,12,2)+0; M=substr(t,15,2)+0; S=substr(t,18,2)+0
+    if (m<=2) { y-=1; m+=12 }
+    era=int(y/400); yoe=y-era*400
+    doy=int((153*(m-3)+2)/5)+d-1
+    doe=yoe*365+int(yoe/4)-int(yoe/100)+doy
+    return (era*146097+doe-719468)*86400+H*3600+M*60+S
+  }
+  function cell(v) { return v }
+  {
+    n=split(FILENAME,fp,"/"); app=""
+    for (i=1;i<n;i++) if (fp[i]=="runs") { app=fp[i+1]; break }
+    ev=$8; sc=$12; tk=$16; tsk=$20
+    ex=$23; gsub(/[^0-9-]/,"",ex)
+    ms=$25; gsub(/[^0-9-]/,"",ms)
+    runs[ev]++; if (ex+0!=0) fails[ev]++
+    if (ms+0>peak[ev]) peak[ev]=ms+0
+    tot[ev]+=ms+0
+    if (sc ~ /^caffeine\//) { cr[sc]++; if (ex+0!=0) cf[sc]++ }
+    if (ev=="spec.lint" && ex+0!=0) lintfail++
+    if (ev=="spec.defective") defects++
+    bk=app "\t" tk "\t" tsk
+    if (ev=="ticket.block") bs[bk]=epoch($4)
+    if (ev=="ticket.unblock" && bk in bs) { blocked[bk]+=epoch($4)-bs[bk]; delete bs[bk] }
+  }
+  END {
+    print "<div class=\"bay\"><h2><span>latency</span><span class=\"dim\">telemetry ms</span></h2>"
+    print "<table><tr><th>event</th><th class=\"n\">runs</th><th class=\"n\">avg</th><th class=\"n\">peak</th></tr>"
+    for (e in runs) {
+      if (runs[e] < 1) continue
+      printf("<tr><td>%s</td><td class=\"n\">%d</td><td class=\"n\">%d</td><td class=\"n\">%d</td></tr>\n",
+        e, runs[e], tot[e]/runs[e], peak[e]) | "sort"
+    }
+    close("sort")
+    print "</table></div>"
+
+    print "<div class=\"bay\"><h2><span>errors</span><span class=\"dim\">non-zero exits</span></h2>"
+    print "<table><tr><th>event</th><th class=\"n\">fails</th><th class=\"n\">of</th></tr>"
+    anyf=0
+    for (e in fails) {
+      anyf=1
+      printf("<tr><td class=\"alarm\">%s</td><td class=\"n alarm\">%d</td><td class=\"n dim\">%d</td></tr>\n",
+        e, fails[e], runs[e]) | "sort"
+    }
+    close("sort")
+    print "</table>"
+    printf("<p class=\"dim\">defect returns %d &middot; failed lint runs %d</p>\n", defects+0, lintfail+0)
+    if (!anyf) print "<p class=\"empty\">No failure on record.</p>"
+    print "</div>"
+
+    print "<div class=\"bay\"><h2><span>saturation</span><span class=\"dim\">blocked seconds</span></h2>"
+    print "<table><tr><th>app</th><th>ticket</th><th>task</th><th class=\"n\">sec</th></tr>"
+    anyb=0
+    for (k in blocked) {
+      anyb=1; split(k,p,"\t")
+      printf("<tr><td>%s</td><td>%s</td><td>%s</td><td class=\"n warn\">%d</td></tr>\n",
+        p[1],p[2],p[3],blocked[k]) | "sort"
+    }
+    for (k in bs) {
+      anyb=1; split(k,p,"\t")
+      printf("<tr><td>%s</td><td>%s</td><td>%s</td><td class=\"n alarm\">still blocked</td></tr>\n",
+        p[1],p[2],p[3]) | "sort"
+    }
+    close("sort")
+    print "</table>"
+    if (!anyb) print "<p class=\"empty\">Nothing blocked.</p>"
+    print "</div>"
+
+    print "<div class=\"bay\"><h2><span>caffeine</span><span class=\"dim\">deepening queue</span></h2>"
+    print "<table><tr><th>topic</th><th class=\"n\">rate</th><th class=\"n\">runs</th></tr>"
+    anyc=0
+    for (s in cr) {
+      anyc=1; r=(cf[s]+0)/cr[s]
+      cls=(r>=0.5)?"alarm":((r>0)?"warn":"go")
+      printf("%.4f\t<tr><td>%s</td><td class=\"n %s\">%.2f</td><td class=\"n dim\">%d</td></tr>\n",
+        1-r, s, cls, r, cr[s]) | "sort"
+    }
+    close("sort")
+    print "</table>"
+    if (!anyc) print "<p class=\"empty\">No sidecar has run.</p>"
+    print "</div>"
+  }
+' $files | sed 's/^[0-9]\.[0-9]*\t//'
+
+printf '</div>\n'
+printf '<footer>every gauge reads script-owned state &middot; this page writes nothing &middot; re-run to refresh</footer>\n'
+printf '</div></body></html>\n'
+exit 0
