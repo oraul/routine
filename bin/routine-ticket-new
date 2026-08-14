@@ -4,6 +4,7 @@
 # routine-env: TARGET — the target project whose runs/ holds the tickets
 # routine-exit: 0 — ticket created — path printed
 # routine-exit: 1 — refused — the app is not scaffolded yet
+# routine-exit: 3 — refused — a ticket is already live (WIP is 1)
 # routine-test: test/ticket_new.bats
 # Ticket allocation: next sequential 4-digit id under runs/<app>/tickets/,
 # scanning active and archived tickets so concluded ids are never reused.
@@ -26,6 +27,17 @@ if [ ! -d "$tickets" ]; then
   echo "routine-ticket-new: no state for $app; run routine-scaffold first" >&2
   exit 1
 fi
+
+# WIP is 1: a live ticket must be adopted or ended, never orphaned by a
+# second allocation. A session that died mid-run leaves its ticket here,
+# and routine-health says exactly where it stopped.
+for _live in "$tickets"/[0-9][0-9][0-9][0-9]; do
+  [ -d "$_live" ] || continue
+  echo "routine-ticket-new: ticket already live at $_live (WIP is 1)" >&2
+  echo "routine-ticket-new: adopt it — point the run at $_live; routine-health \"$_live\" says where it stopped" >&2
+  echo "routine-ticket-new: or end it — routine-abort \"$_live\" \"<reason>\", or routine-conclude \"$_live\" when its work is done" >&2
+  exit 3
+done
 
 max=0
 for d in "$tickets"/[0-9][0-9][0-9][0-9] "$tickets"/archive/[0-9][0-9][0-9][0-9]; do
