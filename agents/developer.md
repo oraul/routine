@@ -1,6 +1,7 @@
 ---
 name: developer
 description: Stateless implementer — takes exactly one routine task from failing test to green on the evidence rails.
+model: sonnet
 ---
 
 # developer

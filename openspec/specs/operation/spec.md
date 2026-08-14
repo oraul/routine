@@ -25,7 +25,7 @@ explicitly, because a stateless agent's payload is its whole world.
 The conclude phase SHALL state the honest failure road: audit
 violations on a task already marked done cannot be re-evidenced
 (telemetry is script-owned and append-only), so the road is
-`routine-abort` and a fresh ticket, never a rail back. Phase 0 SHALL name the script frontmatter and `routine-manual` as the authoritative contract for every script the protocol calls — consulted, never recalled. When the revising context is fresh, the skill SHALL hand the analyst the surviving record — `grounding.md`, the ticket's `lint.log`, and every `defect.md` — instead of re-running the gate to regenerate it. Phase 0 SHALL resolve state by script: after `routine-scaffold` it runs `routine-health` and branches on its exit code — no active ticket means `routine-ticket-new`, one active ticket is adopted and the run resumes at the phase health derived, and a needs-human exit stops for the human. The skill SHALL NOT infer which ticket is live or where a run stopped. It SHALL state how a run resumes after an interrupted develop phase: re-entry is at `routine-next`, which hands back the same in_progress task, never at preflight; when that task already holds a passing developer gate the move is `routine-done`, since the evidence is on record. It SHALL also name the dirty-target triage — a preflight failing on a dirty target while a task is in_progress is an interrupted develop, whose roads are committing the partial work or resetting it to resume from the recorded red. The interrupted-develop triage SHALL live on the develop phase, the road a resumed run actually travels, and the delegation payload SHALL tell a re-served developer that the target's uncommitted diff is its predecessor's.
+`routine-abort` and a fresh ticket, never a rail back. Phase 0 SHALL name the script frontmatter and `routine-manual` as the authoritative contract for every script the protocol calls — consulted, never recalled. When the revising context is fresh, the skill SHALL hand the analyst the surviving record — `grounding.md`, the ticket's `lint.log`, and every `defect.md` — instead of re-running the gate to regenerate it. Phase 0 SHALL resolve state by script: after `routine-scaffold` it runs `routine-health` and branches on its exit code — no active ticket means `routine-ticket-new`, one active ticket is adopted and the run resumes at the phase health derived, and a needs-human exit stops for the human. The skill SHALL NOT infer which ticket is live or where a run stopped. It SHALL state how a run resumes after an interrupted develop phase: re-entry is at `routine-next`, which hands back the same in_progress task, never at preflight; when that task already holds a passing developer gate the move is `routine-done`, since the evidence is on record. It SHALL also name the dirty-target triage — a preflight failing on a dirty target while a task is in_progress is an interrupted develop, whose roads are committing the partial work or resetting it to resume from the recorded red. The interrupted-develop triage SHALL live on the develop phase, the road a resumed run actually travels, and the delegation payload SHALL tell a re-served developer that the target's uncommitted diff is its predecessor's. It SHALL state the driving session's own job — holding the requirement, building each delegation payload, and deciding — and SHALL NOT declare a model for that session: a skill carries no such field and the session is the human's own, so routine can neither enforce nor verify it. It SHALL describe liveness as a property of the record rather than of a timer: a delegation returns or errors, so a caller has no ambient offline state to poll, and a run that appears stalled is diagnosed by `routine-health` and resumed through `routine-next`, which re-serves the interrupted task.
 
 #### Scenario: Protocol present in the skill
 - **WHEN** the skill file is read
@@ -66,6 +66,15 @@ violations on a task already marked done cannot be re-evidenced
 - **WHEN** the skill file's develop phase is read
 - **THEN** it carries the partial-work triage and passes the target's
   uncommitted diff to the re-served developer
+
+#### Scenario: The driver declares no tier for itself
+- **WHEN** any skill file is read
+- **THEN** it declares no model for the driving session
+
+#### Scenario: A stalled run is read, never timed out
+- **WHEN** the skill file is read
+- **THEN** it routes an agent that appears stalled to `routine-health` and
+  `routine-next` rather than to any timeout
 
 ### Requirement: The unblock skill captures human context as evidence
 `skills/unblock/SKILL.md` SHALL be human-invoked only and SHALL instruct:
@@ -206,9 +215,14 @@ tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
 `agents/analyst.md` and `agents/developer.md` SHALL open with YAML
 frontmatter carrying `name` and `description`, so the files are
 loadable as subagents by the host, and the `name` SHALL match the
-filename stem.
+filename stem. Each file SHALL also declare its `model` tier, chosen by who grades that role's output: work a script grades may run at a lower tier, while judgment only a human grades SHALL NOT be pinned below the driving session. Routine SHALL check only what it owns — that the field is present and its value is one this repository recognises — since no script here can observe which model answered.
 
 #### Scenario: Frontmatter present
 - **WHEN** either agent file is read
 - **THEN** it opens with `---`, a `name:` matching its filename, and a
   non-empty `description:`
+
+#### Scenario: The tier is declared, not remembered
+- **WHEN** either agent file is read
+- **THEN** its frontmatter declares a `model` whose value the repository
+  recognises

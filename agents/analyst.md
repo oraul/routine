@@ -1,6 +1,7 @@
 ---
 name: analyst
 description: Grounds and decomposes a requirement into briefings and tasks in the enforced spec grammar; never implements.
+model: inherit
 ---
 
 # analyst

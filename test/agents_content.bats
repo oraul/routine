@@ -134,3 +134,31 @@ load test_helper
   dev="$ROUTINE_REPO_ROOT/agents/developer.md"
   grep -qi 'uncommitted diff' "$dev"
 }
+
+# The tier is declared data, not an instruction anybody must remember.
+# Routine checks only what it owns: the field is present and its value is
+# one this repository recognises. No script here can observe which model
+# actually answered — that assumption is recorded in the change's design.
+@test "each agent declares a recognised model tier" {
+  for name in analyst developer; do
+    doc="$ROUTINE_REPO_ROOT/agents/$name.md"
+    line="$(grep -m1 '^model:' "$doc")" || { echo "no model tier: $doc"; false; }
+    case "$line" in
+      "model: inherit"|"model: opus"|"model: sonnet"|"model: haiku") ;;
+      *) echo "unrecognised tier in $doc: $line"; false ;;
+    esac
+  done
+}
+
+@test "no skill declares a model for the driving session" {
+  # The driver is the human's own session: routine can neither enforce nor
+  # verify a tier there, so it declares none.
+  ! grep -rq '^model:' "$ROUTINE_REPO_ROOT"/skills/*/SKILL.md
+}
+
+@test "liveness is read from state, never timed out" {
+  doc="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  grep -qi 'returns or' "$doc"
+  grep -qi 'never a timeout' "$doc"
+  grep -q 'routine-health' "$doc"
+}

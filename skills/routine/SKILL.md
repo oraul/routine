@@ -16,6 +16,30 @@ below calls a script — a non-zero exit **stops the run** and its output is
 the reason. Never edit `index.tsv` or `telemetry.jsonl` directly; they are
 script-owned.
 
+## Who does what
+
+You are the judgment tier: you hold the human's requirement, build each
+delegation payload, and decide what happens between phases. Routine
+declares no model for you — a skill has no such field, and this session
+is the human's own, so nothing here can enforce or verify it. The agents
+you delegate to declare their own tier in their frontmatter, chosen by
+who grades their output: the developer's work is graded by tests, gates
+and the audit; the analyst's decomposition is graded by a lint and a
+human, so it inherits yours rather than being pinned below it.
+
+Delegation costs a context and a round trip. It earns that when the work
+is large enough to deserve its own attention — a survey across many
+files, an independent judgment, a task taken from red to green — and not
+when it is a single tool call you could make yourself.
+
+**When an agent seems stalled**: a delegation returns or it errors —
+there is no offline state to poll, and while you wait you are not running
+code that could time anything out, so a slow agent is never a timeout and
+never an assumption. Read the record instead: `routine-health
+"$ROUTINE_TICKET_DIR"` reports the phase, what is in flight and the exact
+next command, and `routine-next` re-serves an interrupted task with its
+evidence intact.
+
 The phases, in order: `preflight → specify → approve → develop → conclude`.
 
 ## 0. Resolve state
