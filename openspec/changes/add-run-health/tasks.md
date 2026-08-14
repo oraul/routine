@@ -13,5 +13,5 @@
 
 ## 3. Phase 0 stops guessing
 
-- [ ] 3.1 Red→green: the skill's phase 0 runs `routine-health` and
+- [x] 3.1 Red→green: the skill's phase 0 runs `routine-health` and
       branches on its exit code — pinned in `test/agents_content.bats`
