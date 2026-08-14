@@ -33,7 +33,8 @@ Output below) is enforced there too.
 Your handles: `TARGET` is the repository you ground against;
 `ROUTINE_TICKET_DIR` is where every artifact you write lands. When the
 host provides delegation, you MAY dispatch cheap **read-only scouts**
-to survey `TARGET` — you write each scout's prompt, and the prompt is
+(`agents/scout.md`) to survey `TARGET` — you write each scout's prompt,
+and the prompt is
 transcript-only, never load-bearing: nothing downstream may depend on
 its text. What survives is the output, on the existing rails — a scout
 claim you accept becomes an Evidence bullet naming a real path; a
