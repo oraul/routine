@@ -17,7 +17,7 @@ min/p50/p95/max per event (ms), failure counts per script, and a
 runs, failures, and failure rate — doc-only topics included via their
 `gate.developer.doc` lines — ranked by failure rate descending (the
 deepening queue). Report sections SHALL print in a deterministic order.
-It SHALL write no files. The derivations it defines — the timestamp conversion and the caffeine failure ranking — SHALL have exactly one implementation: a second script that recomputes either of them is a defect, because two implementations of one number can disagree with nothing to catch it.
+It SHALL write no files. The derivations it defines — the timestamp conversion and the caffeine failure ranking — SHALL have exactly one implementation: a second script that recomputes either of them is a defect, because two implementations of one number can disagree with nothing to catch it. A failure SHALL be classified per event, never by a blanket non-zero test: a non-zero `tdd.red` is the expected outcome and a zero one is the anomaly the report SHALL name; `ticket.next` exits 3 and 4 are protocol outcomes, not failures; every other event treats a non-zero exit as a failure. Script failures SHALL count only records whose script field is a path, so the section names scripts rather than scenario labels. The caffeine deepening queue SHALL rank by failure count with the rate and run count shown beside it, so a single unlucky run cannot head the queue.
 
 #### Scenario: Aggregation across tickets and apps
 - **WHEN** two tickets in different apps hold telemetry lines
@@ -37,12 +37,25 @@ It SHALL write no files. The derivations it defines — the timestamp conversion
   caffeine failure ranking
 - **THEN** the suite fails naming that script
 
+#### Scenario: A correct red is not a failure
+- **WHEN** a ticket records failing `tdd.red` lines and no other failure
+- **THEN** the report shows no failures for `tdd.red`
+
+#### Scenario: A blocked or exhausted line is not a failure
+- **WHEN** `ticket.next` records exits 3 and 4
+- **THEN** neither counts as a failure
+
+#### Scenario: The queue ranks by accumulated failures
+- **WHEN** one topic failed once in one run and another failed many
+  times across many runs
+- **THEN** the topic with more failures ranks first
+
 ### Requirement: Retro reports time in blocked state
 For each `ticket.block` line whose ticket and task match a later
 `ticket.unblock` line **within the same app** (the app is derived from
 the telemetry file's path), the retro SHALL report the elapsed seconds
 between their timestamps, per app and task. Ticket ids SHALL never pair
-across apps.
+across apps. Only passing `ticket.block` and `ticket.unblock` records SHALL pair: a refused transition is not a transition, and SHALL never leave a phantom blocked entry.
 
 #### Scenario: One block/unblock pair
 - **WHEN** a task was blocked at T and unblocked at T+3600s
@@ -53,6 +66,11 @@ across apps.
   block/unblock pair for task `01-02`
 - **THEN** the report shows blocked seconds for that app's task only,
   never a cross-app pairing
+
+#### Scenario: A refused block leaves no phantom
+- **WHEN** a `ticket.block` record carries a non-zero exit
+- **THEN** the report shows no blocked time and no still-blocked entry
+  for that task
 
 ### Requirement: Retro reports the re-specify cost
 The report SHALL include a re-specify cost section keyed by app and
