@@ -70,3 +70,9 @@ load test_helper
   doc="$ROUTINE_REPO_ROOT/CLAUDE.md"
   grep -qi 'which model answered' "$doc"
 }
+
+@test "the public face distinguishes the scout from the two agents" {
+  doc="$ROUTINE_REPO_ROOT/README.md"
+  grep -qi 'scout' "$doc"
+  grep -qi 'read-only' "$doc"
+}

@@ -8,5 +8,5 @@
 
 ## 2. The public face admits the third agent
 
-- [ ] 2.1 Red→green: `README.md` describes the loop's two phase-driving
+- [x] 2.1 Red→green: `README.md` describes the loop's two phase-driving
       agents and the read-only scout as distinct, pinned in the same file
