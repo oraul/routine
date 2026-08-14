@@ -202,7 +202,20 @@ run_gate() {
   esac
 }
 
+# The gate's reasons must outlive the session that ran them: recovering
+# them by re-running costs a counted revise (analyst) or a full
+# lint-and-test cycle (developer). gate.log is a script-owned mirror —
+# stdout and stderr still reach the caller live and unchanged. Truncated
+# per run, and only once a ticket context exists, so a usage error never
+# touches a ticket.
 start_ms="$(routine_now_ms)"
+if [ -n "${ROUTINE_TICKET_DIR:-}" ] && [ -d "${ROUTINE_TICKET_DIR:-}" ]; then
+  _glog="$ROUTINE_TICKET_DIR/gate.log"
+  : > "$_glog"
+  # Process substitution, not a pipeline: the gate's exit code is the
+  # gate's own, and both streams still reach the caller as they always did.
+  exec > >(tee -a "$_glog") 2> >(tee -a "$_glog" >&2)
+fi
 run_gate
 code="$?"
 telemetry_gate_emit "gate.$gate" "bin/routine-gate" "$code" "$(( $(routine_now_ms) - start_ms ))"

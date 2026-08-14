@@ -347,3 +347,50 @@ make_manifest_ticket() {
   [ "$status" -ne 0 ]
   case "$output" in *preflight*analyst*developer*) ;; *) false ;; esac
 }
+
+# The gate's reasons must outlive the session that ran them: recovering
+# them by re-running costs a counted revise or a full test cycle.
+@test "a failing gate leaves its diagnostics on gate.log" {
+  make_tdir
+  make_target
+  printf 'x\n' > "$tdir/index.tsv"
+  run env ROUTINE_TICKET_DIR="$tdir" TARGET="$tgt" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
+  [ "$status" -ne 0 ]
+  [ -s "$tdir/gate.log" ]
+  # Every reason the caller saw is also on the log.
+  grep -q 'routine-gate:\|spec-lint:' "$tdir/gate.log"
+}
+
+@test "each gate run starts its log clean" {
+  make_tdir
+  make_target
+  printf 'stale reason from an older run\n' > "$tdir/gate.log"
+  printf 'x\n' > "$tdir/index.tsv"
+  run env ROUTINE_TICKET_DIR="$tdir" TARGET="$tgt" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
+  ! grep -q 'stale reason' "$tdir/gate.log"
+}
+
+@test "a usage error never touches a ticket" {
+  make_tdir
+  make_target
+  run env ROUTINE_TICKET_DIR="$tdir" TARGET="$tgt" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" nonsense
+  [ "$status" -eq 2 ]
+  [ ! -e "$tdir/gate.log" ]
+}
+
+@test "a failing hook's own output survives on the log" {
+  make_gate_root
+  make_target
+  make_good_ticket
+  mkdir -p "$groot/runs/app/hooks"
+  printf '%s\n' '#!/usr/bin/env bash' \
+    'echo "the app suite failed: 3 examples, 1 failure"' 'exit 1' \
+    > "$groot/runs/app/hooks/developer.sh"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  [ "$status" -ne 0 ]
+  grep -q '3 examples, 1 failure' "$ticket/gate.log"
+}

@@ -1,6 +1,6 @@
 ## 1. The gate's reasons survive
 
-- [ ] 1.1 Red→green: `routine-gate` mirrors its diagnostics and stage
+- [x] 1.1 Red→green: `routine-gate` mirrors its diagnostics and stage
       output to a truncated-per-run `<ticket>/gate.log`, leaving live
       output unchanged and never touching a ticket on a usage error
 
