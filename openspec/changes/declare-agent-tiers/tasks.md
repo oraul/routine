@@ -5,7 +5,7 @@
 
 ## 2. The orchestrator's contract
 
-- [ ] 2.1 Red→green: the skill states the judgment tier's job, declares
+- [x] 2.1 Red→green: the skill states the judgment tier's job, declares
       no model for the driving session (pinned by a negative assertion
       over every skill), and describes liveness as evidence with the
       offline-timeout idea explicitly refused
