@@ -6,6 +6,6 @@
 
 ## 2. The guidance reaches the resume road
 
-- [ ] 2.1 Red→green: the skill's develop phase and the developer
+- [x] 2.1 Red→green: the skill's develop phase and the developer
       contract carry the triage and the read-the-diff rule — pinned in
       `test/agents_content.bats`

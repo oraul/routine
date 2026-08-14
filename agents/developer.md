@@ -65,8 +65,10 @@ evidence: keep them in the ordinary suite the gate runs, never route
 them through `routine-tdd red`.
 
 On a **re-served task** — one an interrupted session left in_progress
-and `routine-next` handed back — work forward from what is already on
-record: re-record red and green under the *identical* label and the
+and `routine-next` handed back — read the target's uncommitted diff
+before writing anything: it is your predecessor's partial work, and the
+failing test you are about to write may already be there. Then work
+forward from what is already on record: re-record red and green under the *identical* label and the
 *identical* command. The audit pairs on the recorded string, so a
 renamed label or a changed command writes a green with no red before
 it, which the audit refuses.

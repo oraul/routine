@@ -54,13 +54,10 @@ reads state and never spends a counted gate run to learn it.
 
 Run `routine-gate preflight`. Non-zero: stop and surface the output.
 
-One failure has a specific reading: a preflight that fails on a **dirty
-target while a task is in_progress** is an interrupted develop phase,
-not a broken run — a developer died mid-task and its partial work is
-still in the working tree. Hand the human the two sanctioned roads:
-commit the partial work (then resume forward), or reset it (then resume
-from the recorded red). Either way the run re-enters at phase 4, not
-here.
+A resumed run does not pass through here at all — phase 0 sends it
+straight to the phase health derived. If you find yourself running
+preflight against a dirty target while a task is in_progress, you took
+the wrong road: that is an interrupted develop, handled in phase 4.
 
 ## 2. specify
 
@@ -93,8 +90,16 @@ the remarks become ticket evidence instead of transcript exhaust.
 
 ## 4. develop
 
-**Resuming after an interrupted develop**: `routine-next` re-serves the
-same task — it returns the first row that is not done, in_progress
+**Resuming after an interrupted develop**: health may report
+`uncommitted:` — the dead developer's partial work, still in the
+target. That is context, not damage. Two roads: work forward from it
+(the usual choice — pass the diff to the re-served developer so it
+builds on its predecessor instead of duplicating it), or reset the
+target and resume from the recorded red. Never leave it unmentioned in
+the delegation payload; a stateless developer cannot see what it was
+not told.
+
+`routine-next` re-serves the same task — it returns the first row that is not done, in_progress
 included, and re-flips nothing — so a task whose developer died is
 handed straight back. If `routine-health` reported a passing developer
 gate for that task, the work is finished and unrecorded: run
