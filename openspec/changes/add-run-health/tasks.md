@@ -1,6 +1,6 @@
 ## 1. The shared episode counter
 
-- [ ] 1.1 Red→green: `lib/episode.sh` holds the revise count; the
+- [x] 1.1 Red→green: `lib/episode.sh` holds the revise count; the
       analyst gate consumes it with its behavior unchanged
 
 ## 2. The live-run reader
