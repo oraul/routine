@@ -127,3 +127,10 @@ load test_helper
   dev="$ROUTINE_REPO_ROOT/agents/developer.md"
   grep -qi 're-served' "$dev"
 }
+
+@test "the partial-work triage sits on the resume road, not preflight" {
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  awk '/^## 4\./,/^## 5\./' "$skill" | grep -qi 'uncommitted'
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -qi 'uncommitted diff' "$dev"
+}

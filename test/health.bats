@@ -203,3 +203,43 @@ plant() {
   health
   case "$output" in *gate.log*) ;; *) false ;; esac
 }
+
+# A developer that died mid-task leaves its work uncommitted. The
+# resuming session must be told — resuming forward is normal, but the
+# replacement developer is stateless and cannot see it otherwise.
+make_dirty_target() {
+  dtgt="$BATS_TEST_TMPDIR/dirty"
+  mkdir -p "$dtgt"
+  git -C "$dtgt" -c init.defaultBranch=main init -q
+  git -C "$dtgt" -c user.name=t -c user.email=t@example.invalid \
+    commit -q --allow-empty -m root
+  printf 'half a failing test\n' > "$dtgt/spec_login.rb"
+}
+
+@test "a predecessor's partial work is named, without blocking the resume" {
+  make_ticket
+  make_dirty_target
+  tel gate.preflight bin/routine-gate "" 0
+  tel gate.analyst bin/routine-gate "" 0
+  tel ticket.approve bin/routine-approve "" 0
+  row 01-01 in_progress
+  tel ticket.next bin/routine-next 01-01 0
+  run env TARGET="$dtgt" "$ROUTINE_REPO_ROOT/bin/routine-health" "$ticket"
+  [ "$status" -eq 0 ]
+  case "$output" in *uncommitted*) ;; *) false ;; esac
+  case "$output" in *spec_login.rb*) ;; *) false ;; esac
+  case "$output" in *develop*) ;; *) false ;; esac
+}
+
+@test "a clean target says nothing about partial work" {
+  make_ticket
+  make_dirty_target
+  rm "$dtgt/spec_login.rb"
+  tel gate.preflight bin/routine-gate "" 0
+  tel gate.analyst bin/routine-gate "" 0
+  tel ticket.approve bin/routine-approve "" 0
+  row 01-01 in_progress
+  run env TARGET="$dtgt" "$ROUTINE_REPO_ROOT/bin/routine-health" "$ticket"
+  [ "$status" -eq 0 ]
+  ! printf '%s' "$output" | grep -qi 'uncommitted'
+}
