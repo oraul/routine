@@ -25,12 +25,25 @@ If sensitive data is committed by accident, do not just remove it in a follow-up
   **One tasks.md checkbox = one commit** — failing test, implementation, and
   the checkbox tick together. `git log` mirrors `tasks.md` 1:1.
 - **PR:** one change = one branch = one PR. Title
-  `<type>: <change-id> — <outcome>`. Body headings exactly:
-  `## Change` (archived folder path) · `## Why` · `## Spec delta` ·
-  `## Evidence` (pasted bats/shellcheck/selfcheck summary lines) ·
-  `## Tasks` (mirrored, all ticked) · `## Follow-ups`.
+  `<type>: <change-id> — <outcome>`. The body must carry, under whatever
+  headings read best for the change:
+  - **why** the change exists — the problem, not the diff;
+  - **what changed**, in the reader's terms;
+  - **what was deliberately not built**, with what would earn each — the
+    non-goals are half the record, and a PR that omits them hands the
+    next reader a decision with its reasoning stripped off;
+  - **evidence**: the red you showed, then `bin/routine-selfcheck`,
+    `openspec validate --specs --strict`, and
+    `bin/routine-convention-check origin/main` with their verdicts;
+  - the **archived change folder** and the requirements the sync touched.
+
+  This is guidance, not a checked contract: no script reads a PR body, so
+  a fixed heading list here would drift unnoticed — and did, for four
+  consecutive PRs, before anyone compared the two.
 - **Merge:** merge commits, never squash — task commits are evidence.
-  Auto-merge armed at PR creation; the CI ruleset is the merge decision.
+  Merge only on a full green board: arm auto-merge where the session has
+  it, otherwise wait for every check and merge explicitly. Never merge
+  past a red or still-running check.
   WIP = 1: no new branch while any PR is open.
 
 ## Releases
@@ -46,6 +59,20 @@ If sensitive data is committed by accident, do not just remove it in a follow-up
   0 (semver format, manifest match, clean worktree on main, green
   selfcheck). Tag annotated, from the commit the gate blessed; the GitHub
   Release description states the headline capabilities since the last tag.
+- **Bump first, trigger second.** The release workflow always gates
+  `main` — the `release/vX.Y.Z` branch is a message, not a source. So the
+  manifest bump must be **merged to main before** the branch is pushed;
+  push it first and the gate correctly refuses (`tag says X but
+  plugin.json declares Y`) and the run is red for no reason. Order:
+
+  ```
+  chore branch bumps .claude-plugin/plugin.json → PR → merge to main
+  bin/routine-release-check vX.Y.Z on main → must exit 0
+  push release/vX.Y.Z (or dispatch the workflow with the tag)
+  ```
+
+  The workflow deletes its own trigger branch on success — a surviving
+  `release/v*` branch means the publish did not happen.
 
 ## The loop
 
@@ -58,8 +85,10 @@ a verb-led change id, and what is explicitly out of scope.
 
 **P1 — Propose** *(stops for human review)*
 ```
-gh pr list --state open — must be empty. An open PR means fix it
-forward before any new change.
+List open PRs — must be empty. An open PR means fix it forward
+before any new change. (Use whichever GitHub surface the session
+has: the `gh` CLI, the GitHub MCP tools, or the web UI. None is
+assumed present — `command -v gh` fails in some sessions.)
 git switch main && git pull
 git switch -c change/<change-id>
 /opsx:propose <change-id>
@@ -95,11 +124,17 @@ STOP before PR.
 
 **P4 — PR**
 ```
-Push branch. gh pr create:
-Title: <type>: <change-id> — <outcome>
-Body headings exactly: ## Change · ## Why · ## Spec delta ·
-## Evidence · ## Tasks · ## Follow-ups.
-gh pr merge --auto --merge
-Session ends here. Green merges it; red leaves it open, which
-blocks the next P1.
+bin/routine-convention-check origin/main — commit grammar and no
+sensitive data. Fix a bad subject by amending, never by a
+follow-up commit.
+git push -u origin change/<change-id>
+Open the PR: title <type>: <change-id> — <outcome>; body per the
+PR convention above (why · what changed · what was deliberately
+not built · evidence · the archived folder).
+Scrub the PR body: some hosts append a session URL to the footer.
+Read the body back after creating it and remove any session URL,
+token, or account identifier — the hard rules bind artifacts, and
+a PR body is an artifact.
+Merge on a full green board — auto-merge where available, else
+wait for every check. Red leaves it open, which blocks the next P1.
 ```
