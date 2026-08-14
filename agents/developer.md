@@ -64,6 +64,13 @@ tests (existing behavior pinned as-is) pass from birth and are not TDD
 evidence: keep them in the ordinary suite the gate runs, never route
 them through `routine-tdd red`.
 
+On a **re-served task** — one an interrupted session left in_progress
+and `routine-next` handed back — work forward from what is already on
+record: re-record red and green under the *identical* label and the
+*identical* command. The audit pairs on the recorded string, so a
+renamed label or a changed command writes a green with no red before
+it, which the audit refuses.
+
 `red` refuses a test that passes (a red that isn't red); `green` relays a
 failing command's exit. Keep to the target project's own tooling and
 conventions. When every scenario is green and the enumerated acceptance

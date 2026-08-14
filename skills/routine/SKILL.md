@@ -54,6 +54,14 @@ reads state and never spends a counted gate run to learn it.
 
 Run `routine-gate preflight`. Non-zero: stop and surface the output.
 
+One failure has a specific reading: a preflight that fails on a **dirty
+target while a task is in_progress** is an interrupted develop phase,
+not a broken run — a developer died mid-task and its partial work is
+still in the working tree. Hand the human the two sanctioned roads:
+commit the partial work (then resume forward), or reset it (then resume
+from the recorded red). Either way the run re-enters at phase 4, not
+here.
+
 ## 2. specify
 
 Delegate to the **analyst** agent (`agents/analyst.md`) with the human's
@@ -84,6 +92,17 @@ any>"` — the audit refuses a run whose approval left no evidence, and
 the remarks become ticket evidence instead of transcript exhaust.
 
 ## 4. develop
+
+**Resuming after an interrupted develop**: `routine-next` re-serves the
+same task — it returns the first row that is not done, in_progress
+included, and re-flips nothing — so a task whose developer died is
+handed straight back. If `routine-health` reported a passing developer
+gate for that task, the work is finished and unrecorded: run
+`routine-done` and move on. Otherwise re-delegate the task; the
+developer re-records its evidence under the identical label and
+command, which the audit pairs against the red already on record. Never
+restart the run and never open a second ticket — the allocator refuses
+that anyway.
 
 Loop:
 
