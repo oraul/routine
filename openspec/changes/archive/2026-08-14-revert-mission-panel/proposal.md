@@ -58,3 +58,24 @@ justification was never written.
 - Removed: `bin/routine-panel`, `test/panel.bats`,
   `openspec/specs/panel/`.
 - Added: `test/derivation.bats`.
+
+## Correction (appended 2026-08-14, never rewritten)
+
+The Why above claims "no run has yet been driven against a real target,
+so the evidence that a human needs to watch one does not exist". **The
+first half is false.** A complete concluded run existed the whole time
+at `runs/shopapp/tickets/archive/0001`: two tasks taken red→green, a
+real block and unblock, sidecar failures followed by passes, and a
+written `report.md`. Its measurements are now committed at
+`evidence/retro.txt`.
+
+Why it was missed, by twelve council agents and by the author: `runs/`
+is gitignored, so run state is unreachable to anyone reading the
+repository. That blind spot is what `commit-run-evidence` closed.
+
+What the correction does **not** change: the revert stood on two
+defects independent of this — the panel's derivations had already
+drifted from the retro's, and its spec asserted signals the script
+never rendered. And a run existing is evidence that the loop works end
+to end, not evidence that a human needed a surface to watch it; that
+premise remains unargued.
