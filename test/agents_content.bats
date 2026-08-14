@@ -119,3 +119,11 @@ load test_helper
   grep -qi 'exit code' "$doc"
   ! grep -q 'If no active ticket exists' "$doc"
 }
+
+@test "crash re-entry is written down, not left to code archaeology" {
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  grep -qi 're-serves' "$skill"
+  grep -qi 'dirty' "$skill"
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -qi 're-served' "$dev"
+}
