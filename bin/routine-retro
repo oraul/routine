@@ -55,11 +55,31 @@ awk -F'"' '
     ms = $25; gsub(/[^0-9-]/, "", ms)
     runs[event]++
     sruns[script]++
-    if (ex + 0 != 0) { fails[event]++; sfails[script]++ }
+    # A failure is classified per event, never by a blanket non-zero
+    # test. routine-tdd red REQUIRES a failing command, so a non-zero
+    # red is the protocol working and a zero one is the anomaly;
+    # routine-next exits 3 and 4 report a blocked line and an
+    # exhausted one, both normal outcomes.
+    failed = 0
+    if (event == "tdd.red") {
+      if (ex + 0 == 0) redpass[script] = 1
+    } else if (event == "ticket.next") {
+      if (ex + 0 == 1 || ex + 0 == 2) failed = 1
+    } else if (ex + 0 != 0) {
+      failed = 1
+    }
+    if (failed) {
+      fails[event]++
+      # Only path-shaped script fields name scripts; tdd records carry a
+      # scenario label there, which belongs in no script list.
+      if (script ~ /^(bin|lib|caffeine)\//) sfails[script]++
+    }
     durs[event] = durs[event] " " ms
     bkey = app "\t" ticket "\t" task
-    if (event == "ticket.block") bstart[bkey] = epoch(ts)
-    if (event == "ticket.unblock" && bkey in bstart) {
+    # A refused transition is not a transition: a non-zero block would
+    # otherwise start a timer nothing ever closes.
+    if (event == "ticket.block" && ex + 0 == 0) bstart[bkey] = epoch(ts)
+    if (event == "ticket.unblock" && ex + 0 == 0 && bkey in bstart) {
       blocked[bkey] += epoch(ts) - bstart[bkey]
       delete bstart[bkey]
     }
@@ -82,7 +102,7 @@ awk -F'"' '
   }
   # Sections print through sort so the report is deterministic — output
   # is evidence, never hash order. The caffeine section ranks by failure
-  # rate descending: the printed order IS the deepening queue.
+  # count descending: the printed order IS the deepening queue.
   END {
     print "routine retro"
     print ""
@@ -106,9 +126,19 @@ awk -F'"' '
     for (s in sruns) {
       if (s !~ /^caffeine\//) continue
       f = sfails[s] + 0
-      printf("  %.2f  %-36s runs=%d fails=%d\n", f / sruns[s], s, sruns[s], f) | "sort -rn"
+      # Ranked by accumulated failures, not by rate: one unlucky run at
+      # 1.00 must never outrank many runs that failed many times. The
+      # rate and the run count ride along for context.
+      printf("  %6d  %.2f  %-36s runs=%d\n", f, f / sruns[s], s, sruns[s]) | "sort -rn"
     }
     close("sort -rn")
+    print ""
+    print "reds that passed:"
+    fflush()
+    anyrp = 0
+    for (s in redpass) { anyrp = 1; printf("  %s\n", s) | "sort" }
+    close("sort")
+    if (!anyrp) print "  none"
     print ""
     print "re-specify cost:"
     fflush()

@@ -45,14 +45,14 @@ EOF
   ! printf '%s\n' "$output" | grep -E '01-02 +1800' > /dev/null
 }
 
-@test "retro ranks caffeine topics by failure rate — the deepening queue" {
+@test "retro ranks caffeine topics by accumulated failures — the deepening queue" {
   make_telemetry
   run env ROUTINE_ROOT="$groot" "$ROUTINE_REPO_ROOT/bin/routine-retro"
   [ "$status" -eq 0 ]
-  printf '%s\n' "$output" | grep -E '0\.50 +caffeine/ruby/rails\.sh +runs=2 fails=1' > /dev/null
-  printf '%s\n' "$output" | grep -E '0\.00 +caffeine/architecture/oop\.md +runs=1 fails=0' > /dev/null
-  rails_at="$(printf '%s\n' "$output" | grep -nE '^  0\.50 +caffeine/ruby/rails' | head -1 | cut -d: -f1)"
-  oop_at="$(printf '%s\n' "$output" | grep -nE '^  0\.00 +caffeine/architecture/oop' | head -1 | cut -d: -f1)"
+  printf '%s\n' "$output" | grep -E '1 +0\.50 +caffeine/ruby/rails\.sh +runs=2' > /dev/null
+  printf '%s\n' "$output" | grep -E '0 +0\.00 +caffeine/architecture/oop\.md +runs=1' > /dev/null
+  rails_at="$(printf '%s\n' "$output" | grep -nE '^ +1 +0\.50 +caffeine/ruby/rails' | head -1 | cut -d: -f1)"
+  oop_at="$(printf '%s\n' "$output" | grep -nE '^ +0 +0\.00 +caffeine/architecture/oop' | head -1 | cut -d: -f1)"
   [ "$rails_at" -lt "$oop_at" ]
 }
 
@@ -93,4 +93,76 @@ EOF2
   [ "$status" -eq 0 ]
   printf '%s\n' "$output" | grep -E 'app2 0001 .*unrecovered' > /dev/null
   printf '%s\n' "$output" | grep -E 'app1 0001 .*recovery_s=1200' > /dev/null
+}
+
+# A failure is a failure and nothing else. Deliberate non-zero exits are
+# the protocol working: routine-tdd red REQUIRES a failing command, and
+# routine-next exits 3 and 4 report a blocked line and an exhausted one.
+make_expected_exits() {
+  eroot="$BATS_TEST_TMPDIR/eroot"
+  mkdir -p "$eroot/runs/app1/tickets/0001"
+  cat > "$eroot/runs/app1/tickets/0001/telemetry.jsonl" <<'T'
+{"ts":"2026-08-11T09:00:00Z","event":"tdd.red","script":"login rejects a bad password [aa11bb22]","ticket":"0001","task":"01-01","exit":1,"ms":30}
+{"ts":"2026-08-11T09:01:00Z","event":"tdd.green","script":"login rejects a bad password [aa11bb22]","ticket":"0001","task":"01-01","exit":0,"ms":31}
+{"ts":"2026-08-11T09:02:00Z","event":"ticket.next","script":"bin/routine-next","ticket":"0001","task":"01-02","exit":3,"ms":2}
+{"ts":"2026-08-11T09:03:00Z","event":"ticket.next","script":"bin/routine-next","ticket":"0001","task":"","exit":4,"ms":2}
+T
+}
+
+@test "a correct red and a blocked or exhausted line are not failures" {
+  make_expected_exits
+  run env ROUTINE_ROOT="$eroot" "$ROUTINE_REPO_ROOT/bin/routine-retro"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -E 'tdd\.red .*fails=0' > /dev/null
+  printf '%s\n' "$output" | grep -E 'ticket\.next .*fails=0' > /dev/null
+}
+
+@test "a red that passed is named as the anomaly" {
+  make_expected_exits
+  printf '{"ts":"2026-08-11T09:04:00Z","event":"tdd.red","script":"a red that passed [cc33dd44]","ticket":"0001","task":"01-03","exit":0,"ms":9}\n' \
+    >> "$eroot/runs/app1/tickets/0001/telemetry.jsonl"
+  run env ROUTINE_ROOT="$eroot" "$ROUTINE_REPO_ROOT/bin/routine-retro"
+  case "$output" in *"red that passed"*) ;; *) false ;; esac
+}
+
+@test "script failures name scripts, never scenario labels" {
+  make_expected_exits
+  run env ROUTINE_ROOT="$eroot" "$ROUTINE_REPO_ROOT/bin/routine-retro"
+  # The scenario label must not appear in the script-failure section.
+  ! printf '%s\n' "$output" | awk '/^script failures:/{a=1;next} /^$/{a=0} a' \
+    | grep -q 'bad password'
+}
+
+@test "a refused block leaves no phantom" {
+  eroot="$BATS_TEST_TMPDIR/broot"
+  mkdir -p "$eroot/runs/app1/tickets/0001"
+  cat > "$eroot/runs/app1/tickets/0001/telemetry.jsonl" <<'T'
+{"ts":"2026-08-11T10:00:00Z","event":"ticket.block","script":"bin/routine-block","ticket":"0001","task":"01-02","exit":1,"ms":1}
+T
+  run env ROUTINE_ROOT="$eroot" "$ROUTINE_REPO_ROOT/bin/routine-retro"
+  [ "$status" -eq 0 ]
+  ! printf '%s\n' "$output" | grep -q 'still blocked'
+}
+
+@test "the queue ranks by accumulated failures, not by one unlucky run" {
+  eroot="$BATS_TEST_TMPDIR/croot"
+  mkdir -p "$eroot/runs/app1/tickets/0001"
+  : > "$eroot/runs/app1/tickets/0001/telemetry.jsonl"
+  # thin/unlucky: one run, one failure (rate 1.00)
+  printf '{"ts":"2026-08-11T11:00:00Z","event":"gate.developer.script","script":"caffeine/x/thin.sh","ticket":"0001","task":"01-01","exit":1,"ms":5}\n' \
+    >> "$eroot/runs/app1/tickets/0001/telemetry.jsonl"
+  # deep: ten runs, four failures (rate 0.40) — more accumulated pain
+  for i in 1 2 3 4; do
+    printf '{"ts":"2026-08-11T11:0%s:00Z","event":"gate.developer.script","script":"caffeine/x/deep.sh","ticket":"0001","task":"01-01","exit":1,"ms":5}\n' "$i" \
+      >> "$eroot/runs/app1/tickets/0001/telemetry.jsonl"
+  done
+  for i in 5 6 7 8 9; do
+    printf '{"ts":"2026-08-11T11:0%s:00Z","event":"gate.developer.script","script":"caffeine/x/deep.sh","ticket":"0001","task":"01-01","exit":0,"ms":5}\n' "$i" \
+      >> "$eroot/runs/app1/tickets/0001/telemetry.jsonl"
+  done
+  run env ROUTINE_ROOT="$eroot" "$ROUTINE_REPO_ROOT/bin/routine-retro"
+  deep_at="$(printf '%s\n' "$output" | grep -n 'x/deep' | head -1 | cut -d: -f1)"
+  thin_at="$(printf '%s\n' "$output" | grep -n 'x/thin' | head -1 | cut -d: -f1)"
+  [ -n "$deep_at" ] && [ -n "$thin_at" ]
+  [ "$deep_at" -lt "$thin_at" ]
 }
