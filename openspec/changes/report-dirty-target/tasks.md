@@ -1,6 +1,6 @@
 ## 1. Health sees the partial work
 
-- [ ] 1.1 Red→green: an in_progress task plus a dirty `TARGET` is
+- [x] 1.1 Red→green: an in_progress task plus a dirty `TARGET` is
       reported as the interrupted developer's uncommitted work, with
       the phase and exit code unchanged
 

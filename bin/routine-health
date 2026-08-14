@@ -141,6 +141,18 @@ fi
 if in_progress="$(status_row in_progress)" && [ -n "$in_progress" ]; then
   echo "phase:    develop"
   echo "in flight: task $in_progress"
+  # A developer that died mid-task left its work uncommitted. The
+  # replacement is stateless and cannot see it unless told. Only when
+  # TARGET is set explicitly: defaulting would report the caller's own
+  # working tree, which is not the run's target.
+  if [ -n "${TARGET:-}" ] && git -C "$TARGET" rev-parse --git-dir >/dev/null 2>&1; then
+    _dirt="$(git -C "$TARGET" status --porcelain 2>/dev/null)"
+    if [ -n "$_dirt" ]; then
+      echo "uncommitted: the interrupted developer's work is still in $TARGET —"
+      printf '%s\n' "$_dirt" | sed 's/^/           /'
+      echo "           work forward from it, or reset it and resume from the recorded red"
+    fi
+  fi
   if passing_task gate.developer "$in_progress"; then
     echo "gate:     passed for $in_progress with no ticket.done — the evidence is on record"
     echo "next: routine-done \"$ticket\""
