@@ -5,7 +5,7 @@
 
 ## 2. The live-run reader
 
-- [ ] 2.1 Red→green: `routine-health <ticket-dir>` derives the phase,
+- [x] 2.1 Red→green: `routine-health <ticket-dir>` derives the phase,
       prints in-flight facts and the next command, with 0/1/2 exit
       semantics — one fixture per death point
 - [ ] 2.2 Red→green: no-argument mode resolves active tickets (zero,
