@@ -141,3 +141,57 @@ health() { run "$ROUTINE_REPO_ROOT/bin/routine-health" "$ticket"; }
   [ "$status" -eq 2 ]
   case "$output" in *usage*) ;; *) false ;; esac
 }
+
+# No-argument mode: WIP is 1, so resolving the active ticket is a script's
+# job — a fresh session must never guess which run it is resuming.
+make_app() {
+  hroot="$BATS_TEST_TMPDIR/hroot"
+  # The app key is the target's basename (lib/paths.sh), so the fixture
+  # target must be named for the app whose tickets it owns.
+  mkdir -p "$hroot/runs/app/tickets" "$BATS_TEST_TMPDIR/work/app"
+  tgt="$BATS_TEST_TMPDIR/work/app"
+}
+
+plant() {
+  mkdir -p "$hroot/runs/app/tickets/$1"
+  printf '{"ts":"2026-01-01T00:00:00Z","event":"ticket.new","script":"bin/routine-ticket-new","ticket":"%s","task":"","exit":0,"ms":1}\n' "$1" \
+    > "$hroot/runs/app/tickets/$1/telemetry.jsonl"
+  : > "$hroot/runs/app/tickets/$1/index.tsv"
+}
+
+@test "no active ticket says a new one is legitimate" {
+  make_app
+  run env ROUTINE_ROOT="$hroot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-health"
+  [ "$status" -eq 0 ]
+  case "$output" in *"no active ticket"*) ;; *) false ;; esac
+  case "$output" in *routine-ticket-new*) ;; *) false ;; esac
+}
+
+@test "one active ticket is adopted and reported, never duplicated" {
+  make_app
+  plant 0001
+  run env ROUTINE_ROOT="$hroot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-health"
+  [ "$status" -eq 0 ]
+  case "$output" in *0001*) ;; *) false ;; esac
+  case "$output" in *preflight*) ;; *) false ;; esac
+  ! printf '%s' "$output" | grep -q 'routine-ticket-new'
+}
+
+@test "two active tickets are themselves the diagnosis" {
+  make_app
+  plant 0001
+  plant 0002
+  run env ROUTINE_ROOT="$hroot" TARGET="$tgt" "$ROUTINE_REPO_ROOT/bin/routine-health"
+  [ "$status" -eq 1 ]
+  case "$output" in *0001*) ;; *) false ;; esac
+  case "$output" in *0002*) ;; *) false ;; esac
+  case "$output" in *"WIP is 1"*) ;; *) false ;; esac
+}
+
+@test "a stale index.tsv.new is named as the mid-write artifact" {
+  make_ticket
+  : > "$ticket/index.tsv.new"
+  health
+  case "$output" in *index.tsv.new*) ;; *) false ;; esac
+  case "$output" in *"intact"*) ;; *) false ;; esac
+}
