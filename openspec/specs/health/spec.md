@@ -20,7 +20,7 @@ that same boundary is `approve`; a blocked index row is
 `develop/blocked`; an in_progress or pending row is `develop`; all rows
 done is `conclude`. It SHALL print what is in flight — the in_progress
 task id, blocked rows, and the revises spent this episode — and SHALL
-end with a `next:` line naming the exact command that resumes the run. When the ticket holds a non-empty `gate.log`, the report SHALL name it as the surviving reason the last gate failed, so recovery reads it instead of re-running the gate.
+end with a `next:` line naming the exact command that resumes the run. When the ticket holds a non-empty `gate.log`, the report SHALL name it as the surviving reason the last gate failed, so recovery reads it instead of re-running the gate. When a task is in_progress and `TARGET` names a git repository whose worktree is dirty, the report SHALL name that as an interrupted developer's uncommitted work and show the changed paths — context for the resume, never a blocker: the phase and exit code are unchanged, because working forward from partial work is the normal road.
 
 #### Scenario: A dead run names its own next step
 - **WHEN** a ticket's telemetry records a passing developer gate for
@@ -41,6 +41,11 @@ end with a `next:` line naming the exact command that resumes the run. When the 
 #### Scenario: The surviving gate reason is named
 - **WHEN** the ticket holds a non-empty `gate.log`
 - **THEN** the report names that file as the last gate's reason
+
+#### Scenario: A predecessor's partial work is visible
+- **WHEN** a task is in_progress and the target worktree is dirty
+- **THEN** the report names the uncommitted work and the changed paths,
+  and still exits 0 with the develop phase
 
 ### Requirement: Health's exit code carries the branch
 `routine-health` SHALL exit 0 when the run is resumable by the driving
