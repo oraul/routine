@@ -1,0 +1,85 @@
+#!/usr/bin/env bash
+# routine-script: routine-test-lint
+# routine-description: The naming gate: a test name states the claim it defends, never the mechanism that ran
+# routine-usage: routine-test-lint [test-dir] (defaults to the repo's test/)
+# routine-exit: 0 — every name states a claim
+# routine-exit: 1 — a name violates a rule — the output names file, test and rule
+# routine-exit: 2 — usage — the test directory does not exist
+# routine-test: test/test_lint.bats
+# A test name is the only part of a suite most readers ever read, so it
+# carries the claim. Every threshold below was measured against this
+# repository's own corpus before it was written: no name opens with a
+# mechanism word, the shortest is three words, the longest 83 characters,
+# and no suite repeats a name. This lint pins that, it does not clean up.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+
+root="$(routine_root)"
+dir="${1:-$root/test}"
+
+if [ ! -d "$dir" ]; then
+  echo "usage: routine-test-lint [test-dir] (defaults to the repo's test/)" >&2
+  exit 2
+fi
+
+# An opener plus a literal space, never a word boundary: \b is absent from
+# BSD grep, and a boundary match refuses `testing/tdd ...`, which is a
+# caffeine topic path rather than the word "testing".
+openers='test|tests|testing|check|checks|verify|verifies|should|it|ensure|ensures|can|will|does|works|handles|correctly'
+
+violations=0
+report() {
+  echo "test-lint: $1: $2 — $3"
+  violations=$((violations + 1))
+}
+
+for file in "$dir"/*.bats; do
+  [ -f "$file" ] || continue
+
+  # The name is what bats prints on failure: everything between the first
+  # quote and the last one before the opening brace.
+  names="$(sed -n 's/^@test  *"\(.*\)" *{.*$/\1/p' "$file")"
+  [ -n "$names" ] || continue
+
+  while IFS= read -r name; do
+    [ -n "$name" ] || continue
+
+    if printf '%s' "$name" | grep -Eqi "^($openers) "; then
+      report "$file" "$name" "opens with a mechanism word; state the claim instead"
+    fi
+
+    words="$(printf '%s' "$name" | awk '{print NF}')"
+    if [ "$words" -lt 3 ]; then
+      report "$file" "$name" "is a label, not a claim (fewer than three words)"
+    fi
+
+    if [ "${#name}" -gt 100 ]; then
+      report "$file" "$name" "carries provenance, not a claim (over 100 characters)"
+    fi
+  done <<EOF
+$names
+EOF
+
+  # Uniqueness is per suite: bats runs and reports one file at a time, so a
+  # repeat inside a file makes a failing line ambiguous, while the same
+  # claim in two suites is two true statements about two subjects.
+  dupes="$(printf '%s\n' "$names" | sort | uniq -d)"
+  if [ -n "$dupes" ]; then
+    while IFS= read -r dupe; do
+      [ -n "$dupe" ] || continue
+      report "$file" "$dupe" "is declared twice in this suite; a repeat makes a failure ambiguous"
+    done <<EOF
+$dupes
+EOF
+  fi
+done
+
+if [ "$violations" -gt 0 ]; then
+  echo "test-lint: $violations name(s) state no claim" >&2
+  exit 1
+fi
+
+echo "test-lint: every test name states its claim"
+exit 0
