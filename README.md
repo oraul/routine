@@ -26,6 +26,15 @@ scripted conclude archives the ticket with its report; `routine-retro`
 turns accumulated telemetry into the evidence future changes are earned
 from.
 
+Those two drive the phases. A third agent, the **scout**, drives none:
+it is read-only, answers one mechanical question about the target — where
+a symbol lives, which files reference it — and writes nothing. Either
+phase agent may delegate reading to it where the host provides
+delegation, and neither may delegate the record: the TDD calls, the
+refusal scripts, and the judgment that a test is red stay with the agent
+that owns the task. Each of the three declares its own `model` tier,
+picked by who grades that role's output.
+
 ## Skills
 
 - **`/routine`** — drive the phase protocol against the current target.

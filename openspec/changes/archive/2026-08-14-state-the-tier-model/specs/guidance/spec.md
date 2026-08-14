@@ -1,12 +1,6 @@
-# guidance Specification
+# guidance Specification (delta)
 
-## Purpose
-
-The session contract: what every Claude Code session working on this
-repository must know before touching anything, loaded automatically via
-CLAUDE.md.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: CLAUDE.md states the session contract
 The repository SHALL provide a `CLAUDE.md` that states, at minimum: the
@@ -60,4 +54,3 @@ and SHALL point to the release convention.
 - **WHEN** `README.md` is read
 - **THEN** it distinguishes the two phase-driving agents from the
   read-only scout
-
