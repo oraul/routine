@@ -105,7 +105,7 @@ script-owned state. It SHALL NOT restate individual lint rules outside
 the grammar it teaches (stale restatements drift), SHALL state the
 revise limit the way the gate counts it (per episode; a defect return
 opens a fresh budget), and SHALL route missing caffeine vocabulary to
-the human and `/caffeinate` — never an invented topic name. It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract. Its re-entry sources SHALL include the ticket's `lint.log` alongside `grounding.md` and the `defect.md` files. Its grounding instruction SHALL describe Evidence bullets as claim-bearing — `- <path> — <what the file was found to contain or do>` — with the ruled-out form and the `- none — <why>` floors for Alternatives and Assumptions. Its re-entry rule SHALL be anchor-first: Evidence bullets are current when `Grounded-at` equals the target's current HEAD and the worktree is clean; otherwise only bullets whose paths the diff against the worktree (plus untracked files) names are re-verified, and the anchor is refreshed — never a full re-search. Its context handles SHALL be named: `TARGET`, the repository it grounds against, and `ROUTINE_TICKET_DIR`, where its artifacts land. It MAY use cheap read-only scouts to survey the target when the host provides delegation — scout prompts are transcript-only and never load-bearing; every accepted scout claim SHALL land as an Evidence bullet naming a real path, and unverified scout claims SHALL go under `## Assumptions` — however evidence is gathered, only the ticket artifacts are contract.
+the human and `/caffeinate` — never an invented topic name. It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract. Its re-entry sources SHALL include the ticket's `lint.log` alongside `grounding.md` and the `defect.md` files. Its grounding instruction SHALL describe Evidence bullets as claim-bearing — `- <path> — <what the file was found to contain or do>` — with the ruled-out form and the `- none — <why>` floors for Alternatives and Assumptions. Its re-entry rule SHALL be anchor-first: Evidence bullets are current when `Grounded-at` equals the target's current HEAD and the worktree is clean; otherwise only bullets whose paths the diff against the worktree (plus untracked files) names are re-verified, and the anchor is refreshed — never a full re-search. Its context handles SHALL be named: `TARGET`, the repository it grounds against, and `ROUTINE_TICKET_DIR`, where its artifacts land. It MAY use cheap read-only scouts to survey the target when the host provides delegation — scout prompts are transcript-only and never load-bearing; every accepted scout claim SHALL land as an Evidence bullet naming a real path, and unverified scout claims SHALL go under `## Assumptions` — however evidence is gathered, only the ticket artifacts are contract. It SHALL name `agents/scout.md` as the file those scouts are, rather than describing an anonymous capability.
 
 #### Scenario: Grammar named in the prompt
 - **WHEN** the agent file is read
@@ -172,7 +172,7 @@ defective spec by calling `routine-defect <ticket-dir> <reason>`
 instead of improvising, and on blockage SHALL write `block.md` and call
 `routine-block`. The Never list SHALL cover script-owned state, other
 tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
-`routine-done` (the protocol driver's move, not the developer's). It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract. On a re-served task — one an interrupted session left in_progress — it SHALL re-record red and green under the identical scenario label and the identical command, because the audit pairs on the recorded string and a rename or a changed command records an unpaired green. On a re-served task it SHALL read the target's uncommitted diff before writing anything — the failing test it is about to write may already be there, left by the developer it replaced.
+`routine-done` (the protocol driver's move, not the developer's). It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract. On a re-served task — one an interrupted session left in_progress — it SHALL re-record red and green under the identical scenario label and the identical command, because the audit pairs on the recorded string and a rename or a changed command records an unpaired green. On a re-served task it SHALL read the target's uncommitted diff before writing anything — the failing test it is about to write may already be there, left by the developer it replaced. It MAY delegate read-only mechanical surveys of `TARGET` to `agents/scout.md` where the host provides delegation — locating files, listing call sites, reporting which fixtures exist — under the same transcript-only rule the analyst works under: the delegate's prose is never load-bearing, and a claim the developer keeps it verifies by opening the path itself. The admission SHALL be permissive, never required: where no delegation exists the developer does the work itself and nothing in the loop changes. It SHALL carry a closed list of moves that are never delegated — every `routine-tdd` call, `routine-defect`, `routine-block`, and the judgment that a test failed for the right reason — because those write the record the audit replays.
 
 #### Scenario: Statelessness named in the prompt
 - **WHEN** the agent file is read
@@ -211,18 +211,29 @@ tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
 - **THEN** it instructs reading the target's uncommitted diff first on a
   re-served task
 
+#### Scenario: Mechanical work may be delegated, the record may not
+- **WHEN** the agent file is read
+- **THEN** it admits read-only delegation to `agents/scout.md` and names
+  the closed list of moves that are never delegated
+
 ### Requirement: Agent files register as subagents
-`agents/analyst.md` and `agents/developer.md` SHALL open with YAML
-frontmatter carrying `name` and `description`, so the files are
-loadable as subagents by the host, and the `name` SHALL match the
-filename stem. Each file SHALL also declare its `model` tier, chosen by who grades that role's output: work a script grades may run at a lower tier, while judgment only a human grades SHALL NOT be pinned below the driving session. Routine SHALL check only what it owns — that the field is present and its value is one this repository recognises — since no script here can observe which model answered.
+`agents/analyst.md`, `agents/developer.md`, and `agents/scout.md` SHALL
+open with YAML frontmatter carrying `name` and `description`, so the
+files are loadable as subagents by the host, and the `name` SHALL match
+the filename stem. Each file SHALL also declare its `model` tier, chosen by who grades that role's output: work a script grades may run at a lower tier, while judgment only a human grades SHALL NOT be pinned below the driving session. Routine SHALL check only what it owns — that the field is present and its value is one this repository recognises — since no script here can observe which model answered. `agents/scout.md` SHALL declare the cheapest tier this repository recognises, since a scout's only grader is whether its caller could then do its job, and SHALL instruct one read-only survey per invocation whose output is never contract: it writes nothing to `TARGET`, records no telemetry, writes no ticket artifact, and calls no `routine-*` script.
 
 #### Scenario: Frontmatter present
-- **WHEN** either agent file is read
+- **WHEN** any agent file is read
 - **THEN** it opens with `---`, a `name:` matching its filename, and a
   non-empty `description:`
 
 #### Scenario: The tier is declared, not remembered
-- **WHEN** either agent file is read
+- **WHEN** any agent file is read
 - **THEN** its frontmatter declares a `model` whose value the repository
   recognises
+
+#### Scenario: The scout reads and never writes
+- **WHEN** `agents/scout.md` is read
+- **THEN** it declares the haiku tier and forbids writing to the target,
+  ticket artifacts, and every `routine-*` call
+
