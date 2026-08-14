@@ -182,3 +182,12 @@ load test_helper
   grep -q 'routine-tdd' "$doc"
   grep -q 'telemetry.jsonl' "$doc"
 }
+
+@test "the callers name the scout and keep the record for themselves" {
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -q 'agents/scout.md' "$dev"
+  grep -qi 'never delegate' "$dev"
+  grep -qi 'permissive' "$dev"
+  ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -q 'agents/scout.md' "$ana"
+}

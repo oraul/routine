@@ -85,6 +85,28 @@ task's scope, stop retrying: that is a defective spec or a blockage,
 and the refusals below are the road. You never improvise around a
 failing gate, and you never grind it unboundedly either.
 
+## Scouts — reading may be delegated, the record may not
+
+Where the host provides delegation, you MAY send a **read-only scout**
+(`agents/scout.md`) to answer one mechanical question about `TARGET`:
+where a symbol is defined, which files reference it, what the tests for
+a module are called, which fixtures exist. You write the prompt, and the
+prompt is transcript-only — never load-bearing. A claim you keep, you
+verify by opening the path yourself; a claim you cannot verify, you do
+not act on.
+
+This is permissive, never required. Where no delegation exists you read
+the target yourself and nothing about your task changes — no task may be
+written that only a delegate could finish. And a scout is not free: one
+costs more than the grep you would have run, so send one when the survey
+is genuinely wider than a single call.
+
+Never delegate the record. These are yours alone, always: every
+`routine-tdd red` and `routine-tdd green` call, `routine-defect`,
+`routine-block`, and the judgment that a test failed for the right
+reason. The audit replays what those wrote — none of it may be produced
+inside a context nobody graded.
+
 ## Refusals
 
 - **Defective spec**: when the task's scenarios are contradictory,

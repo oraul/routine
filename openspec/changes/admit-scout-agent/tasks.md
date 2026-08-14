@@ -7,6 +7,6 @@
 
 ## 2. The callers name it
 
-- [ ] 2.1 Red→green: the developer admits mechanical delegation with a
+- [x] 2.1 Red→green: the developer admits mechanical delegation with a
       pinned closed list of moves it may never delegate, and the
       analyst's scout paragraph names the file
