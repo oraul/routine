@@ -28,7 +28,7 @@ load test_helper
 }
 
 @test "the agents register as subagents" {
-  for name in analyst developer; do
+  for name in analyst developer scout; do
     doc="$ROUTINE_REPO_ROOT/agents/$name.md"
     [ "$(head -1 "$doc")" = "---" ] || { echo "no frontmatter: $doc"; false; }
     grep -q "^name: $name\$" "$doc" || { echo "name mismatch: $doc"; false; }
@@ -140,7 +140,7 @@ load test_helper
 # one this repository recognises. No script here can observe which model
 # actually answered — that assumption is recorded in the change's design.
 @test "each agent declares a recognised model tier" {
-  for name in analyst developer; do
+  for name in analyst developer scout; do
     doc="$ROUTINE_REPO_ROOT/agents/$name.md"
     line="$(grep -m1 '^model:' "$doc")" || { echo "no model tier: $doc"; false; }
     case "$line" in
@@ -161,4 +161,24 @@ load test_helper
   grep -qi 'returns or' "$doc"
   grep -qi 'never a timeout' "$doc"
   grep -q 'routine-health' "$doc"
+}
+
+# The scout is the mechanical tier: one read-only survey per invocation,
+# graded only by whether its caller could then do its job. Routine pins
+# what it owns — the file registers, declares the cheapest tier, and
+# forbids every write it could otherwise reach for.
+@test "the scout registers at the cheapest tier" {
+  doc="$ROUTINE_REPO_ROOT/agents/scout.md"
+  [ "$(head -1 "$doc")" = "---" ] || { echo "no frontmatter: $doc"; false; }
+  grep -q '^name: scout$' "$doc"
+  grep -qE '^description: .+' "$doc"
+  grep -q '^model: haiku$' "$doc"
+}
+
+@test "the scout writes nothing" {
+  doc="$ROUTINE_REPO_ROOT/agents/scout.md"
+  grep -qi 'read-only' "$doc"
+  grep -qi 'never load-bearing' "$doc"
+  grep -q 'routine-tdd' "$doc"
+  grep -q 'telemetry.jsonl' "$doc"
 }
