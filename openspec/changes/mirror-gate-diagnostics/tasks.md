@@ -6,5 +6,5 @@
 
 ## 2. Health names the survivor
 
-- [ ] 2.1 Red→green: a non-empty `gate.log` is named in the health
+- [x] 2.1 Red→green: a non-empty `gate.log` is named in the health
       report as the surviving reason
