@@ -112,3 +112,10 @@ load test_helper
   grep -qi 'fresh ticket' "$doc"
   ! grep -q 'going back through the rails' "$doc"
 }
+
+@test "phase 0 resolves state by script, not by inference" {
+  doc="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  grep -q 'routine-health' "$doc"
+  grep -qi 'exit code' "$doc"
+  ! grep -q 'If no active ticket exists' "$doc"
+}

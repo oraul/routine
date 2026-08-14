@@ -20,6 +20,8 @@ repo_dir="$(cd "$(dirname "$0")/.." && pwd)"
 . "$repo_dir/lib/telemetry.sh"
 # shellcheck source=/dev/null
 . "$repo_dir/lib/index.sh"
+# shellcheck source=/dev/null
+. "$repo_dir/lib/episode.sh"
 
 gate="${1:-}"
 case "$gate" in
@@ -75,19 +77,13 @@ baseline_analyst() {
     echo "routine-gate: analyst gate requires a ticket context (set ROUTINE_TICKET_DIR)" >&2
     return 1
   fi
-  # The revise limit is counted, never remembered — and per specify
-  # EPISODE: a spec.defective line opens a new budget (re-specified work
-  # is new work). Line order is time order; only failures after the last
-  # defect return count.
-  if [ -f "$ROUTINE_TICKET_DIR/telemetry.jsonl" ]; then
-    _revises="$(awk '
-      /"event":"spec.defective"/ { n = 0; next }
-      /"event":"spec.lint"/ && /"exit":[1-9]/ { n++ }
-      END { print n + 0 }' "$ROUTINE_TICKET_DIR/telemetry.jsonl")"
-    if [ "$_revises" -gt 3 ]; then
-      echo "routine-gate: revise limit exhausted ($_revises failed lint runs this episode); run routine-abort with the reason" >&2
-      return 1
-    fi
+  # The revise limit is counted, never remembered, and the count lives in
+  # lib/episode.sh — one implementation for the gate that spends the
+  # budget and every reader that reports it.
+  _revises="$(episode_revise_count "$ROUTINE_TICKET_DIR/telemetry.jsonl")"
+  if [ "$_revises" -gt 3 ]; then
+    echo "routine-gate: revise limit exhausted ($_revises failed lint runs this episode); run routine-abort with the reason" >&2
+    return 1
   fi
   "$root/bin/routine-spec-lint" "$ROUTINE_TICKET_DIR" || return 1
   _index="$ROUTINE_TICKET_DIR/index.tsv"

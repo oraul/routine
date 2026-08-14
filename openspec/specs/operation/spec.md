@@ -25,7 +25,7 @@ explicitly, because a stateless agent's payload is its whole world.
 The conclude phase SHALL state the honest failure road: audit
 violations on a task already marked done cannot be re-evidenced
 (telemetry is script-owned and append-only), so the road is
-`routine-abort` and a fresh ticket, never a rail back. Phase 0 SHALL name the script frontmatter and `routine-manual` as the authoritative contract for every script the protocol calls — consulted, never recalled. When the revising context is fresh, the skill SHALL hand the analyst the surviving record — `grounding.md`, the ticket's `lint.log`, and every `defect.md` — instead of re-running the gate to regenerate it.
+`routine-abort` and a fresh ticket, never a rail back. Phase 0 SHALL name the script frontmatter and `routine-manual` as the authoritative contract for every script the protocol calls — consulted, never recalled. When the revising context is fresh, the skill SHALL hand the analyst the surviving record — `grounding.md`, the ticket's `lint.log`, and every `defect.md` — instead of re-running the gate to regenerate it. Phase 0 SHALL resolve state by script: after `routine-scaffold` it runs `routine-health` and branches on its exit code — no active ticket means `routine-ticket-new`, one active ticket is adopted and the run resumes at the phase health derived, and a needs-human exit stops for the human. The skill SHALL NOT infer which ticket is live or where a run stopped.
 
 #### Scenario: Protocol present in the skill
 - **WHEN** the skill file is read
@@ -50,6 +50,11 @@ violations on a task already marked done cannot be re-evidenced
 - **WHEN** a fresh context resumes a specify episode
 - **THEN** the skill hands over grounding.md, lint.log, and defect.md
   files rather than spending a counted lint run on recovery
+
+#### Scenario: Resuming reads state instead of inferring it
+- **WHEN** the skill file's phase 0 is read
+- **THEN** it runs `routine-health` and branches on the exit code rather
+  than judging whether an active ticket exists
 
 ### Requirement: The unblock skill captures human context as evidence
 `skills/unblock/SKILL.md` SHALL be human-invoked only and SHALL instruct:

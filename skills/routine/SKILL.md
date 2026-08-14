@@ -27,11 +27,28 @@ one. (The branching below is protocol: what to *do* with each exit.)
 
 Run `routine-scaffold`. If it exits non-zero, relay its instruction (the app
 needs `runs/<app>/hooks/developer.sh`) and stop — the human must create the
-facade. Otherwise note the printed app state path. If no active ticket
-exists, run `routine-ticket-new` and note the printed ticket path. Export
-both handles every later call needs: `ROUTINE_TICKET_DIR=<ticket path>`
-and `TARGET=<target project root>` (the project the work lands in;
-default is the current directory).
+facade. Otherwise note the printed app state path.
+
+Then run `routine-health` with no argument and branch on its
+**exit code** — never judge for yourself whether a run is live or
+where it stopped:
+
+- **exit 0, "no active ticket"** — run `routine-ticket-new` and note the
+  printed ticket path. This is a fresh run.
+- **exit 0 with a ticket path** — a previous session left this run in
+  flight (its own token limit, a closed terminal, a stopped agent).
+  Adopt the printed ticket, and resume at the phase health derived: its
+  `next:` line is the command to run. Do **not** restart at phase 1, and
+  do **not** open a second ticket.
+- **exit 1** — a human must act first (a blocked line, a pending
+  approve, an exhausted revise budget, or more than one active ticket).
+  Relay health's output and stop.
+
+Export both handles every later call needs: `ROUTINE_TICKET_DIR=<ticket
+path>` and `TARGET=<target project root>` (the project the work lands
+in; default is the current directory). `routine-health "$ROUTINE_TICKET_DIR"`
+is also the honest answer at any later moment to "where are we?" — it
+reads state and never spends a counted gate run to learn it.
 
 ## 1. preflight
 

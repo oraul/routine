@@ -1,0 +1,161 @@
+#!/usr/bin/env bash
+# routine-script: routine-health
+# routine-description: Report a live run's phase, what is in flight, and the exact command that resumes it; pure reader
+# routine-usage: routine-health [ticket-dir]
+# routine-env: TARGET — the target project whose app holds the tickets (no-argument mode)
+# routine-exit: 0 — resumable: the driving session can proceed on the rails
+# routine-exit: 1 — a human must act before any script may run
+# routine-exit: 2 — usage
+# routine-test: test/health.bats
+#
+# The audit judges a finished run; this reads a living one. Every fact
+# comes from script-owned state — the fixed telemetry key order, the
+# append-only line order (time order), and index.tsv — so a session that
+# died mid-flight is diagnosed by reading, never by inference and never
+# by re-running something counted. Writes nothing, by contract.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/episode.sh"
+
+root="$(routine_root)"
+
+# No argument: resolve the app's active tickets. Zero means a new ticket
+# is legitimate; one is the ticket to adopt; more than one is a protocol
+# violation (WIP is 1) that only a human should resolve.
+if [ "$#" -eq 0 ]; then
+  app="$(routine_app_key "${TARGET:-$PWD}")"
+  tickets_dir="$root/runs/$app/tickets"
+  found=0
+  for _t in "$tickets_dir"/[0-9][0-9][0-9][0-9]; do
+    [ -d "$_t" ] || continue
+    found=$((found + 1))
+    echo "active ticket: $_t"
+  done
+  if [ "$found" -eq 0 ]; then
+    echo "routine-health: no active ticket for app $app"
+    echo "next: routine-ticket-new"
+    exit 0
+  fi
+  if [ "$found" -gt 1 ]; then
+    echo "routine-health: $found active tickets — WIP is 1, so a past run left one behind" >&2
+    echo "next: conclude or routine-abort the ticket that is not yours, then re-run" >&2
+    exit 1
+  fi
+  for _t in "$tickets_dir"/[0-9][0-9][0-9][0-9]; do
+    [ -d "$_t" ] && exec "$0" "$_t"
+  done
+fi
+
+ticket="${1:-}"
+if [ ! -d "$ticket" ] || [ ! -f "$ticket/telemetry.jsonl" ]; then
+  echo "usage: routine-health [ticket-dir]" >&2
+  exit 2
+fi
+
+tele="$ticket/telemetry.jsonl"
+index="$ticket/index.tsv"
+
+# passing_since_defect <event> — a passing line for the event after the
+# most recent spec.defective (which opens a new episode; work before it
+# was re-specified away).
+passing_since_defect() {
+  awk -v ev="$1" '
+    /"event":"spec.defective"/ { seen = 0; next }
+    $0 ~ "\"event\":\"" ev "\"" && /"exit":0,/ { seen = 1 }
+    END { exit !seen }' "$tele"
+}
+
+# passing_ever <event> — a passing line anywhere: preflight is per run,
+# not per specify episode, so a defect return never un-does it.
+passing_ever() {
+  awk -v ev="$1" '
+    $0 ~ "\"event\":\"" ev "\"" && /"exit":0,/ { seen = 1 }
+    END { exit !seen }' "$tele"
+}
+
+# passing_task <event> <task-id> — a passing line for that event and task.
+passing_task() {
+  awk -F'"' -v ev="$1" -v task="$2" '
+    $8 == ev && $20 == task { ex = $23; gsub(/[^0-9-]/, "", ex); if (ex + 0 == 0) seen = 1 }
+    END { exit !seen }' "$tele"
+}
+
+status_row() {
+  [ -f "$index" ] || return 1
+  awk -F'\t' -v want="$1" '$4 == want { print $1; exit }' "$index"
+}
+
+echo "ticket:   $ticket"
+
+# A lifecycle script killed mid-write leaves this behind; index.tsv
+# itself is intact by construction (writes land through a rename).
+if [ -f "$index.new" ]; then
+  echo "warning:  stale $index.new — a lifecycle script was killed mid-write; index.tsv is intact, removal is yours to make"
+fi
+
+revises="$(episode_revise_count "$tele")"
+
+if ! passing_ever gate.preflight; then
+  echo "phase:    preflight"
+  echo "next: routine-gate preflight"
+  exit 0
+fi
+
+if [ "$revises" -gt 3 ]; then
+  echo "phase:    specify"
+  echo "revises $revises/3 — exhausted"
+  echo "next: routine-abort \"$ticket\" \"<why the decomposition cannot converge>\"" >&2
+  exit 1
+fi
+
+if ! passing_since_defect gate.analyst; then
+  echo "phase:    specify"
+  echo "revises $revises/3"
+  [ -s "$ticket/lint.log" ] && echo "defects:  $ticket/lint.log holds the last run's list — read it, never re-run the gate for it"
+  echo "next: re-delegate the analyst with grounding.md, lint.log and any defect.md, then routine-gate analyst"
+  exit 0
+fi
+
+if ! passing_since_defect ticket.approve; then
+  echo "phase:    approve"
+  echo "next: show the human requirement.md and every briefing.md, then routine-approve \"$ticket\" \"<their remarks>\"" >&2
+  exit 1
+fi
+
+if blocked="$(status_row blocked)" && [ -n "$blocked" ]; then
+  echo "phase:    develop/blocked"
+  echo "blocked:  task $blocked"
+  echo "next: /unblock — write the task's unblock.md, then routine-unblock \"$ticket\"" >&2
+  exit 1
+fi
+
+if in_progress="$(status_row in_progress)" && [ -n "$in_progress" ]; then
+  echo "phase:    develop"
+  echo "in flight: task $in_progress"
+  if passing_task gate.developer "$in_progress"; then
+    echo "gate:     passed for $in_progress with no ticket.done — the evidence is on record"
+    echo "next: routine-done \"$ticket\""
+  else
+    echo "next: routine-next \"$ticket\" re-serves task $in_progress; re-delegate the developer to it"
+  fi
+  exit 0
+fi
+
+if pending="$(status_row pending)" && [ -n "$pending" ]; then
+  echo "phase:    develop"
+  echo "next: routine-next \"$ticket\""
+  exit 0
+fi
+
+if [ -s "$index" ]; then
+  echo "phase:    conclude"
+  echo "next: routine-conclude \"$ticket\""
+  exit 0
+fi
+
+echo "phase:    develop"
+echo "next: routine-next \"$ticket\""
+exit 0
