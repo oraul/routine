@@ -1,6 +1,6 @@
 ## 1. The pairing rule, and the defect it finds
 
-- [ ] 1.1 Red→green: `routine-test-lint` refuses a `!` assertion whose
+- [x] 1.1 Red→green: `routine-test-lint` refuses a `!` assertion whose
       subject carries no positive assertion in the same body, exempts
       `$output`, and reports the pairing rule distinctly; the repository's
       one violating test — `no skill declares a model for the driving
