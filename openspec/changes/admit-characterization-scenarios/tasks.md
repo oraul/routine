@@ -7,7 +7,7 @@
 
 ## 2. The audit covers characterization through the gate
 
-- [ ] 2.1 Red→green: `routine-audit` demands no `tdd.green` for a task
+- [x] 2.1 Red→green: `routine-audit` demands no `tdd.green` for a task
       whose labels are all characterization (its passing developer gate
       is the coverage, and a skipped gate remains a violation), keeps
       the per-label green demand for every `## Scenario:` label, and

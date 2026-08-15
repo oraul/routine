@@ -63,7 +63,18 @@ while IFS="$TAB" read -r t_id t_b t_t t_status _; do
     fi
   done
 
-  if [ "$(count_pass tdd.green "$t_id")" -eq 0 ]; then
+  # A characterization-only task (every heading in task.md is
+  # '## Characterization:', none is '## Scenario:') needs no tdd.green
+  # at all: its coverage is the passing gate.developer already checked
+  # above. Any '## Scenario:' heading keeps the ordinary requirement.
+  _taskfile="$ticket/briefings/$t_b/tasks/$t_t/task.md"
+  _char_only=""
+  if [ -f "$_taskfile" ] && grep -q '^## Characterization: ' "$_taskfile" \
+    && ! grep -q '^## Scenario: ' "$_taskfile"; then
+    _char_only=1
+  fi
+
+  if [ -z "$_char_only" ] && [ "$(count_pass tdd.green "$t_id")" -eq 0 ]; then
     fail "task $t_id: no passing tdd.green on record"
   fi
 
@@ -92,7 +103,6 @@ EOF
   fi
 
   # Manifest topics: each needs its developer-gate evidence line.
-  _taskfile="$ticket/briefings/$t_b/tasks/$t_t/task.md"
   [ -f "$_taskfile" ] || { fail "task $t_id: missing $_taskfile"; continue; }
 
   # Coverage is per labeled scenario, not per task: every label in the
