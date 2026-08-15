@@ -1,70 +1,6 @@
-# selfcheck Specification
+# selfcheck Specification (delta)
 
-## Purpose
-
-The harness integrity gate: proves the repo's scripts are lint-clean and its
-test suite is green before any other guarantee is trusted.
-
-## Requirements
-
-### Requirement: Selfcheck verifies lint cleanliness and test success
-`bin/routine-selfcheck` SHALL run `bin/routine-caffeine-lint` first (a
-malformed topic tree makes downstream results meaningless), then
-`bin/routine-script-lint` (a script whose contract lies fails before
-its tests can pass), then shellcheck over every script in `bin/` and
-`lib/` and every caffeine sidecar (`caffeine/*/*.sh`) that exists, then
-`bin/routine-test-lint` (a test whose name states no claim fails
-before the suite runs), then the full bats suite under `test/`, and
-SHALL exit 0 only when all stages succeed.
-
-#### Scenario: Everything green
-- **WHEN** the caffeine corpus is well-formed, all scripts are
-  shellcheck-clean, and the bats suite passes
-- **THEN** `routine-selfcheck` exits 0
-
-#### Scenario: Lint failure aborts before tests
-- **WHEN** any checked script fails shellcheck
-- **THEN** `routine-selfcheck` exits non-zero and surfaces the shellcheck
-  output without running the bats suite
-
-#### Scenario: Test failure
-- **WHEN** shellcheck is clean but any bats test fails
-- **THEN** `routine-selfcheck` exits non-zero and surfaces the bats output
-
-#### Scenario: Malformed topic aborts first
-- **WHEN** the caffeine lint reports a violation
-- **THEN** `routine-selfcheck` exits non-zero surfacing it before the
-  shellcheck stage
-
-#### Scenario: A lying contract aborts before shellcheck
-- **WHEN** any `bin/` script fails the script lint
-- **THEN** `routine-selfcheck` exits non-zero and surfaces the lint
-  output before the shellcheck stage
-
-#### Scenario: A nameless claim aborts before the suite
-- **WHEN** any test name fails the naming lint
-- **THEN** `routine-selfcheck` exits non-zero surfacing it without
-  running the bats suite
-
-### Requirement: Selfcheck resolves its root from ROUTINE_ROOT
-`routine-selfcheck` SHALL resolve the repo root from the `ROUTINE_ROOT`
-environment variable, defaulting to `$CLAUDE_PLUGIN_ROOT` and falling back to
-the script's own repository root, and SHALL NOT hardcode any state path.
-
-#### Scenario: Explicit root
-- **WHEN** `ROUTINE_ROOT` points at a fixture directory containing `bin/` and
-  `test/`
-- **THEN** `routine-selfcheck` checks the scripts and tests under that
-  directory, not the installation directory
-
-### Requirement: Selfcheck tolerates not-yet-built layers
-`routine-selfcheck` SHALL treat optional layers that do not exist yet (such as
-`caffeine/` sidecars before change 7) as absent rather than as failures.
-
-#### Scenario: No sidecars present
-- **WHEN** the repo contains no `caffeine/*/*.sh` files
-- **THEN** the shellcheck stage covers `bin/` and `lib/` only and selfcheck
-  proceeds to the bats stage
+## MODIFIED Requirements
 
 ### Requirement: Test names state the claim they defend and bodies prove it
 `bin/routine-test-lint` SHALL read every `@test` name under `test/` and refuse a name that does not state a claim: one opening with a mechanism word (`test`, `check`, `verify`, `should`, `it`, `ensure`, `does`, `works`, `handles`, `correctly`, or their plurals, each followed by a space), one shorter than three words, one longer than 100 characters, or one repeated within its own suite. The pattern SHALL match an opener followed by a literal space rather than a word boundary, since `\b` is unavailable in BSD grep and a boundary match misclassifies topic paths such as `testing/tdd`. Uniqueness SHALL be scoped to a single file, because bats runs and reports per suite and the same claim may legitimately hold of two subjects. The lint SHALL report every violation in one run, naming the file, the test name, and the rule, The lint SHALL also refuse a test body carrying no visible expectation: a bats test passes when its last command exits 0, so a body that asserts nothing can never fail and defends no claim. An expectation SHALL be recognised by token — a `[` or `[[` condition, bats' `status` or `output` handles, a `grep` or `diff` comparison, an `assert` or `refute` helper, `-eq` or `-ne`, or a leading `!` negation — never by parsing the shell, since a lint whose own correctness needs a lint is not an improvement; an unrecognised assertion form SHALL be answered by widening the token list. The lint SHALL name the naming rule and the body rule distinctly, because one failure rewrites a sentence and the other adds an expectation. It SHALL report every violation in one run, naming the file, the test and the rule, and SHALL exit 0 when the corpus is clean and 1 when any name or body violates a rule.
@@ -106,4 +42,3 @@ the script's own repository root, and SHALL NOT hardcode any state path.
 - **WHEN** one test has a bad name and another an empty body
 - **THEN** the output names the naming rule for the first and the body
   rule for the second
-
