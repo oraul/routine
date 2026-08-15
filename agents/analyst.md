@@ -77,7 +77,10 @@ Inside the active ticket directory, write — **grounding first**:
   - `greenfield` → `## Contracts` (inputs, outputs, invariants)
   - `epic` → `## Order` (the order of value; which briefing ships first)
 - `briefings/<nn>-<slug>/briefing.md` — one per coherent slice of the
-  requirement, numbered in execution order.
+  requirement, numbered in execution order, and carrying the
+  conventions in force for that slice: the target's idioms the tasks
+  inside it must follow, so the developer implementing that slice reads
+  them instead of re-deriving them.
 - `briefings/<nn>-<slug>/tasks/<nn>-<slug>/task.md` — one per task, numbered
   in execution order within the briefing. Every task carries:
   - at least one scenario written as Given/When/Then lines under a
