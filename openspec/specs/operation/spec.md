@@ -92,7 +92,7 @@ never editing the index directly.
 type and its `calibration/<type>.md` before decomposing; ground first
 and record it — `grounding.md`'s evidence, alternatives, and assumptions
 are written before the artifacts they justify; decompose the
-requirement into briefings and tasks in the spec grammar (requirement
+requirement into briefings and tasks in the spec grammar, each briefing carrying the conventions in force for its slice — the target's idioms the tasks inside it must follow, so the developer implementing that slice reads them instead of re-deriving them (requirement
 header, `Type:` declaration, RFC 2119 keywords, scenarios written as
 Given/When/Then lines under `## Scenario: <label>` headings — the
 labels the audit binds evidence to — with `## Characterization: <label>`
@@ -156,11 +156,13 @@ the human and `/caffeinate` — never an invented topic name. It SHALL name a `r
 contract section (`## Reproduction`/`## Touchpoints`/`## Contracts`/
 `## Order` — the type's evidence, nothing else from the requirement),
 the caffeine docs named in that task's own `## Caffeine` manifest, the
-ticket's `calibration/<type>.md`, block/unblock files when present, and
+ticket's `calibration/<type>.md`, the task's own `briefing.md` — the slice it
+implements inside, and the conventions in force there, never another slice's —
+block/unblock files when present, and
 the two handles every scripted call needs — the ticket directory
 (`ROUTINE_TICKET_DIR`, the `<ticket-dir>` argument of the refusal
 scripts) and the target root (`TARGET`) — nothing else. It SHALL state
-the precedence when sources conflict (task > target conventions >
+the precedence when sources conflict (task > target conventions, which the briefing's conventions in force sit with >
 calibration > caffeine; earlier manifest topic first among caffeine
 docs), SHALL record TDD evidence under the task's own
 `## Scenario: <label>` headings — the label verbatim as the scenario
@@ -225,6 +227,16 @@ tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
 - **THEN** the analyst emits `## Characterization:` for green-at-birth
   pins and the developer routes such scenarios to the ordinary suite by
   name
+
+#### Scenario: The developer reads its slice's briefing
+- **WHEN** the developer agent file is read
+- **THEN** its closed context list admits the task's own `briefing.md`
+  and ranks its conventions with the target's own
+
+#### Scenario: The briefing carries the conventions in force
+- **WHEN** the analyst agent file is read
+- **THEN** it requires each briefing to carry the conventions in force
+  for its slice
 
 ### Requirement: Agent files register as subagents
 `agents/analyst.md`, `agents/developer.md`, and `agents/scout.md` SHALL
