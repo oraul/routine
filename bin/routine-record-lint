@@ -1,0 +1,97 @@
+#!/usr/bin/env bash
+# routine-script: routine-record-lint
+# routine-description: A release record's form as exit codes — both sections present, no section silently empty, every entry evidenced, and the one check that catches a false Caffeine claim
+# routine-usage: routine-record-lint <file>
+# routine-exit: 0 — the record is well-formed
+# routine-exit: 1 — violations found — each names the file and the rule
+# routine-exit: 2 — usage — no file argument, or the named file does not exist
+# routine-test: test/record_lint.bats
+# Two sections, because routine has exactly two mechanisms: Caffeine is
+# knowledge loaded into future work, Gate is a decision made by an exit
+# code. Form checks only, pure grep/awk: both sections present, no
+# section left silently empty (the '- none — <why>' floor applies), and
+# every entry carries an 'evidence:' line. One clause catches a false
+# claim rather than a malformed one: a Caffeine entry naming
+# 'topic: <ns>/<name>' must resolve to a real caffeine/<ns>/<name>.{sh,md}
+# pair, reusing the resolver routine-spec-lint applies to task manifests
+# (lib/caffeine.sh) rather than growing a second implementation. Whether
+# a lesson is true, its evidence sound, or a section honest: no script
+# here can decide that.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/caffeine.sh"
+
+file="${1:-}"
+if [ -z "$file" ] || [ ! -f "$file" ]; then
+  echo "usage: routine-record-lint <file>" >&2
+  exit 2
+fi
+
+caffeine_root="$(routine_root)/caffeine"
+
+fails=0
+fail() { echo "record-lint: $1: $2" >&2; fails=$((fails + 1)); }
+
+_rl_tab="$(printf '\t')"
+
+for _rl_sec in Caffeine Gate; do
+  if ! grep -q "^## $_rl_sec" "$file"; then
+    fail "$file" "missing '## $_rl_sec' section"
+    continue
+  fi
+
+  if ! awk -v s="$_rl_sec" '$0 ~ "^## " s {a=1; next} a && /^#/ {a=0} a && /^- / {found=1} END {exit !found}' "$file"; then
+    fail "$file" "'## $_rl_sec' is empty — record at least one entry, or '- none — <why nothing qualifies>'"
+    continue
+  fi
+
+  # One line per entry: label, whether an 'evidence:' line was seen, the
+  # 'none' floor flag, and the 'topic:' value if any. A new top-level
+  # bullet ('- ' at column 0) starts an entry; every other non-blank line
+  # in the section is a field of the entry above it.
+  _rl_entries="$(awk -v s="$_rl_sec" '
+    $0 ~ "^## " s { insec=1; next }
+    insec && /^#/ { insec=0 }
+    insec && /^- / {
+      if (label != "") print label "\t" has_ev "\t" is_floor "\t" topic
+      label = $0
+      sub(/^- /, "", label)
+      has_ev = 0
+      topic = ""
+      is_floor = (label ~ /^none — /) ? 1 : 0
+      next
+    }
+    insec && NF {
+      line = $0
+      sub(/^[ \t]+/, "", line)
+      if (line ~ /^evidence: .+/) has_ev = 1
+      if (line ~ /^topic: /) { t = line; sub(/^topic: /, "", t); topic = t }
+    }
+    END { if (label != "") print label "\t" has_ev "\t" is_floor "\t" topic }
+  ' "$file")"
+
+  while IFS="$_rl_tab" read -r _rl_label _rl_has_ev _rl_is_floor _rl_topic; do
+    [ -n "$_rl_label" ] || continue
+    if [ "$_rl_is_floor" != 1 ] && [ "$_rl_has_ev" != 1 ]; then
+      fail "$file" "'## $_rl_sec' entry '$_rl_label' has no evidence: line"
+    fi
+    if [ "$_rl_sec" = Caffeine ] && [ "$_rl_is_floor" != 1 ] && [ -n "$_rl_topic" ]; then
+      if ! caffeine_topic_resolves "$caffeine_root" "$_rl_topic"; then
+        _rl_available="$(caffeine_topic_list "$caffeine_root")"
+        fail "$file" "Caffeine entry '$_rl_label' names topic '$_rl_topic' which resolves to no caffeine/$_rl_topic.{sh,md}; available topics: ${_rl_available:-none}"
+      fi
+    fi
+  done <<EOF
+$_rl_entries
+EOF
+done
+
+if [ "$fails" -gt 0 ]; then
+  echo "record-lint: $fails violation(s)" >&2
+  exit 1
+fi
+echo "record-lint: ok"
+exit 0

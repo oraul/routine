@@ -13,6 +13,8 @@ set -u
 
 # shellcheck source=/dev/null
 . "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/caffeine.sh"
 
 start_ms="$(routine_now_ms)"
 
@@ -167,10 +169,9 @@ for bdir in "$ticket"/briefings/*/; do
           "- "*)
             manifest_topics=$((manifest_topics + 1))
             topic="${mline#- }"
-            if [ ! -f "$caffeine_root/$topic.sh" ] && [ ! -f "$caffeine_root/$topic.md" ]; then
+            if ! caffeine_topic_resolves "$caffeine_root" "$topic"; then
               # Refusals teach: name the vocabulary, not just the miss.
-              available="$(find "$caffeine_root" -mindepth 2 -maxdepth 2 -name '*.md' 2>/dev/null \
-                | sed "s|^$caffeine_root/||; s|\.md$||" | sort | tr '\n' ' ')"
+              available="$(caffeine_topic_list "$caffeine_root")"
               fail "$t/task.md" "manifest topic '$topic' resolves to no caffeine/$topic.{sh,md}; available topics: ${available:-none}"
             fi
             ;;

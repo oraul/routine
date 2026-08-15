@@ -1,6 +1,6 @@
 ## 1. The record lint
 
-- [ ] 1.1 Red→green: `bin/routine-record-lint <file>` refuses a record
+- [x] 1.1 Red→green: `bin/routine-record-lint <file>` refuses a record
       missing either section, a section left silently empty, an entry
       with no `evidence:` line, and a Caffeine entry whose
       `topic: <ns>/<name>` resolves to no `caffeine/` pair; it reports
