@@ -57,6 +57,17 @@ if [ -n "$(git -C "$root" status --porcelain)" ]; then
   finish 1
 fi
 
+record="$root/evidence/$tag.md"
+if [ ! -f "$record" ]; then
+  echo "routine-release-check: no release record at evidence/$tag.md" >&2
+  finish 1
+fi
+if ! lint_out="$("$(cd "$(dirname "$0")" && pwd)/routine-record-lint" "$record" 2>&1)"; then
+  echo "routine-release-check: release record rejected" >&2
+  printf '%s\n' "$lint_out" >&2
+  finish 1
+fi
+
 if ! "$root/bin/routine-selfcheck"; then
   echo "routine-release-check: selfcheck is red" >&2
   finish 1

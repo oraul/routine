@@ -1,6 +1,6 @@
 ## 1. The gate demands the record
 
-- [ ] 1.1 Red→green: `routine-release-check vX.Y.Z` refuses when
+- [x] 1.1 Red→green: `routine-release-check vX.Y.Z` refuses when
       `evidence/<tag>.md` is absent, and refuses when it exists but
       `routine-record-lint` rejects it — relaying the lint's own output
       rather than restating the rule, so the reason names the violated
