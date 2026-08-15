@@ -57,8 +57,33 @@ If sensitive data is committed by accident, do not just remove it in a follow-up
   evidence from real-project runs proves the operational loop end to end.
 - **Gate before tag, always**: `bin/routine-release-check vX.Y.Z` must exit
   0 (semver format, manifest match, clean worktree on main, green
-  selfcheck). Tag annotated, from the commit the gate blessed; the GitHub
+  selfcheck, and a well-formed release record). Tag annotated, from the
+  commit the gate blessed; the GitHub
   Release description states the headline capabilities since the last tag.
+- **Every release carries a record**, at `evidence/<tag>.md` — the gate
+  refuses without it, so this is a condition and not a courtesy. Two
+  sections, named for routine's two mechanisms:
+  - `## Caffeine` — what improved. Per entry: the lesson, an `evidence:`
+    line for why it is real, and where it now lives. A `topic: <ns>/<name>`
+    destination must resolve to a real `caffeine/` pair; claiming
+    knowledge was inherited when nothing inherited it is the one false
+    claim the lint can catch.
+  - `## Gate` — what the rails do not catch, **including what got worse**.
+    Per entry: the claim, its `evidence:`, and the script that would
+    decide it. Something that got worse with nothing stopping it is a
+    missing gate, not a lament.
+
+  Neither section may be silently empty: the floor is
+  `- none — <why nothing qualifies>`, so a release that improved nothing
+  says so out loud. **The tag names the file** — a well-formed record for
+  the previous release cannot satisfy this one.
+
+  The gate decides *form*, never *truth*. Whether a lesson is real,
+  whether its evidence supports it, and whether the Gate section is
+  honest about what got worse are judgments no script here can make —
+  the same boundary the grounding lint draws when it enforces line forms
+  and leaves the claims to the author. Check a draft any time with
+  `bin/routine-record-lint evidence/<tag>.md`.
 - **Bump first, trigger second.** The release workflow always gates
   `main` — the `release/vX.Y.Z` branch is a message, not a source. So the
   manifest bump must be **merged to main before** the branch is pushed;

@@ -13,6 +13,6 @@
 
 ## 2. The convention says where it lives
 
-- [ ] 2.1 `CONTRIBUTING.md`'s Releases section states the record's path
+- [x] 2.1 `CONTRIBUTING.md`'s Releases section states the record's path
       (`evidence/<tag>.md`), that the gate refuses without it, and that
       the gate decides form and never truth
