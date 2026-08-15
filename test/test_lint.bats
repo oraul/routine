@@ -168,6 +168,76 @@ lint() {
   [[ "$body_line" != *"(naming rule)"* ]]
 }
 
+# why: `! grep -q X "$doc"` passes when $doc does not exist, and so does
+# `! grep -rq X "$dir"/*/FILE.md` when the glob matches nothing. Neither
+# negation has proved the forbidden thing is absent rather than merely
+# unlooked-at, unless the same subject is asserted positively too.
+@test "a negated grep with no positive counterpart proves nothing" {
+  # bang is passed through %s so this file's own source never spells the
+  # literal text "! grep" — spelling it here would trip this very rule
+  # when routine-test-lint scans its own suite, the same trap a heredoc's
+  # column-0 @test sets for the naming pass.
+  bang='!'
+  printf '@test "a claim about text missing from a lonely file" {\n  doc="$BATS_TEST_TMPDIR/lonely.txt"\n  %s grep -q "forbidden" "$doc"\n}\n' \
+    "$bang" > "$CORPUS/a.bats"
+  lint
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"a.bats"* ]]
+  [[ "$output" == *"a claim about text missing from a lonely file"* ]]
+  [[ "$output" == *"(pairing rule)"* ]]
+}
+
+@test "a positive assertion on the same subject pairs the negation" {
+  bang='!'
+  printf '@test "a claim about required and forbidden text together" {\n  doc="$BATS_TEST_TMPDIR/lonely.txt"\n  grep -q "required" "$doc"\n  %s grep -q "forbidden" "$doc"\n}\n' \
+    "$bang" > "$CORPUS/a.bats"
+  lint
+  [ "$status" -eq 0 ]
+}
+
+@test "a positive assertion on a different subject leaves it unpaired" {
+  bang='!'
+  printf '@test "a claim about one file while negating another" {\n  a="$BATS_TEST_TMPDIR/a.txt"\n  b="$BATS_TEST_TMPDIR/b.txt"\n  grep -q "ok" "$a"\n  %s grep -q "bad" "$b"\n}\n' \
+    "$bang" > "$CORPUS/a.bats"
+  lint
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"a claim about one file while negating another"* ]]
+  [[ "$output" == *"(pairing rule)"* ]]
+}
+
+# why: bats always defines $output after `run`, so a negation against it
+# can never pass merely because $output was absent — the exemption is a
+# subject test, not a filename or suite carve-out.
+@test "a negation against the bats output handle is exempt from pairing" {
+  bang='!'
+  printf '@test "a claim that the captured run produced no error text" {\n  run true\n  %s grep -q "error" "$output"\n}\n' \
+    "$bang" > "$CORPUS/a.bats"
+  lint
+  [ "$status" -eq 0 ]
+}
+
+@test "the pairing rule is tagged apart from naming and body rules" {
+  bang='!'
+  printf '@test "it works right" {\n  [ "$status" -eq 0 ]\n}\n' > "$CORPUS/a.bats"
+  printf '@test "a clean name that touches nothing testable at all" {\n  x=1\n}\n' \
+    > "$CORPUS/b.bats"
+  printf '@test "a claim about text absent from an unpaired file" {\n  doc="$BATS_TEST_TMPDIR/only.txt"\n  %s grep -q "x" "$doc"\n}\n' \
+    "$bang" > "$CORPUS/c.bats"
+  lint
+  [ "$status" -eq 1 ]
+  naming_line="$(printf '%s\n' "$output" | grep "it works right")"
+  body_line="$(printf '%s\n' "$output" | grep "touches nothing testable at all")"
+  pairing_line="$(printf '%s\n' "$output" | grep "absent from an unpaired file")"
+  [[ "$naming_line" == *"(naming rule)"* ]]
+  [[ "$naming_line" != *"(body rule)"* ]]
+  [[ "$naming_line" != *"(pairing rule)"* ]]
+  [[ "$body_line" == *"(body rule)"* ]]
+  [[ "$body_line" != *"(pairing rule)"* ]]
+  [[ "$pairing_line" == *"(pairing rule)"* ]]
+  [[ "$pairing_line" != *"(naming rule)"* ]]
+  [[ "$pairing_line" != *"(body rule)"* ]]
+}
+
 @test "the repository's own suite satisfies the lint" {
   run "$ROUTINE_REPO_ROOT/bin/routine-test-lint" "$ROUTINE_REPO_ROOT/test"
   [ "$status" -eq 0 ]
@@ -176,4 +246,25 @@ lint() {
 @test "a missing corpus directory is a usage error" {
   run "$ROUTINE_REPO_ROOT/bin/routine-test-lint" "$BATS_TEST_TMPDIR/absent"
   [ "$status" -eq 2 ]
+}
+
+# why: gate.bats writes "$tdir/gate.log" as its fixture, then negates a
+# grep on it. The subject provably exists, so the negation cannot be
+# vacuous — a write establishes a subject exactly as an assertion does.
+@test "a fixture write establishes the negated subject" {
+  printf '@test "the log starts clean each run" {\n' > "$CORPUS/a.bats"
+  printf '  printf %%s stale > "$tdir/gate.log"\n' >> "$CORPUS/a.bats"
+  printf '  ! grep -q stale "$tdir/gate.log"\n}\n' >> "$CORPUS/a.bats"
+  lint
+  [ "$status" -eq 0 ]
+}
+
+# why: tdd.bats disjoins on existence — [ ! -f "$f" ] || ! grep -q x "$f"
+# — which is the author handling vacuity explicitly. A negated -f is still
+# an existence test, so it pairs.
+@test "an existence test pairs even when it is negated" {
+  printf '@test "no record survives a rejected scenario" {\n' > "$CORPUS/a.bats"
+  printf '  [ ! -f "$t/telemetry.jsonl" ] || ! grep -q red "$t/telemetry.jsonl"\n}\n' >> "$CORPUS/a.bats"
+  lint
+  [ "$status" -eq 0 ]
 }

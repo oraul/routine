@@ -48,6 +48,154 @@ has_expectation() {
     -e 'assert' -e 'refute' -e '-eq' -e '-ne' -e '! '
 }
 
+# The pairing gate: `! grep -q X "$doc"` passes when $doc does not exist,
+# and so does `! grep -rq X "$dir"/*/FILE.md` when the glob matches
+# nothing. Neither has proved the forbidden thing absent rather than
+# merely unlooked-at, so a negated grep is only trusted when the same
+# body also asserts something positive about the same subject.
+#
+# The subject is the file/glob argument a negated grep line reads: the
+# last shell word of the line, up to (but not through) a real unquoted
+# pipe. A doubled pipe (||, the OR operator) is not a pipe boundary and
+# is skipped so scanning continues past it; a single pipe (real command
+# piping) ends the scan, since the file argument for the clause under
+# test is whatever came before it. Quoting is tracked so a `|` living
+# inside a quoted pattern (an alternation like 'admin|packages') is never
+# mistaken for either.
+pairing_subject() {
+  printf '%s\n' "$1" | awk -v SQ="'" '
+  {
+    line = $0
+    n = length(line)
+    sq = 0; dq = 0
+    buf = ""
+    lastword = ""
+    stop = 0
+    i = 1
+    while (i <= n && !stop) {
+      c = substr(line, i, 1)
+      if (sq) {
+        if (c == SQ) sq = 0
+        buf = buf c
+        i++
+        continue
+      }
+      if (dq) {
+        if (c == "\"") dq = 0
+        buf = buf c
+        i++
+        continue
+      }
+      if (c == SQ) { sq = 1; buf = buf c; i++; continue }
+      if (c == "\"") { dq = 1; buf = buf c; i++; continue }
+      if (c == "|") {
+        nc = (i < n) ? substr(line, i + 1, 1) : ""
+        if (nc == "|") {
+          if (buf != "") { lastword = buf; buf = "" }
+          i += 2
+          continue
+        }
+        if (buf != "") { lastword = buf; buf = "" }
+        stop = 1
+        continue
+      }
+      if (c == " " || c == "\t") {
+        if (buf != "") { lastword = buf; buf = "" }
+        i++
+        continue
+      }
+      buf = buf c
+      i++
+    }
+    if (buf != "") lastword = buf
+    print lastword
+  }'
+}
+
+# A body line is a candidate negated-grep assertion when a `!` is
+# followed by whitespace then the word "grep" — never anchored to line
+# start, since the real corpus carries `[ ! -f X ] || ! grep -q Y X` as
+# one line, and the bang guarding the grep sits mid-line.
+is_negated_grep() {
+  printf '%s\n' "$1" | grep -Eq '! +grep($|[^a-zA-Z])'
+}
+
+# A candidate protector line: names the same subject, carries some
+# expectation token, and is not itself a negation of that same subject
+# (another negated grep, or a negated unary test like `! -f`) — two
+# negatives about one subject still prove nothing was ever looked at.
+is_positive_for_subject() {
+  line="$1"; subject="$2"
+  printf '%s\n' "$line" | grep -Fq -- "$subject" || return 1
+
+  # A body that BUILDS the subject has established it as surely as one
+  # that asserts on it: a fixture write proves the file is there, so the
+  # negation that follows cannot be reading an absence.
+  printf '%s\n' "$line" | grep -Eq \
+    "(>>?|cp |mv |touch |mkdir |tee )[^|]*$(printf '%s' "$subject" \
+      | sed 's/[][\.*^$/]/\\&/g')" && return 0
+
+  # An existence test pairs even when negated. `[ ! -f "$f" ] || ! grep -q
+  # x "$f"` is the author handling vacuity on purpose — the disjunction
+  # says "absent, or present without the forbidden thing", which is the
+  # very distinction this rule exists to force.
+  printf '%s\n' "$line" | grep -Eq '\[ *!? *-[a-zA-Z] ' && return 0
+
+  printf '%s\n' "$line" | grep -Fq \
+    -e '[ ' -e '[[' -e 'grep' -e 'diff ' -e 'assert' -e 'refute' \
+    -e '-eq' -e '-ne' || return 1
+  is_negated_grep "$line" && return 1
+  printf '%s\n' "$line" | grep -Eq '! +-[a-zA-Z]($|[^a-zA-Z])' && return 1
+  return 0
+}
+
+# $output is exempt by what it is, not by which file or suite asks: bats
+# always defines it once `run` has executed, so a negation against it can
+# never be vacuous the way a file or glob subject can.
+is_exempt_subject() {
+  # shellcheck disable=SC2016 # literal source text, deliberately unexpanded
+  case "$1" in
+    '"$output"' | '$output') return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+check_pairing() {
+  pf="$1"; pname="$2"; pbody="$3"
+  while IFS= read -r pline; do
+    is_negated_grep "$pline" || continue
+    subj="$(pairing_subject "$pline")"
+    [ -n "$subj" ] || continue
+    is_exempt_subject "$subj" && continue
+
+    # A line can pair itself. `[ ! -f "$f" ] || ! grep -q x "$f"` carries
+    # both halves: the disjunction says "absent, or present without the
+    # forbidden thing", which is precisely the distinction this rule
+    # exists to force. Checked before the scan, which skips this line.
+    if printf '%s\n' "$pline" | grep -Eq '\[ *!? *-[a-zA-Z] '; then
+      continue
+    fi
+
+    paired=1
+    while IFS= read -r other; do
+      [ "$other" = "$pline" ] && continue
+      if is_positive_for_subject "$other" "$subj"; then
+        paired=0
+        break
+      fi
+    done <<PBODY
+$pbody
+PBODY
+
+    if [ "$paired" -eq 1 ]; then
+      report "$pf" "$pname" \
+        "negates $subj with no positive assertion on the same subject; absent and merely-unlooked-at both pass (pairing rule)"
+    fi
+  done <<PBODY2
+$pbody
+PBODY2
+}
+
 for file in "$dir"/*.bats; do
   [ -f "$file" ] || continue
 
@@ -110,6 +258,9 @@ EOF
       '@@TL_END@@')
         if [ "$in_body" -eq 1 ] && ! has_expectation "$body"; then
           report "$file" "$body_name" "asserts nothing; add an expectation token (body rule)"
+        fi
+        if [ "$in_body" -eq 1 ]; then
+          check_pairing "$file" "$body_name" "$body"
         fi
         in_body=0
         ;;

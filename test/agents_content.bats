@@ -153,6 +153,7 @@ load test_helper
 @test "no skill declares a model for the driving session" {
   # The driver is the human's own session: routine can neither enforce nor
   # verify a tier there, so it declares none.
+  [ -n "$(ls "$ROUTINE_REPO_ROOT"/skills/*/SKILL.md 2>/dev/null)" ]
   ! grep -rq '^model:' "$ROUTINE_REPO_ROOT"/skills/*/SKILL.md
 }
 
