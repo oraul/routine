@@ -178,6 +178,46 @@ GRD
   case "$output" in *01-login/task.md*"## Scenario:"*) ;; *) false ;; esac
 }
 
+@test "a characterization heading satisfies the scenario requirement" {
+  make_good_ticket
+  printf '%s\n' '# Task: login form' '## Characterization: baseline pin' \
+    '- Given the current behavior' '- When the pin runs' '- Then it captures baseline' \
+    '## Acceptance' '1. the pin passes' '## Caffeine' '- ruby/rails' \
+    > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -eq 0 ]
+}
+
+@test "both a scenario and characterization heading together pass" {
+  make_good_ticket
+  printf '%s\n' '# Task: login form' '## Scenario: submit' '- Given a' '- When b' '- Then c' \
+    '## Characterization: baseline pin' '- Given the current behavior' '- When the pin runs' \
+    '- Then it captures baseline' '## Acceptance' '1. works' '## Caffeine' '- ruby/rails' \
+    > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -eq 0 ]
+}
+
+@test "a task with neither heading form fails naming the rule" {
+  make_good_ticket
+  printf '%s\n' '# Task: login form' '- Given a' '- When b' '- Then c' \
+    '## Acceptance' '1. works' '## Caffeine' '- ruby/rails' \
+    > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *"## Scenario:"*"## Characterization:"*) ;; *) false ;; esac
+}
+
+@test "the given when then grammar is enforced under a characterization heading" {
+  make_good_ticket
+  printf '%s\n' '# Task: login form' '## Characterization: baseline pin' \
+    '## Acceptance' '1. the pin passes' '## Caffeine' '- ruby/rails' \
+    > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *"Given/When/Then"*) ;; *) false ;; esac
+}
+
 @test "an empty manifest fails naming the floor" {
   make_good_ticket
   printf '%s\n' '# Task: login form' '## Scenario: submit' '- Given a' '- When b' '- Then c' \

@@ -1,6 +1,6 @@
 ## 1. The grammar admits the second heading
 
-- [ ] 1.1 Red→green: `routine-spec-lint` accepts
+- [x] 1.1 Red→green: `routine-spec-lint` accepts
       `## Characterization: <label>` headings; a task satisfies the
       scenario requirement with at least one heading of either kind,
       and a task with neither still fails naming the rule
