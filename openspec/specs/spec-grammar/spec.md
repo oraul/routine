@@ -22,6 +22,7 @@ applies to any task, so a topicless manifest is unconsidered, not
 inapplicable. It SHALL apply the type-specific structure rules of the
 calibration and contract capabilities. It SHALL exit 0 only when every
 check passes.
+`routine-spec-lint` SHALL resolve its caffeine root through `routine_root()` rather than from the script's own installation directory, so the manifest-resolution check can be exercised against a fixture corpus — Law 6 names that testability as the reason a hardcoded state path is a bug, and a hardcoded root is self-concealing because the path it breaks is the one a test would need in order to break it.
 
 #### Scenario: Well-formed ticket passes
 - **WHEN** a ticket satisfies every grammar rule
@@ -58,6 +59,12 @@ check passes.
   `## Scenario:` heading
 - **THEN** the lint accepts it, and a task with neither heading still
   fails naming the rule
+
+#### Scenario: A fixture root redirects manifest resolution
+- **WHEN** `ROUTINE_ROOT` names a fixture tree whose `caffeine/` holds a
+  topic absent from the real corpus
+- **THEN** a task manifest naming that topic resolves, and one naming a
+  topic present only in the real corpus does not
 
 ### Requirement: Lint failures name file and rule
 Every lint failure SHALL print the offending file path and the violated rule;
