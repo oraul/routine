@@ -169,6 +169,67 @@ GRD
   [ "$status" -eq 0 ]
 }
 
+# A ticket whose sole manifest topic is the caller's choice — used to pin
+# manifest resolution against a redirected ROUTINE_ROOT (Law 6: a
+# hardcoded caffeine root can never be pointed at a fixture).
+make_ticket_naming_topic() {
+  ticket="$BATS_TEST_TMPDIR/0001"
+  mkdir -p "$ticket/briefings/01-auth/tasks/01-login"
+  cat > "$ticket/requirement.md" <<'EOF'
+# Requirement: Login
+Type: feature
+The system SHALL let users log in.
+## Touchpoints
+- app/models/user.rb
+EOF
+  cat > "$ticket/briefings/01-auth/briefing.md" <<'EOF'
+# Briefing: auth
+Covers login.
+EOF
+  printf '%s\n' '# Task: login form' '## Scenario: submit' '- Given a' '- When b' '- Then c' \
+    '## Acceptance' '1. works' '## Caffeine' "- $1" \
+    > "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  cat > "$ticket/grounding.md" <<'GRD'
+# Grounding: 0001
+Grounded-at: 0123456789abcdef0123456789abcdef01234567
+
+## Evidence
+- app/models/user.rb — the touchpoint the feature extends
+
+## Alternatives
+- single-task shape rejected: form and session split cleanly
+
+## Assumptions
+- local auth only; no SSO in scope
+GRD
+}
+
+# A fixture caffeine root holding exactly one topic, absent from the real
+# corpus.
+make_fixture_root() {
+  froot="$BATS_TEST_TMPDIR/fixture-root"
+  mkdir -p "$froot/caffeine/fixture"
+  cat > "$froot/caffeine/fixture/only.md" <<'EOF'
+# caffeine: fixture/only
+Present only in this fixture tree, never in the real corpus.
+EOF
+}
+
+@test "a topic present only in the fixture root resolves under ROUTINE_ROOT" {
+  make_fixture_root
+  make_ticket_naming_topic "fixture/only"
+  run env ROUTINE_ROOT="$froot" "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -eq 0 ]
+}
+
+@test "a topic present only in the real corpus is refused under ROUTINE_ROOT" {
+  make_fixture_root
+  make_ticket_naming_topic "ruby/rails"
+  run env ROUTINE_ROOT="$froot" "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *"ruby/rails"*"resolves to no"*) ;; *) false ;; esac
+}
+
 @test "a task without a scenario label fails" {
   make_good_ticket
   sed -i.bak '/^## Scenario: submit/d' "$ticket/briefings/01-auth/tasks/01-login/task.md"
