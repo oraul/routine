@@ -37,8 +37,8 @@ fails=0
 exit "$fails"
 EOF
   chmod +x "$sroot/bin/routine-widget" "$sroot/bin/routine-verdict"
-  printf '@test "routine-widget runs" { true; }\n' > "$sroot/test/widget.bats"
-  printf '@test "routine-verdict runs" { true; }\n' > "$sroot/test/verdict.bats"
+  printf '@test "routine-widget runs and prints ok" { true; }\n' > "$sroot/test/widget.bats"
+  printf '@test "routine-verdict exits on its count" { true; }\n' > "$sroot/test/verdict.bats"
 }
 
 lint() {
@@ -101,7 +101,7 @@ lint() {
   lint
   [ "$status" -ne 0 ]
   case "$output" in *routine-widget*widget.bats*) ;; *) false ;; esac
-  printf '@test "something else" { true; }\n' > "$sroot/test/widget.bats"
+  printf '@test "the suite claims something unrelated" { true; }\n' > "$sroot/test/widget.bats"
   lint
   [ "$status" -ne 0 ]
   case "$output" in *routine-widget*widget.bats*) ;; *) false ;; esac

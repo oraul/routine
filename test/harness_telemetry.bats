@@ -14,7 +14,7 @@ make_fixture() {
     '# routine-test: test/pass.bats' \
     'printf ok' > "$fixture/bin/good"
   chmod +x "$fixture/bin/good"
-  printf '%s\n' '@test "good passes" { true; }' > "$fixture/test/pass.bats"
+  printf '%s\n' '@test "the good fixture script passes" { true; }' > "$fixture/test/pass.bats"
   tgt="$BATS_TEST_TMPDIR/app"
   mkdir -p "$tgt"
   git -C "$tgt" -c init.defaultBranch=main init -q
