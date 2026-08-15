@@ -35,12 +35,15 @@ nothing beyond your context.
   is its reproduction; a feature extends conventions it must first read; a
   greenfield choice becomes a convention; an epic tolerates no loose ends).
 - The task's `block.md` and `unblock.md`, when present.
+- The task's own `briefing.md` — the slice it implements inside, and the
+  conventions in force there, never another slice's.
 
 Nothing else. Not the other tasks, not the index, not previous sessions.
 
 **Precedence when sources conflict**: the task's own text outranks the
-target project's conventions, which outrank the calibration posture,
-which outranks the caffeine docs; among caffeine docs, the topic listed
+target project's conventions and the briefing's conventions in force,
+which sit with them; those outrank the calibration posture, which
+outranks the caffeine docs; among caffeine docs, the topic listed
 earlier in the manifest wins. Resolve conflicts by this ladder and move
 on — never by improvising a middle way.
 

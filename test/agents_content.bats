@@ -201,3 +201,21 @@ load test_helper
   grep -q '## Characterization:' "$dev"
   grep -q 'routine-tdd red' "$dev"
 }
+
+@test "the developer's closed list admits its own briefing" {
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -q 'briefing.md' "$dev"
+  grep -q 'conventions in force' "$dev"
+  grep -qi 'never another slice' "$dev"
+}
+
+@test "the briefing's conventions rank with the target's own" {
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -q 'sit with' "$dev"
+}
+
+@test "the analyst's briefing carries the conventions in force" {
+  ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -q 'briefing.md' "$ana"
+  grep -q 'conventions in force' "$ana"
+}
