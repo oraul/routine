@@ -59,7 +59,7 @@ add_bad() {
 
 @test "failing bats suite exits non-zero" {
   make_fixture
-  printf '%s\n' '@test "fails" { false; }' > "$fixture/test/fail.bats"
+  printf '%s\n' '@test "the fixture suite fails on purpose" { false; }' > "$fixture/test/fail.bats"
   run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-selfcheck"
   [ "$status" -ne 0 ]
 }
@@ -72,4 +72,13 @@ add_bad() {
   [ "$status" -ne 0 ]
   case "$output" in *script-lint*naked*) ;; *) false ;; esac
   case "$output" in *"shellcheck failed"*) false ;; *) ;; esac
+}
+
+@test "a nameless claim aborts before the suite" {
+  make_fixture
+  printf '%s\n' '@test "it works" { true; }' > "$fixture/test/bad.bats"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-selfcheck"
+  [ "$status" -ne 0 ]
+  case "$output" in *test-lint*"it works"*) ;; *) false ;; esac
+  [ ! -f "$fixture/tests-ran" ]
 }

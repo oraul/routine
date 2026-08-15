@@ -46,7 +46,7 @@ EOF
 
 Judgment about shapes.
 EOF
-  printf '@test "placeholder" { true; }\n' > "$lroot/test/caffeine_ruby_widget.bats"
+  printf '@test "the widget topic carries a placeholder test" { true; }\n' > "$lroot/test/caffeine_ruby_widget.bats"
 }
 
 lint() {

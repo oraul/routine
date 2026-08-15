@@ -7,5 +7,5 @@
 
 ## 2. The harness runs it
 
-- [ ] 2.1 Red→green: `bin/routine-selfcheck` runs the naming lint before
+- [x] 2.1 Red→green: `bin/routine-selfcheck` runs the naming lint before
       the suite, so a bad name stops CI the way a bad contract does

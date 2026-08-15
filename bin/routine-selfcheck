@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # routine-script: routine-selfcheck
-# routine-description: Harness integrity gate: caffeine lint, script lint, shellcheck, then the full bats suite
+# routine-description: Harness integrity gate: caffeine lint, script lint, shellcheck, test naming, then the full bats suite
 # routine-exit: 0 — all stages green
 # routine-exit: 1 — a stage failed — its output is the reason
 # routine-test: test/selfcheck.bats
@@ -53,6 +53,13 @@ if [ "${#scripts[@]}" -gt 0 ]; then
     echo "routine-selfcheck: shellcheck failed" >&2
     finish 1
   fi
+fi
+
+# A test whose name states no claim fails before the suite runs: the name
+# is what a failure prints, so a nameless claim is unreadable evidence.
+if ! "$(cd "$(dirname "$0")" && pwd)/routine-test-lint" "$root/test"; then
+  echo "routine-selfcheck: test naming contract violated" >&2
+  finish 1
 fi
 
 if ! bats "$root/test"; then
