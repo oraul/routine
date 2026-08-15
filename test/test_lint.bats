@@ -210,7 +210,7 @@ lint() {
 # subject test, not a filename or suite carve-out.
 @test "a negation against the bats output handle is exempt from pairing" {
   bang='!'
-  printf '@test "a claim that the captured run produced no error text" {\n  run true\n  %s grep -q "error" "$output"\n}\n' \
+  printf '@test "a claim that the captured run produced no error text" {\n  run true\n  [ "$status" -eq 0 ]\n  %s grep -q "error" "$output"\n}\n' \
     "$bang" > "$CORPUS/a.bats"
   lint
   [ "$status" -eq 0 ]
@@ -265,6 +265,28 @@ lint() {
 @test "an existence test pairs even when it is negated" {
   printf '@test "no record survives a rejected scenario" {\n' > "$CORPUS/a.bats"
   printf '  [ ! -f "$t/telemetry.jsonl" ] || ! grep -q red "$t/telemetry.jsonl"\n}\n' >> "$CORPUS/a.bats"
+  lint
+  [ "$status" -eq 0 ]
+}
+
+# why: pair-negative-assertions exempted $output on the grounds that bats
+# always defines it. Defined is not non-empty — a crashed command leaves
+# it empty and a negated grep over an empty string passes, which is the
+# very failure that rule exists to catch.
+@test "a negation on output needs a status assertion" {
+  printf '@test "the queue omits the blocked line" {\n' > "$CORPUS/a.bats"
+  printf '  run some-command\n' >> "$CORPUS/a.bats"
+  printf '  ! printf %%s "$output" | grep -q blocked\n}\n' >> "$CORPUS/a.bats"
+  lint
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"the queue omits the blocked line"* ]]
+}
+
+@test "a status assertion pairs a negation on output" {
+  printf '@test "the queue omits the blocked line" {\n' > "$CORPUS/a.bats"
+  printf '  run some-command\n' >> "$CORPUS/a.bats"
+  printf '  [ "$status" -eq 0 ]\n' >> "$CORPUS/a.bats"
+  printf '  ! printf %%s "$output" | grep -q blocked\n}\n' >> "$CORPUS/a.bats"
   lint
   [ "$status" -eq 0 ]
 }

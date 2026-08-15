@@ -117,7 +117,13 @@ pairing_subject() {
 # start, since the real corpus carries `[ ! -f X ] || ! grep -q Y X` as
 # one line, and the bang guarding the grep sits mid-line.
 is_negated_grep() {
-  printf '%s\n' "$1" | grep -Eq '! +grep($|[^a-zA-Z])'
+  # The bang may guard the grep directly (`! grep -q X "$doc"`) or guard a
+  # pipeline that ends in one (`! printf '%s' "$output" | grep -q X`).
+  # Both are negated greps and both pass when the subject is empty or
+  # absent, so both are candidates. `! -f` is a unary test, not a command,
+  # which is why the bang must be followed by a letter.
+  printf '%s\n' "$1" | grep -Eq '! +[a-zA-Z_]' || return 1
+  printf '%s\n' "$1" | grep -q 'grep'
 }
 
 # A candidate protector line: names the same subject, carries some
@@ -149,24 +155,45 @@ is_positive_for_subject() {
   return 0
 }
 
-# $output is exempt by what it is, not by which file or suite asks: bats
-# always defines it once `run` has executed, so a negation against it can
-# never be vacuous the way a file or glob subject can.
+# $output is exempt only when the body proves the command reached a known
+# conclusion. bats always DEFINES $output after `run`; it does not always
+# leave it NON-EMPTY. A crashed command leaves it empty, and a negated
+# grep over an empty string passes — reporting the forbidden thing absent
+# when in truth nothing ran. Asserting $status is what rules that out, so
+# $status is the pairing partner for $output exactly as an existence test
+# is for a file.
 is_exempt_subject() {
   # shellcheck disable=SC2016 # literal source text, deliberately unexpanded
   case "$1" in
-    '"$output"' | '$output') return 0 ;;
+    '"$output"' | '$output') ;;
     *) return 1 ;;
   esac
+  printf '%s\n' "$2" | grep -q 'status' || return 1
+  return 0
+}
+
+# A backslash continuation is one logical line wearing two physical ones.
+# The corpus writes `! printf '%s' "$output" | awk '...' \` and puts the
+# `| grep -q X` on the next line — scanned separately, neither half looks
+# like a negated grep, and the rule would silently never see it.
+join_continuations() {
+  printf '%s\n' "$1" | awk '
+    { line = $0
+      while (line ~ /\\[ \t]*$/ && (getline nxt) > 0) {
+        sub(/\\[ \t]*$/, "", line)
+        sub(/^[ \t]+/, " ", nxt)
+        line = line nxt
+      }
+      print line }'
 }
 
 check_pairing() {
-  pf="$1"; pname="$2"; pbody="$3"
+  pf="$1"; pname="$2"; pbody="$(join_continuations "$3")"
   while IFS= read -r pline; do
     is_negated_grep "$pline" || continue
     subj="$(pairing_subject "$pline")"
     [ -n "$subj" ] || continue
-    is_exempt_subject "$subj" && continue
+    is_exempt_subject "$subj" "$pbody" && continue
 
     # A line can pair itself. `[ ! -f "$f" ] || ! grep -q x "$f"` carries
     # both halves: the disjunction says "absent, or present without the

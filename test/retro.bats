@@ -128,6 +128,9 @@ T
 @test "script failures name scripts, never scenario labels" {
   make_expected_exits
   run env ROUTINE_ROOT="$eroot" "$ROUTINE_REPO_ROOT/bin/routine-retro"
+  # why: without this, a crashed retro leaves $output empty and the
+  # negation below passes — reporting the label absent when nothing ran.
+  [ "$status" -eq 0 ]
   # The scenario label must not appear in the script-failure section.
   ! printf '%s\n' "$output" | awk '/^script failures:/{a=1;next} /^$/{a=0} a' \
     | grep -q 'bad password'
