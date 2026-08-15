@@ -6,7 +6,7 @@
       rather than restating the rule, so the reason names the violated
       grammar
 
-- [ ] 1.2 Red→green: the record is bound to its tag — a well-formed
+- [x] 1.2 Red→green: the record is bound to its tag — a well-formed
       record for the *previous* tag does not satisfy the current one,
       pinned by a fixture carrying `evidence/v0.1.0.md` while the gate
       is asked for `v0.2.0`

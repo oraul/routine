@@ -99,3 +99,15 @@ make_release_root() {
   [ "$status" -ne 0 ]
   case "$output" in *"missing '## Gate' section"*) ;; *) false ;; esac
 }
+
+@test "previous release's well-formed record does not satisfy the new tag" {
+  make_release_root
+  printf '%s\n' '{' '  "name": "routine",' '  "version": "0.2.0"' '}' \
+    > "$rroot/.claude-plugin/plugin.json"
+  git -C "$rroot" add -A
+  git -C "$rroot" -c user.name=test -c user.email=test@example.invalid \
+    commit -qm "bump version"
+  run env ROUTINE_ROOT="$rroot" "$ROUTINE_REPO_ROOT/bin/routine-release-check" v0.2.0
+  [ "$status" -ne 0 ]
+  case "$output" in *"evidence/v0.2.0.md"*) ;; *) false ;; esac
+}
