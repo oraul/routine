@@ -26,7 +26,7 @@ The conclude phase SHALL state the honest failure road: audit
 violations on a task already marked done cannot be re-evidenced
 (telemetry is script-owned and append-only), so the road is
 `routine-abort` and a fresh ticket, never a rail back. Phase 0 SHALL name the script frontmatter and `routine-manual` as the authoritative contract for every script the protocol calls — consulted, never recalled. When the revising context is fresh, the skill SHALL hand the analyst the surviving record — `grounding.md`, the ticket's `lint.log`, and every `defect.md` — instead of re-running the gate to regenerate it. Phase 0 SHALL resolve state by script: after `routine-scaffold` it runs `routine-health` and branches on its exit code — no active ticket means `routine-ticket-new`, one active ticket is adopted and the run resumes at the phase health derived, and a needs-human exit stops for the human. The skill SHALL NOT infer which ticket is live or where a run stopped. It SHALL state how a run resumes after an interrupted develop phase: re-entry is at `routine-next`, which hands back the same in_progress task, never at preflight; when that task already holds a passing developer gate the move is `routine-done`, since the evidence is on record. It SHALL also name the dirty-target triage — a preflight failing on a dirty target while a task is in_progress is an interrupted develop, whose roads are committing the partial work or resetting it to resume from the recorded red. The interrupted-develop triage SHALL live on the develop phase, the road a resumed run actually travels, and the delegation payload SHALL tell a re-served developer that the target's uncommitted diff is its predecessor's. It SHALL state the driving session's own job — holding the requirement, building each delegation payload, and deciding — and SHALL NOT declare a model for that session: a skill carries no such field and the session is the human's own, so routine can neither enforce nor verify it. It SHALL describe liveness as a property of the record rather than of a timer: a delegation returns or errors, so a caller has no ambient offline state to poll, and a run that appears stalled is diagnosed by `routine-health` and resumed through `routine-next`, which re-serves the interrupted task.
-
+ The specify and develop steps SHALL carry literal payload templates rather than prose descriptions of what to include, because the invariant half of a delegation belongs in a file and only the variable half belongs in the call — the same split `.claude/agents/contributor.md` makes for the development loop. Each template SHALL name resolved absolute paths, since a stateless agent has no working directory it can trust and no environment it inherits. The develop template SHALL pass the task's `briefing.md`, which the developer's closed context list now expects. The specify template SHALL carry the surviving-record handoff for a revise — `grounding.md`, the ticket's `lint.log`, and every `defect.md` — so a rule the skill states in prose is one the driver cannot forget to pass.
 #### Scenario: Protocol present in the skill
 - **WHEN** the skill file is read
 - **THEN** it names the five phases in order, the gate call per transition,
@@ -75,6 +75,16 @@ violations on a task already marked done cannot be re-evidenced
 - **WHEN** the skill file is read
 - **THEN** it routes an agent that appears stalled to `routine-health` and
   `routine-next` rather than to any timeout
+
+#### Scenario: Both delegations carry a literal template
+- **WHEN** the skill file's specify and develop steps are read
+- **THEN** each carries a payload template naming resolved absolute
+  paths rather than a prose description of what to include
+
+#### Scenario: The develop template passes the briefing
+- **WHEN** the develop step's template is read
+- **THEN** it passes the task's `briefing.md`, which the developer's
+  closed context list expects
 
 ### Requirement: The unblock skill captures human context as evidence
 `skills/unblock/SKILL.md` SHALL be human-invoked only and SHALL instruct:

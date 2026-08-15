@@ -219,3 +219,19 @@ load test_helper
   grep -q 'briefing.md' "$ana"
   grep -q 'conventions in force' "$ana"
 }
+
+@test "both delegation steps carry a literal payload template" {
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  awk '/^## 2\./,/^## 3\./' "$skill" | grep -q '```'
+  awk '/^## 4\./,/^## 5\./' "$skill" | grep -q '```'
+}
+
+@test "the develop payload template names the task briefing" {
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  awk '/^## 4\./,/^## 5\./' "$skill" | awk '/^```$/{f=!f; next} f' | grep -q 'briefing.md'
+}
+
+@test "the specify revise payload template names the lint log" {
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  awk '/^## 2\./,/^## 3\./' "$skill" | awk '/^```$/{f=!f; next} f' | grep -q 'lint.log'
+}
