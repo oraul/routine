@@ -129,8 +129,18 @@ baseline_developer() {
     echo "routine-gate: no task is in_progress; run routine-next before the developer gate" >&2
     return 1
   fi
+  _tid="$(printf '%s' "$_row" | cut -f1)"
   _b="$(printf '%s' "$_row" | cut -f2)"
   _t="$(printf '%s' "$_row" | cut -f3)"
+  # The failure budget is counted, never remembered, and the count lives
+  # in lib/episode.sh — one implementation for the gate that spends it
+  # and every reader that reports it. Consecutive since the task's last
+  # passing gate; a pass resets it.
+  _dfails="$(episode_developer_fail_count "$ROUTINE_TICKET_DIR/telemetry.jsonl" "$_tid")"
+  if [ "$_dfails" -gt 3 ]; then
+    echo "routine-gate: developer failure budget exhausted ($_dfails consecutive failing developer gates for $_tid); run routine-defect if the spec is wrong or routine-block if something outside the spec is blocking you" >&2
+    return 1
+  fi
   _taskfile="$ROUTINE_TICKET_DIR/briefings/$_b/tasks/$_t/task.md"
   [ -f "$_taskfile" ] || { echo "routine-gate: missing $_taskfile" >&2; return 1; }
   _topics="$(awk '/^## Caffeine/ {a=1; next} a && /^#/ {a=0} a && /^- / {print substr($0, 3)}' "$_taskfile")"

@@ -83,11 +83,12 @@ failing command's exit. Keep to the target project's own tooling and
 conventions. When every scenario is green and the enumerated acceptance
 list is satisfied, report done; the protocol then runs
 `routine-gate developer`. A failing gate is work: read its output and
-fix. But the loop has a floor — after about three consecutive gate
-failures on the same cause, or when the honest fix would leave your
-task's scope, stop retrying: that is a defective spec or a blockage,
-and the refusals below are the road. You never improvise around a
-failing gate, and you never grind it unboundedly either.
+fix. But the loop has a floor — the gate itself refuses past 3
+consecutive `routine-gate developer` failures for your task since its
+last passing one, or when the honest fix would leave your task's scope,
+stop retrying: that is a defective spec or a blockage, and the refusals
+below are the road. You never improvise around a failing gate, and you
+never grind it unboundedly either.
 
 ## Scouts — reading may be delegated, the record may not
 

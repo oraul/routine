@@ -3,7 +3,7 @@
 # routine-description: The developer's defective-spec return: record the reason, rewind the task to pending
 # routine-usage: routine-defect <ticket-dir> <reason>
 # routine-exit: 0 — recorded — defect.md appended, task returned to the line
-# routine-exit: 1 — refused — no task is in_progress
+# routine-exit: 1 — refused — no task is in_progress, or the task's defect budget is exhausted
 # routine-exit: 2 — usage — a directory and a stated defect are both required
 # routine-test: test/defect.bats
 # The developer's defective-spec return: evidence first, then the task goes
@@ -16,6 +16,8 @@ lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
 . "$lib/telemetry.sh"
 # shellcheck source=/dev/null
 . "$lib/index.sh"
+# shellcheck source=/dev/null
+. "$lib/episode.sh"
 
 start_ms="$(routine_now_ms)"
 
@@ -37,6 +39,17 @@ fi
 tid="$(printf '%s' "$row" | cut -f1)"
 b="$(printf '%s' "$row" | cut -f2)"
 t="$(printf '%s' "$row" | cut -f3)"
+
+# The return budget is counted, never remembered, and the count lives in
+# lib/episode.sh — one implementation for this script and every reader
+# that reports it. Bounded per task, not per ticket (design.md): a
+# ticket whose tasks each returned once is healthy, a task returned
+# three times is not.
+defects="$(episode_defect_count "$ticket/telemetry.jsonl" "$tid")"
+if [ "$defects" -ge 3 ]; then
+  echo "routine-defect: return limit exhausted ($defects defect returns for $tid); run routine-abort with the reason" >&2
+  exit 1
+fi
 
 # Append, never truncate: repeated returns keep the full history the
 # re-specifying analyst needs, newest last under its own timestamp.

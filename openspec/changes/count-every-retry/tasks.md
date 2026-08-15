@@ -8,13 +8,13 @@
 
 ## 2. The gate spends the developer budget
 
-- [ ] 2.1 Red→green: `routine-gate developer` refuses past 3 consecutive
+- [x] 2.1 Red→green: `routine-gate developer` refuses past 3 consecutive
       failures for the task, naming `routine-defect` and `routine-block`
       as the roads, and the developer contract states the limit the way
       the gate counts it instead of "about three"
 
 ## 3. The defect return is bounded
 
-- [ ] 3.1 Red→green: `routine-defect` refuses past 3 returns for one
+- [x] 3.1 Red→green: `routine-defect` refuses past 3 returns for one
       task, naming `routine-abort` — the same shape the analyst's
       exhausted revise budget already uses
