@@ -85,18 +85,33 @@ the wrong road: that is an interrupted develop, handled in phase 4.
 
 ## 2. specify
 
-Delegate to the **analyst** agent (`agents/analyst.md`) with the human's
-requirement, the ticket directory, and `TARGET` — a stateless agent's
-payload is its whole world; never assume it inherits your environment.
+Delegate to the **analyst** agent (`agents/analyst.md`) with this
+payload — a stateless agent's payload is its whole world; never assume
+it inherits your environment:
+
+```
+Requirement: <the human's requirement, verbatim>
+ROUTINE_TICKET_DIR: <resolved absolute path to the ticket>
+TARGET: <resolved absolute path to the target project root>
+```
+
 The analyst writes `requirement.md`, briefings, and tasks in the ticket.
 Then run `routine-gate analyst`.
 
 - Non-zero: hand the full defect list back to the analyst to revise —
   continuing the **same analyst conversation** where it survives, so the
   grounding context is not re-derived. When that context is gone (a
-  fresh session, a defect return), hand the analyst the surviving
-  record instead: the ticket's `grounding.md`, its `lint.log` (the
-  last run's defect list, script-owned), and every task's `defect.md`.
+  fresh session, a defect return), delegate the surviving-record payload
+  instead:
+
+```
+ROUTINE_TICKET_DIR: <resolved absolute path to the ticket>
+TARGET: <resolved absolute path to the target project root>
+grounding.md: <resolved absolute path to the ticket>/grounding.md
+lint.log: <resolved absolute path to the ticket>/lint.log
+defect.md: <resolved absolute path to the ticket>/tasks/<task-id>/defect.md — every task that has one
+```
+
   Recovery reads those files — never a re-run of the gate, which would
   spend a counted revise on information recovery.
 - At most **3 revise attempts** per episode (the gate counts them); still
@@ -140,8 +155,19 @@ Loop:
    NOT treat it as a blocked line); exit 3 means the line is blocked
    (tell the human to run `/unblock`); exit 4 means every task is
    done → go to conclude.
-2. Delegate the task to the **developer** agent (`agents/developer.md`)
-   with the task path, the ticket directory, and `TARGET` in the payload.
+2. Delegate to the **developer** agent (`agents/developer.md`) with
+   this payload:
+
+```
+Task: <resolved absolute path to the task file `routine-next` printed>
+ROUTINE_TICKET_DIR: <resolved absolute path to the ticket>
+TARGET: <resolved absolute path to the target project root>
+briefing.md: <resolved absolute path to the ticket>/briefing.md
+```
+
+   Resuming a re-served task (see above): add `uncommitted: <the
+   predecessor's diff, from health>` to the payload — never leave it
+   unmentioned; a stateless developer cannot see what it was not told.
 3. When the developer reports done, run `routine-gate developer`.
    Green → `routine-done "$ROUTINE_TICKET_DIR"`. Non-zero → the developer
    keeps working; it never improvises around a failing gate.
