@@ -69,7 +69,6 @@ the reason otherwise.
 - **THEN** it exits non-zero naming the missing context before any
   target check
 
-
 ### Requirement: Analyst baseline lints the ticket and checks coherence
 The analyst gate baseline SHALL resolve the ticket from
 `ROUTINE_TICKET_DIR` (failing with a message when unset), SHALL fail
@@ -125,7 +124,7 @@ recording its exit code and duration; when only `caffeine/<topic>.md`
 exists it SHALL emit one `gate.developer.doc` line and pass the topic;
 when neither exists it SHALL fail naming both paths. A failing sidecar
 SHALL fail the baseline surfacing its output.
-
+ The developer gate SHALL also spend a failure budget counted by one shared implementation in `lib/episode.sh`: consecutive failing `gate.developer` lines for the task since its last passing one, reset by a pass because a developer that fails, fixes, and later fails again has not ground the same wall. Past 3 consecutive failures the gate SHALL refuse and name the roads — `routine-defect` for a defective spec, `routine-block` for a blockage — rather than letting the loop grind, since a floor stated only in an agent's prose is not load-bearing.
 #### Scenario: No ticket context
 - **WHEN** `routine-gate developer` runs without `ROUTINE_TICKET_DIR`
 - **THEN** it exits non-zero naming the missing context
@@ -148,6 +147,14 @@ SHALL fail the baseline surfacing its output.
 - **WHEN** the manifest names a topic with neither `caffeine/<topic>.sh`
   nor `caffeine/<topic>.md`
 - **THEN** the baseline exits non-zero naming both missing paths
+
+#### Scenario: A ground-down developer gate refuses and names the road
+- **WHEN** a task records a fourth consecutive failing `gate.developer`
+- **THEN** the gate refuses, naming `routine-defect` and `routine-block`
+
+#### Scenario: A passing gate resets the failure budget
+- **WHEN** a task fails twice, passes, then fails again
+- **THEN** the count is 1, not 3
 
 ### Requirement: Gate stages resolve from one root
 `routine-gate` SHALL resolve selfcheck, hooks, spec-lint, and caffeine

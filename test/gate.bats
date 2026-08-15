@@ -321,6 +321,52 @@ make_manifest_ticket() {
   case "$output" in *"fixture sidecar ran"*) ;; *) false ;; esac
 }
 
+@test "a fourth consecutive developer gate failure refuses naming both roads" {
+  make_gate_root
+  make_target
+  make_good_ticket
+  for i in 1 2 3 4; do
+    printf '{"ts":"2026-01-01T00:0%s:00Z","event":"gate.developer","script":"bin/routine-gate","ticket":"0001","task":"01-01","exit":1,"ms":5}\n' "$i" \
+      >> "$ticket/telemetry.jsonl"
+  done
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  [ "$status" -ne 0 ]
+  case "$output" in *routine-defect*routine-block*) ;; *) false ;; esac
+}
+
+@test "a passing gate resets the failure budget so the fourth failure still runs" {
+  make_gate_root
+  make_target
+  make_good_ticket
+  mkdir -p "$groot/runs/app/hooks"
+  printf '%s\n' '#!/usr/bin/env bash' 'exit 1' > "$groot/runs/app/hooks/developer.sh"
+  for i in 1 2; do
+    printf '{"ts":"2026-01-01T00:0%s:00Z","event":"gate.developer","script":"bin/routine-gate","ticket":"0001","task":"01-01","exit":1,"ms":5}\n' "$i" \
+      >> "$ticket/telemetry.jsonl"
+  done
+  printf '{"ts":"2026-01-01T00:03:00Z","event":"gate.developer","script":"bin/routine-gate","ticket":"0001","task":"01-01","exit":0,"ms":5}\n' \
+    >> "$ticket/telemetry.jsonl"
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" developer
+  [ "$status" -ne 0 ]
+  case "$output" in *"budget exhausted"*) false ;; *) ;; esac
+  [ "$(grep -c '"event":"gate.developer"' "$ticket/telemetry.jsonl")" -eq 4 ]
+}
+
+@test "developer failure budget never blocks the analyst gate" {
+  make_gate_root
+  make_target
+  make_good_ticket
+  for i in 1 2 3 4; do
+    printf '{"ts":"2026-01-01T00:0%s:00Z","event":"gate.developer","script":"bin/routine-gate","ticket":"0001","task":"01-01","exit":1,"ms":5}\n' "$i" \
+      >> "$ticket/telemetry.jsonl"
+  done
+  run env ROUTINE_ROOT="$groot" TARGET="$tgt" ROUTINE_TICKET_DIR="$ticket" \
+    "$ROUTINE_REPO_ROOT/bin/routine-gate" analyst
+  [ "$status" -eq 0 ]
+}
+
 @test "developer baseline fails on an unknown manifest topic" {
   make_gate_root
   make_target
