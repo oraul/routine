@@ -95,7 +95,9 @@ are written before the artifacts they justify; decompose the
 requirement into briefings and tasks in the spec grammar (requirement
 header, `Type:` declaration, RFC 2119 keywords, scenarios written as
 Given/When/Then lines under `## Scenario: <label>` headings — the
-labels the audit binds evidence to — enumerated acceptance, and a
+labels the audit binds evidence to — with `## Characterization: <label>`
+as the heading for a green-at-birth pin of existing behaviour, whose
+coverage is the task's developer gate rather than tdd evidence — enumerated acceptance, and a
 non-empty caffeine manifest per task, with `testing/tdd` as the floor
 when nothing domain-specific fits), shaped by the type's calibration;
 revise against the full spec-lint defect list, continuing the same
@@ -165,7 +167,9 @@ docs), SHALL record TDD evidence under the task's own
 string, red and green bound to the identical label and identical
 command (the audit demands a covering green per label and pairs the
 evidence byte-exact) — with characterization tests kept out of the TDD
-evidence, SHALL bound the developer-gate loop with an off-ramp
+evidence — a `## Characterization: <label>` scenario is implemented in
+the ordinary suite the gate runs and never routed through
+`routine-tdd`, whose red phase would refuse it — SHALL bound the developer-gate loop with an off-ramp
 (repeated gate failures or a fix that leaves the task's scope route to
 the scripted refusals, never an unbounded retry), SHALL return a
 defective spec by calling `routine-defect <ticket-dir> <reason>`
@@ -215,6 +219,12 @@ tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
 - **WHEN** the agent file is read
 - **THEN** it admits read-only delegation to `agents/scout.md` and names
   the closed list of moves that are never delegated
+
+#### Scenario: The contracts name the characterization heading
+- **WHEN** the analyst and developer agent files are read
+- **THEN** the analyst emits `## Characterization:` for green-at-birth
+  pins and the developer routes such scenarios to the ordinary suite by
+  name
 
 ### Requirement: Agent files register as subagents
 `agents/analyst.md`, `agents/developer.md`, and `agents/scout.md` SHALL

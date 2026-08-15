@@ -2,7 +2,7 @@
 
 ## Why
 
-Dogfood run 0002 aborted on a hole no council predicted and only running
+Proving run 0002 aborted on a hole no council predicted and only running
 found. Task 01-01 pinned an unprotected seam with a characterization
 test — the correct move, per the feature calibration — and then could
 not be concluded:

@@ -15,9 +15,16 @@ and SHALL exit 0 only when the recorded run matches the protocol:
 the first event is `ticket.new`; a `gate.preflight` line with exit 0
 exists; a `gate.analyst` line with exit 0 exists; a `ticket.approve`
 line with exit 0 exists — the human checkpoint leaves evidence; every
-`done` index row has a passing `ticket.next`, at least one passing
-`tdd.green` whose scenario shows an earlier failing `tdd.red` for the
-same task, a passing `gate.developer`, and a passing `ticket.done`;
+`done` index row has a passing `ticket.next`, a passing
+`gate.developer`, and a passing `ticket.done`, plus at least one
+passing `tdd.green` whose scenario shows an earlier failing `tdd.red`
+for the same task — except a task whose `task.md` carries only
+`## Characterization: <label>` headings and no `## Scenario:` heading,
+which needs no tdd evidence at all: a characterization pin is green at
+birth, `routine-tdd red` would refuse it as a red that isn't red, and
+its coverage is the task's passing developer gate, which this
+requirement already demands and which the record attributes to the
+task;
 every `## Scenario: <label>` heading in a done task's `task.md` has a
 passing `tdd.green` recorded under that label — exactly the label, or
 the label followed by ` [<hash>]` (the command binding `routine-tdd`
@@ -69,3 +76,15 @@ one run, naming the task and the missing or out-of-order evidence.
 - **WHEN** a done task's `task.md` carries `## Scenario: exports are
   streamed` and no passing `tdd.green` is recorded under that label
 - **THEN** the audit exits non-zero naming the task and the label
+
+#### Scenario: A characterization-only task concludes on its gate
+- **WHEN** a done task's `task.md` carries only `## Characterization:`
+  headings and the record holds its passing `gate.developer`
+- **THEN** the audit demands no `tdd.green` for that task and reports
+  no violation
+
+#### Scenario: A tdd label beside a characterization label still demands its green
+- **WHEN** a done task carries both heading forms and the
+  `## Scenario:` label has no covering `tdd.green`
+- **THEN** the audit reports that label as a violation, unchanged
+
