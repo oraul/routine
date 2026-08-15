@@ -187,6 +187,37 @@ join_continuations() {
       print line }'
 }
 
+# Each bats test is its own process with its own BATS_TEST_TMPDIR, and
+# that boundary is the whole reason order dependence cannot arise in this
+# corpus. A shared tmpdir, or a write into the repository, is the only way
+# to opt out of it — so both are refused. Removing the hazard beats
+# detecting it afterwards with a seeded order, which is why this rule
+# exists and that one does not. Reads stay unrestricted: the content pins
+# grep the repository constantly, and a read cannot make one test depend
+# on another.
+check_isolation() {
+  ifile="$1"; iname="$2"
+  # A line writing into a .bats file is building a fixture corpus for
+  # another lint run: the forbidden tokens on it are data, not this test's
+  # own behaviour. Only this suite does that, and without the distinction
+  # the rule refuses the very tests that prove it works.
+  ibody="$(printf '%s\n' "$3" | grep -v '>>* *"[^"]*\.bats"')"
+
+  if printf '%s\n' "$ibody" | grep -q 'BATS_SUITE_TMPDIR'; then
+    report "$ifile" "$iname" \
+      "uses BATS_SUITE_TMPDIR; state shared across tests is the only way order can matter (isolation rule)"
+  fi
+  if printf '%s\n' "$ibody" | grep -q 'BATS_FILE_TMPDIR'; then
+    report "$ifile" "$iname" \
+      "uses BATS_FILE_TMPDIR; state shared across tests is the only way order can matter (isolation rule)"
+  fi
+  if printf '%s\n' "$ibody" | grep -Eq \
+    '(>>?|cp |mv |rm |mkdir |sed -i|touch )[^|]*\$\{?ROUTINE_REPO_ROOT'; then
+    report "$ifile" "$iname" \
+      "writes into \$ROUTINE_REPO_ROOT; every write belongs in BATS_TEST_TMPDIR (isolation rule)"
+  fi
+}
+
 check_pairing() {
   pf="$1"; pname="$2"; pbody="$(join_continuations "$3")"
   while IFS= read -r pline; do
@@ -288,6 +319,7 @@ EOF
         fi
         if [ "$in_body" -eq 1 ]; then
           check_pairing "$file" "$body_name" "$body"
+          check_isolation "$file" "$body_name" "$body"
         fi
         in_body=0
         ;;

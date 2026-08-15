@@ -290,3 +290,41 @@ lint() {
   lint
   [ "$status" -eq 0 ]
 }
+
+# why: bats gives each test its own process and BATS_TEST_TMPDIR, which is
+# why order dependence cannot arise in this corpus. A shared tmpdir is the
+# only way to opt out of that boundary, so it is refused outright.
+@test "a shared suite tmpdir is refused" {
+  printf '@test "the fixture is built once for the file" {\n' > "$CORPUS/a.bats"
+  printf '  [ -d "$BATS_SUITE_TMPDIR" ]\n}\n' >> "$CORPUS/a.bats"
+  lint
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"isolation rule"* ]]
+}
+
+@test "a shared file tmpdir is refused as well" {
+  printf '@test "the fixture is built once per file" {\n' > "$CORPUS/a.bats"
+  printf '  [ -d "$BATS_FILE_TMPDIR" ]\n}\n' >> "$CORPUS/a.bats"
+  lint
+  [ "$status" -eq 1 ]
+}
+
+@test "a write into the repository root is refused" {
+  printf '@test "the doc gains a line under test" {\n' > "$CORPUS/a.bats"
+  printf '  printf x > "$ROUTINE_REPO_ROOT/agents/scout.md"\n' >> "$CORPUS/a.bats"
+  printf '  [ -f "$ROUTINE_REPO_ROOT/agents/scout.md" ]\n}\n' >> "$CORPUS/a.bats"
+  lint
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"isolation rule"* ]]
+}
+
+# why: the content pins grep $ROUTINE_REPO_ROOT on nearly every line and
+# must keep doing so. A read cannot make one test depend on another.
+@test "reading the repository root stays unrestricted" {
+  printf '@test "the scout doc forbids every write" {\n' > "$CORPUS/a.bats"
+  printf '  doc="$ROUTINE_REPO_ROOT/agents/scout.md"\n' >> "$CORPUS/a.bats"
+  printf '  [ -f "$doc" ]\n' >> "$CORPUS/a.bats"
+  printf '  grep -q telemetry "$doc"\n}\n' >> "$CORPUS/a.bats"
+  lint
+  [ "$status" -eq 0 ]
+}

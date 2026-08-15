@@ -49,3 +49,19 @@ nobody has.
 - **Parallel execution with `--jobs`.** Would exercise isolation harder,
   and this rule is the precondition for it being safe. Earned when suite
   runtime justifies it.
+
+## The fixture-data exemption, and the hole it leaves
+
+This suite writes fixture corpora containing the very tokens the rule
+forbids — that is how it proves the rule fires. Scanned naively, the rule
+refuses its own tests.
+
+The discriminator is narrow and principled: a line redirecting into a
+`.bats` file is building a corpus for another lint run, so its tokens are
+data rather than this test's behaviour. Only `test_lint.bats` does that.
+
+It leaves one false negative on record: a genuine
+`printf x > "$BATS_SUITE_TMPDIR/f.bats"` would be skipped. Nothing in
+this corpus does that, and narrowing further would cost more complexity
+than the hole is worth — but it is a hole, not an oversight, and it is
+written here rather than discovered later.
