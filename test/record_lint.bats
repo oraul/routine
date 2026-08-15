@@ -244,6 +244,67 @@ make_range_repo() {
   case "$output" in *"claims #73 belongs"*"#73"*) ;; *) false ;; esac
 }
 
+@test "a record not named for a tag skips the citation rule" {
+  make_range_repo
+  rec="$rroot/evidence/notes.md"
+  printf '%s\n' \
+    '# Notes' \
+    '' \
+    '## Caffeine' \
+    '- claims #73 belongs to this release though it shipped earlier' \
+    '  evidence: test/record_lint.bats caught it' \
+    '  topic: bash/portability' \
+    '' \
+    '## Gate' \
+    '- none — nothing shipped that a gate should have caught and did not' \
+    > "$rec"
+  lint
+  [ "$status" -eq 0 ]
+}
+
+@test "a first release with no previous tag treats citations as vacuous" {
+  rroot="$BATS_TEST_TMPDIR/rroot"
+  mkdir -p "$rroot/caffeine/bash" "$rroot/evidence"
+  printf '%s\n' '# caffeine: bash/portability' \
+    '<!-- caffeine-topic: bash/portability -->' \
+    > "$rroot/caffeine/bash/portability.md"
+  git -C "$rroot" -c init.defaultBranch=main init -q
+  git -C "$rroot" -c user.name=t -c user.email=t@example.invalid \
+    commit -q --allow-empty -m "root"
+  rec="$rroot/evidence/v0.1.0.md"
+  printf '%s\n' \
+    '# Release record: v0.1.0' \
+    '' \
+    '## Caffeine' \
+    '- claims #999, a number this tiny history could never resolve' \
+    '  evidence: test/record_lint.bats caught it' \
+    '  topic: bash/portability' \
+    '' \
+    '## Gate' \
+    '- none — nothing shipped that a gate should have caught and did not' \
+    > "$rec"
+  lint
+  [ "$status" -eq 0 ]
+}
+
+@test "a record outside any git history skips the citation rule" {
+  make_root
+  rec="$BATS_TEST_TMPDIR/v0.8.0.md"
+  printf '%s\n' \
+    '# Release record: v0.8.0' \
+    '' \
+    '## Caffeine' \
+    '- claims #999, a number no history here could ever resolve' \
+    '  evidence: test/record_lint.bats caught it' \
+    '  topic: bash/portability' \
+    '' \
+    '## Gate' \
+    '- none — nothing shipped that a gate should have caught and did not' \
+    > "$rec"
+  lint
+  [ "$status" -eq 0 ]
+}
+
 @test "no argument at all is a usage error" {
   run "$ROUTINE_REPO_ROOT/bin/routine-record-lint"
   [ "$status" -eq 2 ]
