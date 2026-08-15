@@ -1,6 +1,6 @@
 ## 1. The check
 
-- [ ] 1.1 Red→green: `bin/routine-mutation-check` gutts each `bin/`
+- [x] 1.1 Red→green: `bin/routine-mutation-check` gutts each `bin/`
       script in turn, runs the suite that script declares in its
       `routine-test:` frontmatter, requires that suite to fail, restores
       the script through a trap that survives interrupt, names every
