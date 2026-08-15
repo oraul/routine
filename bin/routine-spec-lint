@@ -12,6 +12,8 @@
 set -u
 
 # shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+# shellcheck source=/dev/null
 . "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
 # shellcheck source=/dev/null
 . "$(cd "$(dirname "$0")/.." && pwd)/lib/caffeine.sh"
@@ -123,7 +125,7 @@ else
   esac
 fi
 
-caffeine_root="$(cd "$(dirname "$0")/.." && pwd)/caffeine"
+caffeine_root="$(routine_root)/caffeine"
 
 found_briefing=0
 for bdir in "$ticket"/briefings/*/; do
