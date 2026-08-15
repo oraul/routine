@@ -9,6 +9,6 @@
 
 ## 2. The harness runs it
 
-- [ ] 2.1 Red→green: `bin/routine-selfcheck` lints every record under
+- [x] 2.1 Red→green: `bin/routine-selfcheck` lints every record under
       `evidence/`, treating an absent directory as absent rather than as
       a failure

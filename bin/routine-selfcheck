@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # routine-script: routine-selfcheck
-# routine-description: Harness integrity gate: caffeine lint, script lint, shellcheck, test naming, then the full bats suite
+# routine-description: Harness integrity gate: caffeine lint, script lint, shellcheck, test naming, release records, then the full bats suite
 # routine-exit: 0 — all stages green
 # routine-exit: 1 — a stage failed — its output is the reason
 # routine-test: test/selfcheck.bats
@@ -9,6 +9,7 @@
 # results from an unparseable script prove nothing.
 set -u
 
+# shellcheck source=/dev/null
 . "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
 # shellcheck source=/dev/null
 . "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
@@ -60,6 +61,22 @@ fi
 if ! "$(cd "$(dirname "$0")" && pwd)/routine-test-lint" "$root/test"; then
   echo "routine-selfcheck: test naming contract violated" >&2
   finish 1
+fi
+
+# evidence/ is an optional layer (Law 7): absent is absent, not a
+# failure. A release record is named by extension — evidence/*.md,
+# directly under the directory — because routine-evidence's own output
+# is evidence/retro.txt, a .txt file that a release record's own
+# fixtures (test/record_lint.bats) never use, so the two can never
+# collide without inventing a marker line to police.
+if [ -d "$root/evidence" ]; then
+  for rec in "$root"/evidence/*.md; do
+    [ -f "$rec" ] || continue
+    if ! "$(cd "$(dirname "$0")" && pwd)/routine-record-lint" "$rec"; then
+      echo "routine-selfcheck: release record contract violated" >&2
+      finish 1
+    fi
+  done
 fi
 
 if ! bats "$root/test"; then
