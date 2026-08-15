@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+# routine-script: routine-mutation-check
+# routine-description: Gut each bin/ script with a silent stub and require the suite it declares to notice
+# routine-usage: routine-mutation-check [root-dir] (defaults to the repo root; must contain bin/ and test/)
+# routine-exit: 0 — every declared suite noticed its script being gutted
+# routine-exit: 1 — at least one suite stayed green against a gutted script
+# routine-exit: 2 — usage — the root directory does not exist
+# routine-test: test/mutation_check.bats
+#
+# A lint proves a test is well-formed; it never proves the test would
+# notice. This runs the crudest possible mutation — the script's body
+# replaced by a stub that exits 0 silently — and requires the suite that
+# script declares in its own routine-test: frontmatter to fail. It never
+# runs inside routine-selfcheck: one bats suite per script is far too
+# slow for the ordinary gate.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
+
+root="$(routine_root)"
+dir="${1:-$root}"
+
+if [ ! -d "$dir" ]; then
+  echo "usage: routine-mutation-check [root-dir] (defaults to the repo root; must contain bin/ and test/)" >&2
+  exit 2
+fi
+
+# Restoration is the primary requirement, ranked above the finding
+# itself: the currently-mutated file and its backup are tracked in
+# globals so a single trap can put the original back no matter where in
+# the loop the run is interrupted.
+cur_file=""
+cur_backup=""
+
+restore_current() {
+  if [ -n "$cur_backup" ] && [ -f "$cur_backup" ]; then
+    cp "$cur_backup" "$cur_file"
+    chmod +x "$cur_file"
+    rm -f "$cur_backup"
+  fi
+  cur_file=""
+  cur_backup=""
+}
+
+trap restore_current EXIT
+trap 'restore_current; trap - INT; kill -s INT "$$"' INT
+trap 'restore_current; trap - TERM; kill -s TERM "$$"' TERM
+
+finish() {
+  telemetry_harness_emit harness.mutation bin/routine-mutation-check "$1" \
+    "$(( $(routine_now_ms) - start_ms ))"
+  exit "$1"
+}
+
+mutated=0
+noticed=0
+survivors=""
+
+for f in "$dir"/bin/*; do
+  [ -f "$f" ] || continue
+  n="$(basename "$f")"
+
+  # Never mutate this script itself — it is the thing doing the mutating.
+  [ "$n" = routine-mutation-check ] && continue
+
+  fm="$(awk 'NR==1 {next} /^#/ {print; next} {exit}' "$f")"
+  suite="$(printf '%s\n' "$fm" | sed -n 's/^# routine-test: //p' | head -1)"
+
+  if [ -z "$suite" ]; then
+    echo "mutation-check: $n: no routine-test declared — skipped" >&2
+    continue
+  fi
+  if [ ! -f "$dir/$suite" ]; then
+    echo "mutation-check: $n: declared suite $suite does not exist — skipped" >&2
+    continue
+  fi
+
+  shebang="$(head -n 1 "$f")"
+
+  cur_backup="$(mktemp "${TMPDIR:-/tmp}/routine-mutation-check.XXXXXX")"
+  cp "$f" "$cur_backup"
+  cur_file="$f"
+
+  # The stub: shebang plus a silent exit 0. Exiting 0 rather than 1 is
+  # the harsher test — a suite that only ever asserts success survives a
+  # gutted script that exits 1 for free.
+  printf '%s\nexit 0\n' "$shebang" > "$f"
+  chmod +x "$f"
+
+  mutated=$((mutated + 1))
+  if bats "$dir/$suite" >/dev/null 2>&1; then
+    survivors="$survivors$n $suite
+"
+  else
+    noticed=$((noticed + 1))
+  fi
+
+  restore_current
+done
+
+echo "mutation-check: $mutated script(s) mutated, $noticed suite(s) noticed"
+
+if [ -n "$survivors" ]; then
+  echo "mutation-check: suite(s) that stayed green against a gutted script (script is not necessarily at fault):" >&2
+  printf '%s' "$survivors" | while IFS=' ' read -r sc su; do
+    [ -n "$sc" ] || continue
+    echo "  $sc -> $su" >&2
+  done
+  finish 1
+fi
+
+finish 0
