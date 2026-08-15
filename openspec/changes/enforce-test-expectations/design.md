@@ -30,6 +30,21 @@ acceptable: such a body is building a corpus for another lint, which is
 itself the assertion-bearing work, and every real case in this repository
 also asserts on the result afterwards.
 
+## A token scan cannot tell an assertion from a tautology
+
+`[ 1 -eq 1 ]` carries an expectation token and still cannot fail. The
+scan accepts it, so the rule guarantees that a body *reaches for* an
+expectation, not that the expectation is meaningful. That is the
+false-positive twin of the false-negative above, and it is equally
+unfixable without a parser, which the non-goals already refuse.
+
+The consequence is a convention, not a check: fixture bodies assert on
+real state — `[ -f "$BATS_TEST_FILENAME" ]` — rather than on a constant.
+The first implementation used `[ 1 -eq 1 ]` in the fixture helper of the
+very suite that teaches this rule, which would have made the tautology
+the canonical example. Where a lint cannot enforce the intent, the
+examples have to carry it.
+
 ## Two rule families, reported apart
 
 A name failure and a body failure are different repairs: one rewrites a

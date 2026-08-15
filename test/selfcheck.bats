@@ -15,7 +15,7 @@ make_fixture() {
     'printf ok' > "$fixture/bin/good"
   chmod +x "$fixture/bin/good"
   printf '%s\n' '# shellcheck shell=bash' 'noop() { :; }' > "$fixture/lib/noop.sh"
-  printf '%s\n' '@test "good and bad fixture scripts pass" { true; }' \
+  printf '%s\n' '@test "good and bad fixture scripts pass" { [ -f "$BATS_TEST_FILENAME" ]; }' \
     > "$fixture/test/pass.bats"
 }
 
@@ -59,7 +59,7 @@ add_bad() {
 
 @test "failing bats suite exits non-zero" {
   make_fixture
-  printf '%s\n' '@test "the fixture suite fails on purpose" { false; }' > "$fixture/test/fail.bats"
+  printf '%s\n' '@test "the fixture suite fails on purpose" { [ -f "/routine-absent-on-purpose" ]; }' > "$fixture/test/fail.bats"
   run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-selfcheck"
   [ "$status" -ne 0 ]
 }

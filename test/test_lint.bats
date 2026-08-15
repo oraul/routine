@@ -19,13 +19,16 @@ setup() {
   mkdir -p "$CORPUS"
 }
 
-# One fixture test per name handed in.
+# One fixture test per name handed in. The body asserts on real state
+# rather than a constant: a tautology would satisfy the token scan while
+# still being a test that cannot fail, which is the thing the body rule
+# exists to refuse.
 fixture() {
   file="$CORPUS/$1"
   shift
   : > "$file"
   for name in "$@"; do
-    printf '@test "%s" {\n  true\n}\n' "$name" >> "$file"
+    printf '@test "%s" {\n  [ -f "$BATS_TEST_FILENAME" ]\n}\n' "$name" >> "$file"
   done
 }
 
@@ -119,6 +122,50 @@ lint() {
   lint
   [ "$status" -eq 1 ]
   [[ "$output" == *"it works"* ]]
+}
+
+# why: a bats test passes when its last command exits 0, so a body that
+# never touches [, [[, status, output, grep, diff, assert, refute, -eq,
+# -ne or a leading ! can never fail and defends no claim.
+@test "an assertionless body defends no claim" {
+  printf '@test "a clean claim about nothing testable" {\n  x=1\n  y=2\n}\n' \
+    > "$CORPUS/a.bats"
+  lint
+  [ "$status" -eq 1 ]
+  [[ "$output" == *"a.bats"* ]]
+  [[ "$output" == *"a clean claim about nothing testable"* ]]
+  [[ "$output" == *"(body rule)"* ]]
+}
+
+@test "every expectation token form the corpus uses is accepted" {
+  file="$CORPUS/a.bats"
+  : > "$file"
+  printf '@test "a bracket condition counts as a claim" {\n  [ "$x" = "y" ]\n}\n' >> "$file"
+  printf '@test "a double bracket condition counts as a claim" {\n  [[ "$x" = "y" ]]\n}\n' >> "$file"
+  printf '@test "the bats status handle counts as a claim" {\n  x="$status"\n}\n' >> "$file"
+  printf '@test "the bats output handle counts as a claim" {\n  x="$output"\n}\n' >> "$file"
+  printf '@test "a grep comparison counts as a claim" {\n  grep -q ok here\n}\n' >> "$file"
+  printf '@test "a diff comparison counts as a claim" {\n  diff a b\n}\n' >> "$file"
+  printf '@test "an assert helper counts as a claim" {\n  assert_success\n}\n' >> "$file"
+  printf '@test "a refute helper counts as a claim" {\n  refute_output x\n}\n' >> "$file"
+  printf '@test "an eq comparison counts as a claim" {\n  test "$x" -eq 1\n}\n' >> "$file"
+  printf '@test "an ne comparison counts as a claim" {\n  test "$x" -ne 2\n}\n' >> "$file"
+  printf '@test "a leading negation counts as a claim" {\n  ! true\n}\n' >> "$file"
+  lint
+  [ "$status" -eq 0 ]
+}
+
+@test "the body rule is tagged apart from the naming rule" {
+  printf '@test "it works" {\n  [ "$status" -eq 0 ]\n}\n' > "$CORPUS/a.bats"
+  printf '@test "a clean name asserts nothing at all" {\n  x=1\n}\n' > "$CORPUS/b.bats"
+  lint
+  [ "$status" -eq 1 ]
+  naming_line="$(printf '%s\n' "$output" | grep "it works")"
+  body_line="$(printf '%s\n' "$output" | grep "asserts nothing at all")"
+  [[ "$naming_line" == *"(naming rule)"* ]]
+  [[ "$naming_line" != *"(body rule)"* ]]
+  [[ "$body_line" == *"(body rule)"* ]]
+  [[ "$body_line" != *"(naming rule)"* ]]
 }
 
 @test "the repository's own suite satisfies the lint" {

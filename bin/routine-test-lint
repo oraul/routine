@@ -1,16 +1,19 @@
 #!/usr/bin/env bash
 # routine-script: routine-test-lint
-# routine-description: The naming gate: a test name states the claim it defends, never the mechanism that ran
+# routine-description: A test names the claim it defends and its body proves it — the naming gate and the expectation gate
 # routine-usage: routine-test-lint [test-dir] (defaults to the repo's test/)
-# routine-exit: 0 — every name states a claim
-# routine-exit: 1 — a name violates a rule — the output names file, test and rule
+# routine-exit: 0 — every name states a claim and every body proves it
+# routine-exit: 1 — a name or a body violates a rule — the output names file, test and rule family
 # routine-exit: 2 — usage — the test directory does not exist
 # routine-test: test/test_lint.bats
 # A test name is the only part of a suite most readers ever read, so it
 # carries the claim. Every threshold below was measured against this
 # repository's own corpus before it was written: no name opens with a
 # mechanism word, the shortest is three words, the longest 83 characters,
-# and no suite repeats a name. This lint pins that, it does not clean up.
+# and no suite repeats a name. A bats test also passes when its last
+# command exits 0, so a body that never touches a recognised expectation
+# token can never fail and defends no claim either. This lint pins both,
+# it does not clean up.
 set -u
 
 # shellcheck source=/dev/null
@@ -29,10 +32,20 @@ fi
 # caffeine topic path rather than the word "testing".
 openers='test|tests|testing|check|checks|verify|verifies|should|it|ensure|ensures|can|will|does|works|handles|correctly'
 
+# The expectation gate is a token scan, deliberately not a bash parser: a
+# scan admits false negatives, and the answer is to widen this list, never
+# to start parsing shell. Measured against this repository's own 350
+# bodies before it was written: every one matches at least one token.
 violations=0
 report() {
   echo "test-lint: $1: $2 — $3"
   violations=$((violations + 1))
+}
+
+has_expectation() {
+  printf '%s\n' "$1" | grep -Fq \
+    -e '[ ' -e '[[' -e 'status' -e 'output' -e 'grep' -e 'diff ' \
+    -e 'assert' -e 'refute' -e '-eq' -e '-ne' -e '! '
 }
 
 for file in "$dir"/*.bats; do
@@ -41,45 +54,119 @@ for file in "$dir"/*.bats; do
   # The name is what bats prints on failure: everything between the first
   # quote and the last one before the opening brace.
   names="$(sed -n 's/^@test  *"\(.*\)" *{.*$/\1/p' "$file")"
-  [ -n "$names" ] || continue
 
-  while IFS= read -r name; do
-    [ -n "$name" ] || continue
+  if [ -n "$names" ]; then
+    while IFS= read -r name; do
+      [ -n "$name" ] || continue
 
-    if printf '%s' "$name" | grep -Eqi "^($openers) "; then
-      report "$file" "$name" "opens with a mechanism word; state the claim instead"
-    fi
+      if printf '%s' "$name" | grep -Eqi "^($openers) "; then
+        report "$file" "$name" "opens with a mechanism word; state the claim instead (naming rule)"
+      fi
 
-    words="$(printf '%s' "$name" | awk '{print NF}')"
-    if [ "$words" -lt 3 ]; then
-      report "$file" "$name" "is a label, not a claim (fewer than three words)"
-    fi
+      words="$(printf '%s' "$name" | awk '{print NF}')"
+      if [ "$words" -lt 3 ]; then
+        report "$file" "$name" "is a label, not a claim (fewer than three words) (naming rule)"
+      fi
 
-    if [ "${#name}" -gt 100 ]; then
-      report "$file" "$name" "carries provenance, not a claim (over 100 characters)"
-    fi
-  done <<EOF
+      if [ "${#name}" -gt 100 ]; then
+        report "$file" "$name" "carries provenance, not a claim (over 100 characters) (naming rule)"
+      fi
+    done <<EOF
 $names
 EOF
 
-  # Uniqueness is per suite: bats runs and reports one file at a time, so a
-  # repeat inside a file makes a failing line ambiguous, while the same
-  # claim in two suites is two true statements about two subjects.
-  dupes="$(printf '%s\n' "$names" | sort | uniq -d)"
-  if [ -n "$dupes" ]; then
-    while IFS= read -r dupe; do
-      [ -n "$dupe" ] || continue
-      report "$file" "$dupe" "is declared twice in this suite; a repeat makes a failure ambiguous"
-    done <<EOF
+    # Uniqueness is per suite: bats runs and reports one file at a time, so
+    # a repeat inside a file makes a failing line ambiguous, while the same
+    # claim in two suites is two true statements about two subjects.
+    dupes="$(printf '%s\n' "$names" | sort | uniq -d)"
+    if [ -n "$dupes" ]; then
+      while IFS= read -r dupe; do
+        [ -n "$dupe" ] || continue
+        report "$file" "$dupe" "is declared twice in this suite; a repeat makes a failure ambiguous (naming rule)"
+      done <<EOF
 $dupes
 EOF
+    fi
   fi
+
+  # The expectation gate: extract each test's name and body by counting
+  # brace characters (never by parsing shell) so a body spanning several
+  # lines, or several tests sharing one line, still yields the right span.
+  # A heredoc that happens to hold balanced braces (every fixture in this
+  # repo does — JSON, scripts) is scanned along with the rest of the body;
+  # a fixture that merely quotes an expectation token is accepted too,
+  # which is fine, since building such a corpus is itself assertion-bearing
+  # work that this repository always follows with a real check.
+  body_name=""
+  in_body=0
+  body=""
+  while IFS= read -r line; do
+    case "$line" in
+      '@@TL_NAME@@'*)
+        body_name="${line#@@TL_NAME@@}"
+        body=""
+        in_body=1
+        ;;
+      '@@TL_END@@')
+        if [ "$in_body" -eq 1 ] && ! has_expectation "$body"; then
+          report "$file" "$body_name" "asserts nothing; add an expectation token (body rule)"
+        fi
+        in_body=0
+        ;;
+      *)
+        if [ "$in_body" -eq 1 ]; then
+          if [ -z "$body" ]; then
+            body="$line"
+          else
+            body="$body
+$line"
+          fi
+        fi
+        ;;
+    esac
+  done <<EOF
+$(awk '
+  BEGIN { depth = 0 }
+  depth == 0 && /^@test[ \t]/ {
+    qstart = index($0, "\"")
+    bpos = index($0, "{")
+    if (qstart == 0 || bpos == 0) { next }
+    upto = substr($0, 1, bpos - 1)
+    lastq = 0
+    for (k = length(upto); k > qstart; k--) {
+      if (substr(upto, k, 1) == "\"") { lastq = k; break }
+    }
+    if (lastq == 0) { next }
+    print "@@TL_NAME@@" substr($0, qstart + 1, lastq - qstart - 1)
+    seg = substr($0, bpos)
+    depth = 0
+    for (k = 1; k <= length(seg); k++) {
+      c = substr(seg, k, 1)
+      if (c == "{") { depth++ }
+      else if (c == "}") { depth-- }
+    }
+    rest = substr(seg, 2)
+    if (length(rest) > 0) { print rest }
+    if (depth == 0) { print "@@TL_END@@" }
+    next
+  }
+  depth > 0 {
+    for (k = 1; k <= length($0); k++) {
+      c = substr($0, k, 1)
+      if (c == "{") { depth++ }
+      else if (c == "}") { depth-- }
+    }
+    print
+    if (depth == 0) { print "@@TL_END@@" }
+  }
+' "$file")
+EOF
 done
 
 if [ "$violations" -gt 0 ]; then
-  echo "test-lint: $violations name(s) state no claim" >&2
+  echo "test-lint: $violations violation(s) — a name states no claim or a body proves none" >&2
   exit 1
 fi
 
-echo "test-lint: every test name states its claim"
+echo "test-lint: every test name states its claim and every body proves it"
 exit 0
