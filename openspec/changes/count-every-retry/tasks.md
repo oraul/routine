@@ -1,6 +1,6 @@
 ## 1. The counters
 
-- [ ] 1.1 Red→green: `lib/episode.sh` gains `episode_developer_fail_count`
+- [x] 1.1 Red→green: `lib/episode.sh` gains `episode_developer_fail_count`
       (consecutive failing `gate.developer` lines for a task since its
       last passing one) and `episode_defect_count` (`spec.defective`
       lines for a task), both printing 0 for an absent file the way
