@@ -15,6 +15,6 @@
 
 ## 3. The contracts name the heading
 
-- [ ] 3.1 Red→green: the analyst emits `## Characterization:` for
+- [x] 3.1 Red→green: the analyst emits `## Characterization:` for
       green-at-birth pins and the developer routes them to the ordinary
       suite by name — pinned in agents_content.bats

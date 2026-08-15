@@ -61,9 +61,10 @@ paraphrase leaves that scenario uncovered. Red and green must use the
 identical label and the identical command — the audit pairs the
 evidence byte-exact, and a renamed scenario or a swapped command is an
 unpaired green. Characterization
-tests (existing behavior pinned as-is) pass from birth and are not TDD
-evidence: keep them in the ordinary suite the gate runs, never route
-them through `routine-tdd red`.
+tests (existing behavior pinned as-is) — a scenario under a
+`## Characterization: <label>` heading is exactly this case — pass
+from birth and are not TDD evidence: keep them in the ordinary suite
+the gate runs, never route them through `routine-tdd red`.
 
 On a **re-served task** — one an interrupted session left in_progress
 and `routine-next` handed back — read the target's uncommitted diff
