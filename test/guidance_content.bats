@@ -76,3 +76,25 @@ load test_helper
   grep -qi 'scout' "$doc"
   grep -qi 'read-only' "$doc"
 }
+
+@test "the public face opens with a model, not an install" {
+  doc="$ROUTINE_REPO_ROOT/README.md"
+  [ -f "$doc" ]
+  head -20 "$doc" | grep -qi 'model'
+  head -20 "$doc" | grep -qvi 'plugin install'
+}
+
+@test "the concept pipeline names who decides and what stops the run" {
+  doc="$ROUTINE_REPO_ROOT/README.md"
+  [ -f "$doc" ]
+  grep -qi 'concept pipeline' "$doc"
+  grep -qi 'decides' "$doc"
+  grep -qi 'stops the run' "$doc"
+}
+
+@test "the public face separates transfer from accident" {
+  doc="$ROUTINE_REPO_ROOT/README.md"
+  [ -f "$doc" ]
+  grep -qi 'carries into' "$doc"
+  grep -qi 'accident' "$doc"
+}
