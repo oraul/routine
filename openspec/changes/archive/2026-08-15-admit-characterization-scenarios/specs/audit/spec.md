@@ -1,12 +1,6 @@
-# audit Specification
+# audit Specification (delta)
 
-## Purpose
-
-The run-level check: one script that replays a ticket's telemetry
-against the protocol and says whether every expected script really
-ran, in order, with the evidence to prove it.
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: The run audit replays evidence against the protocol
 `bin/routine-audit <ticket-dir>` SHALL read the ticket's
@@ -87,4 +81,3 @@ one run, naming the task and the missing or out-of-order evidence.
 - **WHEN** a done task carries both heading forms and the
   `## Scenario:` label has no covering `tdd.green`
 - **THEN** the audit reports that label as a violation, unchanged
-

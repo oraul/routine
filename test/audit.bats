@@ -151,6 +151,39 @@ EOF
   case "$output" in *01-01*"exports are streamed"*) ;; *) false ;; esac
 }
 
+@test "a characterization-only done task needs no tdd green at all" {
+  ticket="$BATS_TEST_TMPDIR/0001"
+  mkdir -p "$ticket/briefings/01-auth/tasks/01-pin"
+  printf '%s\n' '# Task: pin' '## Characterization: legacy export format' \
+    '- Given a' '- When b' '- Then c' '## Acceptance' '1. pinned' '## Caffeine' \
+    > "$ticket/briefings/01-auth/tasks/01-pin/task.md"
+  printf '01-01%s01-auth%s01-pin%sdone%s2026-01-01T00:10:00Z\n' \
+    "$TAB" "$TAB" "$TAB" "$TAB" > "$ticket/index.tsv"
+  cat > "$ticket/telemetry.jsonl" <<'EOF'
+{"ts":"2026-01-01T00:00:00Z","event":"ticket.new","script":"bin/routine-ticket-new","ticket":"0001","task":"","exit":0,"ms":1}
+{"ts":"2026-01-01T00:00:30Z","event":"gate.preflight","script":"bin/routine-gate","ticket":"0001","task":"","exit":0,"ms":8}
+{"ts":"2026-01-01T00:01:00Z","event":"spec.lint","script":"bin/routine-spec-lint","ticket":"0001","task":"","exit":0,"ms":5}
+{"ts":"2026-01-01T00:02:00Z","event":"gate.analyst","script":"bin/routine-gate","ticket":"0001","task":"","exit":0,"ms":10}
+{"ts":"2026-01-01T00:02:30Z","event":"ticket.approve","script":"bin/routine-approve","ticket":"0001","task":"","exit":0,"ms":1}
+{"ts":"2026-01-01T00:03:00Z","event":"ticket.next","script":"bin/routine-next","ticket":"0001","task":"01-01","exit":0,"ms":2}
+{"ts":"2026-01-01T00:06:00Z","event":"gate.developer","script":"bin/routine-gate","ticket":"0001","task":"01-01","exit":0,"ms":40}
+{"ts":"2026-01-01T00:07:00Z","event":"ticket.done","script":"bin/routine-done","ticket":"0001","task":"01-01","exit":0,"ms":2}
+EOF
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -eq 0 ]
+}
+
+@test "a scenario label beside a characterization label still needs its green" {
+  make_run
+  printf '%s\n' '## Characterization: legacy export format' '- Given a' '- When b' '- Then c' \
+    >> "$ticket/briefings/01-auth/tasks/01-login/task.md"
+  grep -v tdd.green "$ticket/telemetry.jsonl" > "$ticket/t.new" \
+    && mv "$ticket/t.new" "$ticket/telemetry.jsonl"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *01-01*"login works"*) ;; *) false ;; esac
+}
+
 @test "a hash-suffixed record covers its label" {
   make_run
   sed -i.bak 's/"script":"login works"/"script":"login works [a1b2c3d4]"/' \

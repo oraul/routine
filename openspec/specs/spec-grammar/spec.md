@@ -14,8 +14,7 @@ only: `requirement.md` exists, contains a `# Requirement:` header, a
 `Type: <bug|feature|greenfield|epic>` declaration, and at least one RFC
 2119 keyword (SHALL, MUST, SHOULD, or MAY); every briefing directory
 contains `briefing.md` and at least one task directory; every `task.md`
-contains at least one `## Scenario: <label>` heading (the label the
-audit binds evidence to), at least one scenario using Given/When/Then
+contains at least one scenario heading of either form — `## Scenario: <label>` for red-then-green behaviour (the label the audit binds tdd evidence to) or `## Characterization: <label>` for a green-at-birth pin whose coverage is the task's passing developer gate — at least one scenario using Given/When/Then
 lines, a `## Acceptance` section with at least one enumerated item, and
 a `## Caffeine` section whose lines each match `- <topic>` and resolve
 against `caffeine/` — and the list SHALL NOT be empty: `testing/tdd`
@@ -53,6 +52,12 @@ check passes.
 - **WHEN** a `task.md`'s `## Caffeine` section carries no topics
 - **THEN** the lint exits non-zero naming that task file and pointing
   at `testing/tdd` as the floor
+
+#### Scenario: A characterization heading satisfies the scenario rule
+- **WHEN** a task carries `## Characterization: <label>` and no
+  `## Scenario:` heading
+- **THEN** the lint accepts it, and a task with neither heading still
+  fails naming the rule
 
 ### Requirement: Lint failures name file and rule
 Every lint failure SHALL print the offending file path and the violated rule;

@@ -146,9 +146,13 @@ for bdir in "$ticket"/briefings/*/; do
       || ! grep -Eq '(^|[-*[:space:]])Then' "$tm"; then
       fail "$t/task.md" "no Given/When/Then scenario"
     fi
-    # Scenario labels are the join key the audit binds evidence to.
-    if ! grep -Eq '^## Scenario: .+' "$tm"; then
-      fail "$t/task.md" "no '## Scenario: <label>' heading (the audit binds tdd evidence to labels)"
+    # Scenario labels are the join key the audit binds tdd evidence to.
+    # A characterization label satisfies the same requirement: it is a
+    # distinct heading form (not a marker on Scenario) so the audit's
+    # label collector, which reads '## Scenario:' lines only, never pulls
+    # characterization labels into the tdd-pairing universe.
+    if ! grep -Eq '^## (Scenario|Characterization): .+' "$tm"; then
+      fail "$t/task.md" "no '## Scenario: <label>' or '## Characterization: <label>' heading (the audit binds tdd evidence to labels)"
     fi
     if ! grep -q '^## Caffeine' "$tm"; then
       fail "$t/task.md" "no '## Caffeine' section"

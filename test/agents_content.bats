@@ -192,3 +192,12 @@ load test_helper
   ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
   grep -q 'agents/scout.md' "$ana"
 }
+
+@test "the contracts name the characterization heading" {
+  ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -q '## Characterization:' "$ana"
+  grep -qi 'developer gate' "$ana"
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -q '## Characterization:' "$dev"
+  grep -q 'routine-tdd red' "$dev"
+}

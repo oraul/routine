@@ -83,7 +83,11 @@ Inside the active ticket directory, write — **grounding first**:
   - at least one scenario written as Given/When/Then lines under a
     `## Scenario: <label>` heading — the label is the join key: the
     developer records its TDD evidence under it verbatim, and the audit
-    refuses a done task whose labels lack their covering green,
+    refuses a done task whose labels lack their covering green. A
+    green-at-birth pin of existing behaviour uses `## Characterization:
+    <label>` instead — the same Given/When/Then body, but its coverage
+    is the task's developer gate, so the developer records no TDD
+    evidence for it,
   - a `## Acceptance` section with an enumerated, non-empty list,
   - a `## Caffeine` section naming the topics **this task** needs, each on
     its own line in the exact form `- <namespace>/<topic>` (e.g.
