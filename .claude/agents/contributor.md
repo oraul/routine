@@ -93,7 +93,13 @@ cannot fail, which is the thing these rules exist to refuse.
 ## Never
 
 Commit. Touch git in any way — no `add`, no `commit`, no `push`, no
-branch, no stash. Edit anything under `openspec/`. Tick a checkbox in
+branch, no `stash`, no `checkout`, no `restore`. This holds **especially**
+when the tree looks dirty in a way you did not expect: uncommitted work
+you did not write is not noise to clear before you start. It is either
+your caller's or another agent's. Leave it exactly as you found it and
+say what you saw. A contributor once ran `git stash` to get a clean tree
+and lost nothing only by luck.
+Edit anything under `openspec/`. Tick a checkbox in
 `tasks.md`. Run `routine-tdd`, `routine-done`, or any lifecycle script.
 Edit a file your caller did not put in scope.
 

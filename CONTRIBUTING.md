@@ -138,3 +138,28 @@ a PR body is an artifact.
 Merge on a full green board — auto-merge where available, else
 wait for every check. Red leaves it open, which blocks the next P1.
 ```
+
+### Delegation — a dirty tree is not a finished delegate
+
+Where P2 is delegated, the files you put in a delegate's scope are its
+own until it reports. **The completion notification is the only signal
+that its work is final. `git status` is not that signal** — it cannot
+distinguish "the delegate finished" from "the delegate is between two
+writes", and both look like a dirty tree.
+
+Until the notification arrives, do not: edit a file in the delegate's
+scope, run `add`/`commit`/`stash`/`checkout`/`restore` against the
+worktree, or run any P3/P4 step for its change. Reading is fine;
+anything that writes is not. If a delegate looks stuck, message it or
+stop it outright — never reach around it into the tree.
+
+When it does report, the work is yours to verify, not to trust: re-run
+the gate yourself, and where the change is small enough to revert,
+revert it and confirm the new test goes red. A delegate's claimed red is
+a claim; a red you watched is evidence.
+
+This rule is contract, not gate, and deliberately so. No exit code can
+decide it — the completion signal lives in the host, outside bash, and a
+script inspecting the worktree sees exactly the ambiguity the rule
+exists to resolve. It is written here because three sessions broke it
+before it was written down.
