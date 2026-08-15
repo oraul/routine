@@ -1,6 +1,6 @@
 ## 1. A citation belongs to the release it is claimed for
 
-- [ ] 1.1 Red→green: `routine-record-lint` refuses a record citing a
+- [x] 1.1 Red→green: `routine-record-lint` refuses a record citing a
       `#NNN` that is not a merge in its range, naming the entry and the
       number, and passes one whose every citation is in range — pinned
       by a fixture repository whose history makes the range real
