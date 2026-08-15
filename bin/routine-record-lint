@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # routine-script: routine-record-lint
-# routine-description: A release record's form as exit codes — both sections present, no section silently empty, every entry evidenced, and the one check that catches a false Caffeine claim
+# routine-description: A release record's form as exit codes — both sections present, no section silently empty, every entry evidenced, every cited #NNN in the record's own range, and the one check that catches a false Caffeine claim
 # routine-usage: routine-record-lint <file>
 # routine-exit: 0 — the record is well-formed
 # routine-exit: 1 — violations found — each names the file and the rule
@@ -14,9 +14,17 @@
 # claim rather than a malformed one: a Caffeine entry naming
 # 'topic: <ns>/<name>' must resolve to a real caffeine/<ns>/<name>.{sh,md}
 # pair, reusing the resolver routine-spec-lint applies to task manifests
-# (lib/caffeine.sh) rather than growing a second implementation. Whether
-# a lesson is true, its evidence sound, or a section honest: no script
-# here can decide that.
+# (lib/caffeine.sh) rather than growing a second implementation. One
+# more clause reads git rather than the file alone: every '#NNN' cited
+# anywhere in the record must resolve to a merge in the record's own
+# range, derived from the filename's tag and the previous tag the same
+# way routine-release-notes derives it. The range can be established
+# only when the filename names a tag, a previous tag exists, and there
+# is git history to read; when it cannot, the rule is skipped rather
+# than violated (Law 7's posture toward an absent layer), which is what
+# keeps a fixture with no repository, and a draft record before its tag
+# exists, still lintable. Whether a lesson is true, its evidence sound,
+# or a section honest: no script here can decide that.
 set -u
 
 # shellcheck source=/dev/null
@@ -88,6 +96,62 @@ for _rl_sec in Caffeine Gate; do
 $_rl_entries
 EOF
 done
+
+# Citation provenance: every #NNN cited anywhere in a Caffeine or Gate
+# entry must resolve to a merge in this record's own range. The range
+# comes from the record's own filename (its tag) and the previous tag,
+# derived the way routine-release-notes derives it. Any of: the
+# filename names no tag, there is no git history to read, or there is
+# no previous tag (the first release) — and the rule is skipped rather
+# than failed, never manufacturing a violation from an absent layer.
+_rl_tag="$(basename "$file")"
+_rl_tag="${_rl_tag%.md}"
+_rl_repo="$(dirname "$file")"
+if printf '%s' "$_rl_tag" | grep -Eq '^v(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$' \
+  && git -C "$_rl_repo" rev-parse --git-dir >/dev/null 2>&1; then
+  if git -C "$_rl_repo" rev-parse -q --verify "refs/tags/$_rl_tag" >/dev/null; then
+    _rl_end="$_rl_tag"
+  else
+    _rl_end="HEAD"
+  fi
+  _rl_prev="$(git -C "$_rl_repo" describe --tags --abbrev=0 --exclude "$_rl_tag" "$_rl_end" 2>/dev/null || true)"
+  if [ -n "$_rl_prev" ]; then
+    _rl_allowed="$(git -C "$_rl_repo" log "$_rl_prev..$_rl_end" --merges --first-parent --format='%s' \
+      | grep -Eo 'pull request #[0-9]+:' | grep -Eo '[0-9]+')"
+
+    # Same entry shape as the section loop above, but spanning both
+    # sections at once: label plus every line of the entry's body,
+    # joined, so a citation anywhere in the entry is found.
+    _rl_cited="$(awk '
+      /^## Caffeine/ || /^## Gate/ { insec = 1; next }
+      insec && /^#/ { insec = 0 }
+      insec && /^- / {
+        if (label != "") print label "\t" body
+        label = $0
+        sub(/^- /, "", label)
+        body = label
+        next
+      }
+      insec && NF {
+        line = $0
+        sub(/^[ \t]+/, "", line)
+        body = body " " line
+      }
+      END { if (label != "") print label "\t" body }
+    ' "$file")"
+
+    while IFS="$_rl_tab" read -r _rl_c_label _rl_c_body; do
+      [ -n "$_rl_c_label" ] || continue
+      for _rl_num in $(printf '%s' "$_rl_c_body" | grep -Eo '#[0-9]+' | grep -Eo '[0-9]+'); do
+        if ! printf '%s\n' "$_rl_allowed" | grep -qx "$_rl_num"; then
+          fail "$file" "entry '$_rl_c_label' cites #$_rl_num which is not a merge in ${_rl_prev}..${_rl_end}"
+        fi
+      done
+    done <<EOF
+$_rl_cited
+EOF
+  fi
+fi
 
 if [ "$fails" -gt 0 ]; then
   echo "record-lint: $fails violation(s)" >&2
