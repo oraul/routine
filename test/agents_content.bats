@@ -235,3 +235,9 @@ load test_helper
   skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
   awk '/^## 2\./,/^## 3\./' "$skill" | awk '/^```$/{f=!f; next} f' | grep -q 'lint.log'
 }
+
+@test "a red characterization returns to specify as a defect" {
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -q 'characterize' "$dev"
+  grep -qi 'implemented' "$dev"
+}

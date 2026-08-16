@@ -66,8 +66,23 @@ evidence byte-exact, and a renamed scenario or a swapped command is an
 unpaired green. Characterization
 tests (existing behavior pinned as-is) — a scenario under a
 `## Characterization: <label>` heading is exactly this case — pass
-from birth and are not TDD evidence: keep them in the ordinary suite
-the gate runs, never route them through `routine-tdd red`.
+from birth and are not TDD evidence: implement them in the ordinary
+suite the gate runs, never route them through `routine-tdd red`.
+
+The birth claim itself still gets proven, the way `red` proves its own:
+
+```sh
+routine-tdd characterize "<the task's scenario label>" -- <the test command>
+```
+
+`characterize` requires the command to pass and refuses when it fails.
+A characterization the phase refuses is a **defective spec, not
+work** — the claim that the scenario was already true belongs to
+whoever wrote it, not to you, so the road is `routine-defect`, never an
+implementation written to make the claim true after the fact. State in
+the defect reason what you had implemented and why you coded it that
+way, so the analyst who re-grounds patches from your actual state
+instead of re-deriving it.
 
 On a **re-served task** — one an interrupted session left in_progress
 and `routine-next` handed back — read the target's uncommitted diff
@@ -107,10 +122,10 @@ costs more than the grep you would have run, so send one when the survey
 is genuinely wider than a single call.
 
 Never delegate the record. These are yours alone, always: every
-`routine-tdd red` and `routine-tdd green` call, `routine-defect`,
-`routine-block`, and the judgment that a test failed for the right
-reason. The audit replays what those wrote — none of it may be produced
-inside a context nobody graded.
+`routine-tdd red`, `routine-tdd green`, and `routine-tdd characterize`
+call, `routine-defect`, `routine-block`, and the judgment that a test
+failed for the right reason. The audit replays what those wrote — none
+of it may be produced inside a context nobody graded.
 
 ## Refusals
 

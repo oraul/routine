@@ -19,7 +19,7 @@
 
 ## 3. The contracts say it
 
-- [ ] 3.1 Red→green: `agents/developer.md` instructs the characterize
+- [x] 3.1 Red→green: `agents/developer.md` instructs the characterize
       phase, states that a red characterization is a defective spec
       rather than work, and requires the defect reason to state what was
       implemented and why — pinned in `test/agents_content.bats` on a
