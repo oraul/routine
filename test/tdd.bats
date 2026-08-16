@@ -67,6 +67,47 @@ make_ticket() {
   [ ! -f "$ticket/telemetry.jsonl" ] || ! grep -q 'tdd.red' "$ticket/telemetry.jsonl"
 }
 
+@test "characterize evidence: passing command records the pass" {
+  make_ticket
+  run env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \
+    characterize "empty order totals zero" -- true
+  [ "$status" -eq 0 ]
+  grep '"event":"tdd.characterize"' "$ticket/telemetry.jsonl" \
+    | grep '"script":"empty order totals zero \[' | grep -q '"exit":0'
+}
+
+@test "a red characterization is refused, evidence recorded" {
+  make_ticket
+  run env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \
+    characterize "scenario" -- bash -c 'exit 5'
+  [ "$status" -ne 0 ]
+  case "$output" in *"characterization is red"*) ;; *) false ;; esac
+  grep '"event":"tdd.characterize"' "$ticket/telemetry.jsonl" | grep -q '"exit":5'
+}
+
+@test "a refused characterization persists the command's verbatim output" {
+  make_ticket
+  run env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \
+    characterize "scenario" -- bash -c 'echo out-line; echo err-line >&2; exit 1'
+  [ "$status" -ne 0 ]
+  log="$ticket/briefings/01-auth/tasks/01-login/characterize.log"
+  [ -f "$log" ]
+  grep -q "out-line" "$log"
+  grep -q "err-line" "$log"
+}
+
+@test "a refused characterization log is truncated, not appended, per run" {
+  make_ticket
+  log="$ticket/briefings/01-auth/tasks/01-login/characterize.log"
+  env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \
+    characterize "scenario" -- bash -c 'echo first-run; exit 1' > /dev/null || true
+  [ -f "$log" ]
+  env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \
+    characterize "scenario" -- bash -c 'echo second-run; exit 1' > /dev/null || true
+  grep -q "second-run" "$log"
+  ! grep -q "first-run" "$log"
+}
+
 @test "the evidence binds red and green to the same command" {
   make_ticket
   env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \

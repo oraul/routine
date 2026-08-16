@@ -235,3 +235,39 @@ load test_helper
   skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
   awk '/^## 2\./,/^## 3\./' "$skill" | awk '/^```$/{f=!f; next} f' | grep -q 'lint.log'
 }
+
+@test "a red characterization returns to specify as a defect" {
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -q 'characterize' "$dev"
+  grep -qi 'implemented' "$dev"
+}
+
+@test "the analyst and skill point at the captured failure log" {
+  ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  grep -q 'characterize.log' "$ana"
+  grep -q 'characterize.log' "$skill"
+}
+
+@test "the developer narrows scope and names a stolen red" {
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -qi 'narrowest' "$dev"
+  grep -qi 'stolen' "$dev"
+}
+
+@test "a redoing developer may read why its task came back" {
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -qi 'merely' "$dev"
+}
+
+@test "the re-served rule separates interruption from defect return" {
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -qi 'interruption' "$dev"
+  grep -qi 'amended' "$dev"
+}
+
+@test "the patch account lands in the returned task itself" {
+  ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'account' "$ana"
+  grep -qi ' itself' "$ana"
+}

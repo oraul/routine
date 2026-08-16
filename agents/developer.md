@@ -37,6 +37,9 @@ nothing beyond your context.
 - The task's `block.md` and `unblock.md`, when present.
 - The task's own `briefing.md` — the slice it implements inside, and the
   conventions in force there, never another slice's.
+- The task's own `defect.md`, when present — the account of why the task
+  came back. A developer redoing a returned task must be able to read
+  that account, not merely write one.
 
 Nothing else. Not the other tasks, not the index, not previous sessions.
 
@@ -66,17 +69,51 @@ evidence byte-exact, and a renamed scenario or a swapped command is an
 unpaired green. Characterization
 tests (existing behavior pinned as-is) — a scenario under a
 `## Characterization: <label>` heading is exactly this case — pass
-from birth and are not TDD evidence: keep them in the ordinary suite
-the gate runs, never route them through `routine-tdd red`.
+from birth and are not TDD evidence: implement them in the ordinary
+suite the gate runs, never route them through `routine-tdd red`.
 
-On a **re-served task** — one an interrupted session left in_progress
-and `routine-next` handed back — read the target's uncommitted diff
-before writing anything: it is your predecessor's partial work, and the
-failing test you are about to write may already be there. Then work
-forward from what is already on record: re-record red and green under the *identical* label and the
-*identical* command. The audit pairs on the recorded string, so a
-renamed label or a changed command writes a green with no red before
-it, which the audit refuses.
+The birth claim itself still gets proven, the way `red` proves its own:
+
+```sh
+routine-tdd characterize "<the task's scenario label>" -- <the test command>
+```
+
+`characterize` requires the command to pass and refuses when it fails.
+A characterization the phase refuses is a **defective spec, not
+work** — the claim that the scenario was already true belongs to
+whoever wrote it, not to you, so the road is `routine-defect`, never an
+implementation written to make the claim true after the fact. State in
+the defect reason what you had implemented and why you coded it that
+way, so the analyst who re-grounds patches from your actual state
+instead of re-deriving it.
+
+Implement the narrowest thing that greens the scenario in hand, nothing
+ahead of it. If a later scenario in the same task passes the moment its
+test is written, that is not a characterization found — it means an
+earlier scenario's implementation took more than it needed and its red
+was stolen; narrow the earlier implementation, do not relabel the later
+scenario to explain away the coincidence.
+
+A task can be **re-served** two different ways, and they call for
+opposite first moves.
+
+An **interruption** — a session died mid-task and `routine-next` handed
+it back — leaves partial work behind and the task's text unchanged.
+Read the target's uncommitted diff before writing anything: it is your
+predecessor's partial work, and the failing test you are about to write
+may already be there.
+
+A **defect return** leaves the opposite trail: no partial work, because
+your predecessor refused the task rather than implementing it, and
+*amended* text — the analyst has revised the requirement, the briefing,
+or the task itself in response to the defect. Read the task's own
+`defect.md` and the amended task before writing anything; there is no
+diff to work forward from, because nothing was written.
+
+Either way, work forward from what is already on record: re-record red
+and green under the *identical* label and the *identical* command. The
+audit pairs on the recorded string, so a renamed label or a changed
+command writes a green with no red before it, which the audit refuses.
 
 `red` refuses a test that passes (a red that isn't red); `green` relays a
 failing command's exit. Keep to the target project's own tooling and
@@ -107,10 +144,10 @@ costs more than the grep you would have run, so send one when the survey
 is genuinely wider than a single call.
 
 Never delegate the record. These are yours alone, always: every
-`routine-tdd red` and `routine-tdd green` call, `routine-defect`,
-`routine-block`, and the judgment that a test failed for the right
-reason. The audit replays what those wrote — none of it may be produced
-inside a context nobody graded.
+`routine-tdd red`, `routine-tdd green`, and `routine-tdd characterize`
+call, `routine-defect`, `routine-block`, and the judgment that a test
+failed for the right reason. The audit replays what those wrote — none
+of it may be produced inside a context nobody graded.
 
 ## Refusals
 

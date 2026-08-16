@@ -19,6 +19,28 @@ make_ticket() {
   grep '"event":"spec.defective"' "$ticket/telemetry.jsonl" | grep -q '"exit":1'
 }
 
+@test "defect return carries the characterization transcript into defect.md" {
+  make_ticket
+  clog="$ticket/briefings/01-auth/tasks/01-login/characterize.log"
+  printf 'AssertionError: expected total 0 got 300\n  at test_totals.py:12\n' > "$clog"
+  run "$ROUTINE_REPO_ROOT/bin/routine-defect" "$ticket" "characterization was false: totals miscount on last-item removal"
+  [ "$status" -eq 0 ]
+  dfile="$ticket/briefings/01-auth/tasks/01-login/defect.md"
+  grep -q 'totals miscount on last-item removal' "$dfile"
+  grep -q 'AssertionError: expected total 0 got 300' "$dfile"
+  grep -q 'test_totals.py:12' "$dfile"
+  grep -q 'characterize.log' "$dfile"
+}
+
+@test "defect return without a characterization log omits the transcript" {
+  make_ticket
+  run "$ROUTINE_REPO_ROOT/bin/routine-defect" "$ticket" "scenario 3 contradicts the acceptance list"
+  [ "$status" -eq 0 ]
+  dfile="$ticket/briefings/01-auth/tasks/01-login/defect.md"
+  grep -q 'scenario 3 contradicts the acceptance list' "$dfile"
+  ! grep -q 'characterize.log' "$dfile"
+}
+
 @test "defect refuses without a reason" {
   make_ticket
   run "$ROUTINE_REPO_ROOT/bin/routine-defect" "$ticket"

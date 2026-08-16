@@ -1,34 +1,50 @@
 #!/usr/bin/env bash
 # routine-script: routine-tdd
-# routine-description: TDD phases as scripts: run the command, record red/green evidence, enforce the phase
-# routine-usage: routine-tdd <red|green> <scenario> -- <command...>
+# routine-description: TDD phases as scripts: run the command, record red/green/characterize evidence, enforce the phase
+# routine-usage: routine-tdd <red|green|characterize> <scenario> -- <command...>
 # routine-env: ROUTINE_TICKET_DIR — the active ticket receiving the evidence
 # routine-exit: 0 — phase satisfied — evidence recorded
-# routine-exit: 1 — phase violation (a red that passes) or the green command's failure relayed
+# routine-exit: 1 — phase violation (a red that passes, a characterization that fails) or the green command's failure relayed
 # routine-exit: 2 — usage
 # routine-exit: 3 — telemetry rejected the evidence — no evidence line was written
 # routine-test: test/tdd.bats
 # TDD phases as scripts: run the test command, record the outcome as
-# tdd.red/tdd.green evidence in the ticket's telemetry, and enforce the
-# phase — a red that isn't red is a protocol violation, not a warning.
-# The scenario rides the script field, the subject-of-evidence convention
-# gate.developer.script and gate.hook already use — suffixed with a short
-# hash of the command, so the audit's byte-exact pairing proves red and
-# green ran the SAME command. A failed telemetry write exits 3 loudly:
-# evidence never vanishes behind a success message.
+# tdd.red/tdd.green/tdd.characterize evidence in the ticket's telemetry,
+# and enforce the phase — a red that isn't red is a protocol violation,
+# not a warning, and a characterization that is red is a false claim in
+# the spec, not work for the developer. The scenario rides the script
+# field, the subject-of-evidence convention gate.developer.script and
+# gate.hook already use — suffixed with a short hash of the command, so
+# the audit's byte-exact pairing proves red and green ran the SAME
+# command. A failed telemetry write exits 3 loudly: evidence never
+# vanishes behind a success message.
+#
+# characterize must show the command's output on the terminal AND
+# capture it verbatim for a possible refusal — streaming can't be
+# replayed after the fact, so both have to happen while the command
+# runs. It is piped through `tee` into a scratch file, stdout and stderr
+# merged onto one stream so the persisted record is one ordered verbatim
+# transcript; PIPESTATUS recovers the command's own exit code from
+# under the pipeline stage. On refusal the scratch file is copied,
+# truncating, into the in_progress task's own directory as
+# characterize.log (the same in_progress derivation routine-defect
+# uses); on a pass it is discarded.
 set -u
 
+lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
 # shellcheck source=/dev/null
-. "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+. "$lib/telemetry.sh"
+# shellcheck source=/dev/null
+. "$lib/index.sh"
 
 usage() {
-  echo "usage: routine-tdd <red|green> <scenario> -- <command...>" >&2
+  echo "usage: routine-tdd <red|green|characterize> <scenario> -- <command...>" >&2
   exit 2
 }
 
 phase="${1:-}"
 scenario="${2:-}"
-case "$phase" in red|green) ;; *) usage ;; esac
+case "$phase" in red|green|characterize) ;; *) usage ;; esac
 [ -n "$scenario" ] || usage
 [ "${3:-}" = "--" ] || usage
 shift 3
@@ -45,11 +61,19 @@ cmd_hash="$(printf '%s\0' "$@" | cksum | awk '{printf "%08x", $1}')"
 recorded="$scenario [$cmd_hash]"
 
 start_ms="$(routine_now_ms)"
-"$@"
-code="$?"
+characterize_tmp=""
+if [ "$phase" = characterize ]; then
+  characterize_tmp="$(mktemp "${TMPDIR:-/tmp}/routine-tdd-characterize.XXXXXX")"
+  "$@" 2>&1 | tee "$characterize_tmp"
+  code="${PIPESTATUS[0]}"
+else
+  "$@"
+  code="$?"
+fi
 if ! telemetry_gate_emit "tdd.$phase" "$recorded" "$code" \
   "$(( $(routine_now_ms) - start_ms ))"; then
   echo "routine-tdd: telemetry rejected the evidence (invalid character in scenario?) — no evidence line was written" >&2
+  [ -z "$characterize_tmp" ] || rm -f "$characterize_tmp"
   exit 3
 fi
 
@@ -61,5 +85,19 @@ if [ "$phase" = green ] && [ "$code" -ne 0 ]; then
   echo "routine-tdd: green expected but the command failed (exit $code)" >&2
   exit "$code"
 fi
+if [ "$phase" = characterize ] && [ "$code" -ne 0 ]; then
+  echo "routine-tdd: characterization is red — the scenario was not already true before this task touched anything (exit $code)" >&2
+  if row="$(index_first_with_status "$ROUTINE_TICKET_DIR/index.tsv" in_progress 2>/dev/null)"; then
+    b="$(printf '%s' "$row" | cut -f2)"
+    t="$(printf '%s' "$row" | cut -f3)"
+    task_dir="$ROUTINE_TICKET_DIR/briefings/$b/tasks/$t"
+    if [ -d "$task_dir" ]; then
+      cp "$characterize_tmp" "$task_dir/characterize.log"
+    fi
+  fi
+  rm -f "$characterize_tmp"
+  exit 1
+fi
+[ -z "$characterize_tmp" ] || rm -f "$characterize_tmp"
 echo "routine-tdd: $phase recorded as: $recorded"
 exit 0

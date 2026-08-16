@@ -52,10 +52,26 @@ if [ "$defects" -ge 3 ]; then
 fi
 
 # Append, never truncate: repeated returns keep the full history the
-# re-specifying analyst needs, newest last under its own timestamp.
+# re-specifying analyst needs, newest last under its own timestamp. When
+# a characterize.log sits beside this task (routine-tdd's derivation,
+# reused here), its verbatim contents ride the same entry as the
+# reason, fenced off by a scissors marker — the developer's account and
+# the machine's transcript stay tellable apart without gating either.
+# The transcript is copied byte-exact and therefore may itself contain
+# any line, '## ' included, so a reader counting entries by heading can
+# over-count. Nothing here parses defect.md that way; it is written for
+# the analyst to read. Byte-exactness is the spec property and it wins
+# over a delimiter that could never collide.
+task_dir="$ticket/briefings/$b/tasks/$t"
+clog="$task_dir/characterize.log"
 {
   printf '## %s\n\n%s\n\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$reason"
-} >> "$ticket/briefings/$b/tasks/$t/defect.md"
+  if [ -f "$clog" ]; then
+    printf -- '--8<-- captured failure (characterize.log) --8<--\n'
+    cat "$clog"
+    printf -- '\n--8<-- end captured failure --8<--\n\n'
+  fi
+} >> "$task_dir/defect.md"
 ts="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 index_set_status "$ticket/index.tsv" "$tid" pending "$ts"
 telemetry_emit "$ticket/telemetry.jsonl" spec.defective bin/routine-defect \

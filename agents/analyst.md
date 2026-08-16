@@ -67,7 +67,13 @@ Inside the active ticket directory, write — **grounding first**:
   The lint enforces the line forms (a claim-less bullet fails); the
   claims' truth is yours. On re-entry after a defect return, add a
   `## Reconciliation` line per defective task in the exact form
-  `- <task-id> — <what the defect invalidated>`.
+  `- <task-id> — <what the defect invalidated>` — that line is your own
+  grounding record, not the developer's. Because `grounding.md` sits
+  outside the developer's closed context list, also write the same
+  account — what the defect invalidated and what changed in response —
+  into the returned task itself, appended to its own `defect.md`
+  alongside the developer's reason: a patch account the redoing
+  developer cannot reach is not an account.
 - `requirement.md` — opens with a `# Requirement: <name>` header and a
   `Type: <type>` line (column 0, one space); the body states what the
   system SHALL/MUST do (RFC 2119 keywords: SHALL, MUST, SHOULD, MAY), and
@@ -115,7 +121,10 @@ re-deriving**: read `grounding.md`, the ticket's `lint.log` (the last
 lint run's defect list — script-owned, read it, never write it), and
 every task's `defect.md` first — they carry the evidence, the exact
 defects, and the reason for the rewind. Never re-run the gate just to
-see what failed; the list survives on `lint.log`.
+see what failed; the list survives on `lint.log`. When a task returned
+because `routine-tdd characterize` refused, read its own
+`characterize.log` too — the command's verbatim output, script-captured
+at the moment it refused, not the developer's paraphrase of it.
 
 Decide staleness by the anchor, never by anxiety: the Evidence bullets
 are current when `Grounded-at` equals `git -C "$TARGET" rev-parse
