@@ -67,6 +67,24 @@ make_ticket() {
   [ ! -f "$ticket/telemetry.jsonl" ] || ! grep -q 'tdd.red' "$ticket/telemetry.jsonl"
 }
 
+@test "characterize evidence: passing command records the pass" {
+  make_ticket
+  run env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \
+    characterize "empty order totals zero" -- true
+  [ "$status" -eq 0 ]
+  grep '"event":"tdd.characterize"' "$ticket/telemetry.jsonl" \
+    | grep '"script":"empty order totals zero \[' | grep -q '"exit":0'
+}
+
+@test "a red characterization is refused, evidence recorded" {
+  make_ticket
+  run env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \
+    characterize "scenario" -- bash -c 'exit 5'
+  [ "$status" -ne 0 ]
+  case "$output" in *"characterization is red"*) ;; *) false ;; esac
+  grep '"event":"tdd.characterize"' "$ticket/telemetry.jsonl" | grep -q '"exit":5'
+}
+
 @test "the evidence binds red and green to the same command" {
   make_ticket
   env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \

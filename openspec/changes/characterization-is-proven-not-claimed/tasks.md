@@ -1,6 +1,6 @@
 ## 1. A birth claim is proven, not asserted
 
-- [ ] 1.1 Red→green: `routine-tdd characterize <scenario> -- <cmd>`
+- [x] 1.1 Red→green: `routine-tdd characterize <scenario> -- <cmd>`
       records the pass as evidence when the command succeeds, and
       refuses when it fails — the claim "green at birth" checked the way
       `red` checks its own claim
