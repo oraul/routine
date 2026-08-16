@@ -117,8 +117,7 @@ script-owned state. It SHALL NOT restate individual lint rules outside
 the grammar it teaches (stale restatements drift), SHALL state the
 revise limit the way the gate counts it (per episode; a defect return
 opens a fresh budget), and SHALL route missing caffeine vocabulary to
-the human and `/caffeinate` — never an invented topic name. It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract. Its re-entry sources SHALL include the ticket's `lint.log` alongside `grounding.md` and the `defect.md` files. Its grounding instruction SHALL describe Evidence bullets as claim-bearing — `- <path> — <what the file was found to contain or do>` — with the ruled-out form and the `- none — <why>` floors for Alternatives and Assumptions. Its re-entry rule SHALL be anchor-first: Evidence bullets are current when `Grounded-at` equals the target's current HEAD and the worktree is clean; otherwise only bullets whose paths the diff against the worktree (plus untracked files) names are re-verified, and the anchor is refreshed — never a full re-search. Its context handles SHALL be named: `TARGET`, the repository it grounds against, and `ROUTINE_TICKET_DIR`, where its artifacts land. It MAY use cheap read-only scouts to survey the target when the host provides delegation — scout prompts are transcript-only and never load-bearing; every accepted scout claim SHALL land as an Evidence bullet naming a real path, and unverified scout claims SHALL go under `## Assumptions` — however evidence is gathered, only the ticket artifacts are contract. It SHALL name `agents/scout.md` as the file those scouts are, rather than describing an anonymous capability.
-
+the human and `/caffeinate` — never an invented topic name. It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract. Its re-entry sources SHALL include the ticket's `lint.log` alongside `grounding.md` and the `defect.md` files. Its grounding instruction SHALL describe Evidence bullets as claim-bearing — `- <path> — <what the file was found to contain or do>` — with the ruled-out form and the `- none — <why>` floors for Alternatives and Assumptions. Its re-entry rule SHALL be anchor-first: Evidence bullets are current when `Grounded-at` equals the target's current HEAD and the worktree is clean; otherwise only bullets whose paths the diff against the worktree (plus untracked files) names are re-verified, and the anchor is refreshed — never a full re-search. Its context handles SHALL be named: `TARGET`, the repository it grounds against, and `ROUTINE_TICKET_DIR`, where its artifacts land. It MAY use cheap read-only scouts to survey the target when the host provides delegation — scout prompts are transcript-only and never load-bearing; every accepted scout claim SHALL land as an Evidence bullet naming a real path, and unverified scout claims SHALL go under `## Assumptions` — however evidence is gathered, only the ticket artifacts are contract. It SHALL name `agents/scout.md` as the file those scouts are, rather than describing an anonymous capability. On re-entry after a defect return it SHALL write the patch account into the returned task itself — what the defect invalidated and what changed in response — because the `## Reconciliation` line it writes lives in `grounding.md`, which is outside the developer's closed context list, and an account the reader cannot reach is not an account. It SHALL read the verbatim failure `routine-tdd characterize` captured for a task returned that way, rather than a paraphrase of it.
 #### Scenario: Grammar named in the prompt
 - **WHEN** the agent file is read
 - **THEN** it names every grammar marker the linter enforces — including
@@ -159,6 +158,10 @@ the human and `/caffeinate` — never an invented topic name. It SHALL name a `r
 - **WHEN** the agent file is read
 - **THEN** it names TARGET and ROUTINE_TICKET_DIR as its context
   handles
+#### Scenario: The patch reaches the developer that redoes the task
+- **WHEN** the agent file is read
+- **THEN** it writes the patch account into the returned task itself,
+  not only into `grounding.md`, and reads the captured verbatim failure
 
 ### Requirement: The developer is stateless and evidence-bound
 `agents/developer.md` SHALL instruct: consume exactly one task from
@@ -168,7 +171,7 @@ contract section (`## Reproduction`/`## Touchpoints`/`## Contracts`/
 the caffeine docs named in that task's own `## Caffeine` manifest, the
 ticket's `calibration/<type>.md`, the task's own `briefing.md` — the slice it
 implements inside, and the conventions in force there, never another slice's —
-block/unblock files when present, and
+block/unblock files when present, the task's own `defect.md` when present — the account of why the task came back, which a developer redoing it MUST be able to read and not merely write, and
 the two handles every scripted call needs — the ticket directory
 (`ROUTINE_TICKET_DIR`, the `<ticket-dir>` argument of the refusal
 scripts) and the target root (`TARGET`) — nothing else. It SHALL state
@@ -181,14 +184,14 @@ command (the audit demands a covering green per label and pairs the
 evidence byte-exact) — with characterization tests kept out of the TDD
 evidence — a `## Characterization: <label>` scenario is implemented in
 the ordinary suite the gate runs and never routed through
-`routine-tdd`, whose red phase would refuse it — SHALL bound the developer-gate loop with an off-ramp
+`routine-tdd`, whose red phase would refuse it — It SHALL instruct a third TDD phase, `routine-tdd characterize`, for a `## Characterization: <label>` scenario, and SHALL state that a characterization the phase refuses is a defective spec rather than work — the claim that the scenario was already true belongs to whoever wrote it. It SHALL require the defect reason to state what was implemented and why it was coded that way, so the analyst patches from the developer's actual state rather than re-deriving it. It SHALL instruct that the implementation for a scenario is the narrowest one that greens it, and SHALL name the misreading: a later scenario in the same task passing the moment its test is written means too much was taken on an earlier scenario, not that a characterization was found. It SHALL bound the developer-gate loop with an off-ramp
 (repeated gate failures or a fix that leaves the task's scope route to
 the scripted refusals, never an unbounded retry), SHALL return a
 defective spec by calling `routine-defect <ticket-dir> <reason>`
 instead of improvising, and on blockage SHALL write `block.md` and call
 `routine-block`. The Never list SHALL cover script-owned state, other
 tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
-`routine-done` (the protocol driver's move, not the developer's). It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract. On a re-served task — one an interrupted session left in_progress — it SHALL re-record red and green under the identical scenario label and the identical command, because the audit pairs on the recorded string and a rename or a changed command records an unpaired green. On a re-served task it SHALL read the target's uncommitted diff before writing anything — the failing test it is about to write may already be there, left by the developer it replaced. It MAY delegate read-only mechanical surveys of `TARGET` to `agents/scout.md` where the host provides delegation — locating files, listing call sites, reporting which fixtures exist — under the same transcript-only rule the analyst works under: the delegate's prose is never load-bearing, and a claim the developer keeps it verifies by opening the path itself. The admission SHALL be permissive, never required: where no delegation exists the developer does the work itself and nothing in the loop changes. It SHALL carry a closed list of moves that are never delegated — every `routine-tdd` call, `routine-defect`, `routine-block`, and the judgment that a test failed for the right reason — because those write the record the audit replays.
+`routine-done` (the protocol driver's move, not the developer's). It SHALL name a `routine-*` script's frontmatter head (or `routine-manual`) as the contract to read before calling — never a recalled contract. It SHALL distinguish the two ways a task is re-served, because they call for opposite first moves: an **interruption** leaves partial work behind and the task's text unchanged, while a **defect return** leaves no work and text the analyst has since amended — the first is met by reading the target's uncommitted diff, the second by reading `defect.md` and the amended task before writing anything. On a re-served task — one an interrupted session left in_progress — it SHALL re-record red and green under the identical scenario label and the identical command, because the audit pairs on the recorded string and a rename or a changed command records an unpaired green. On a re-served task it SHALL read the target's uncommitted diff before writing anything — the failing test it is about to write may already be there, left by the developer it replaced. It MAY delegate read-only mechanical surveys of `TARGET` to `agents/scout.md` where the host provides delegation — locating files, listing call sites, reporting which fixtures exist — under the same transcript-only rule the analyst works under: the delegate's prose is never load-bearing, and a claim the developer keeps it verifies by opening the path itself. The admission SHALL be permissive, never required: where no delegation exists the developer does the work itself and nothing in the loop changes. It SHALL carry a closed list of moves that are never delegated — every `routine-tdd` call, `routine-defect`, `routine-block`, and the judgment that a test failed for the right reason — because those write the record the audit replays.
 
 #### Scenario: Statelessness named in the prompt
 - **WHEN** the agent file is read
@@ -247,6 +250,23 @@ tasks, out-of-manifest caffeine, `runs/<app>/hooks/*`, and calling
 - **WHEN** the analyst agent file is read
 - **THEN** it requires each briefing to carry the conventions in force
   for its slice
+
+#### Scenario: A redoing developer can read why the task came back
+- **WHEN** the agent file is read
+- **THEN** its closed context list admits the task's own `defect.md`,
+  and it separates a defect return from an interruption by what each
+  leaves behind
+
+#### Scenario: A false characterization is the spec's fault
+- **WHEN** the agent file is read
+- **THEN** it names `routine-tdd characterize` and states that a
+  refused characterization is a defective spec rather than work
+
+#### Scenario: A stolen red is named as such
+- **WHEN** the agent file is read
+- **THEN** it instructs the narrowest implementation per scenario and
+  states that a later scenario passing at birth means an earlier one
+  took too much rather than that a characterization was found
 
 ### Requirement: Agent files register as subagents
 `agents/analyst.md`, `agents/developer.md`, and `agents/scout.md` SHALL
