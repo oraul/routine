@@ -241,3 +241,10 @@ load test_helper
   grep -q 'characterize' "$dev"
   grep -qi 'implemented' "$dev"
 }
+
+@test "the analyst and skill point at the captured failure log" {
+  ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  grep -q 'characterize.log' "$ana"
+  grep -q 'characterize.log' "$skill"
+}

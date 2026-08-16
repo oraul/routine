@@ -25,7 +25,7 @@
       implemented and why — pinned in `test/agents_content.bats` on a
       word absent from the file today
 
-- [ ] 3.2 Red→green: `agents/analyst.md` names the captured failure
+- [x] 3.2 Red→green: `agents/analyst.md` names the captured failure
       among the files a re-entering analyst reads, and
       `skills/routine/SKILL.md`'s revise payload names its path — pinned
       the same way

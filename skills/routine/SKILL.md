@@ -110,6 +110,7 @@ TARGET: <resolved absolute path to the target project root>
 grounding.md: <resolved absolute path to the ticket>/grounding.md
 lint.log: <resolved absolute path to the ticket>/lint.log
 defect.md: <resolved absolute path to the ticket>/tasks/<task-id>/defect.md — every task that has one
+characterize.log: <resolved absolute path to the ticket>/tasks/<task-id>/characterize.log — when a `routine-tdd characterize` refusal captured one
 ```
 
   Recovery reads those files — never a re-run of the gate, which would

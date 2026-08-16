@@ -115,7 +115,10 @@ re-deriving**: read `grounding.md`, the ticket's `lint.log` (the last
 lint run's defect list — script-owned, read it, never write it), and
 every task's `defect.md` first — they carry the evidence, the exact
 defects, and the reason for the rewind. Never re-run the gate just to
-see what failed; the list survives on `lint.log`.
+see what failed; the list survives on `lint.log`. When a task returned
+because `routine-tdd characterize` refused, read its own
+`characterize.log` too — the command's verbatim output, script-captured
+at the moment it refused, not the developer's paraphrase of it.
 
 Decide staleness by the anchor, never by anxiety: the Evidence bullets
 are current when `Grounded-at` equals `git -C "$TARGET" rev-parse
