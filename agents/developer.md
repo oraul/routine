@@ -84,6 +84,13 @@ the defect reason what you had implemented and why you coded it that
 way, so the analyst who re-grounds patches from your actual state
 instead of re-deriving it.
 
+Implement the narrowest thing that greens the scenario in hand, nothing
+ahead of it. If a later scenario in the same task passes the moment its
+test is written, that is not a characterization found — it means an
+earlier scenario's implementation took more than it needed and its red
+was stolen; narrow the earlier implementation, do not relabel the later
+scenario to explain away the coincidence.
+
 On a **re-served task** — one an interrupted session left in_progress
 and `routine-next` handed back — read the target's uncommitted diff
 before writing anything: it is your predecessor's partial work, and the

@@ -30,7 +30,7 @@
       `skills/routine/SKILL.md`'s revise payload names its path — pinned
       the same way
 
-- [ ] 3.3 Red→green: `agents/developer.md` instructs the narrowest
+- [x] 3.3 Red→green: `agents/developer.md` instructs the narrowest
       implementation per scenario and names the misreading — a later
       scenario passing at birth means an earlier one took too much, not
       that a characterization was found

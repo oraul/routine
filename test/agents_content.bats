@@ -248,3 +248,9 @@ load test_helper
   grep -q 'characterize.log' "$ana"
   grep -q 'characterize.log' "$skill"
 }
+
+@test "the developer narrows scope and names a stolen red" {
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -qi 'narrowest' "$dev"
+  grep -qi 'stolen' "$dev"
+}
