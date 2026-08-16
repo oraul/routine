@@ -5,7 +5,7 @@
       refuses when it fails — the claim "green at birth" checked the way
       `red` checks its own claim
 
-- [ ] 1.2 Red→green: a refused `characterize` persists the command's
+- [x] 1.2 Red→green: a refused `characterize` persists the command's
       **verbatim** output to the task's own script-owned log, truncated
       per run, so the analyst reads what actually printed rather than a
       paraphrase
