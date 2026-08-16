@@ -265,3 +265,9 @@ load test_helper
   grep -qi 'interruption' "$dev"
   grep -qi 'amended' "$dev"
 }
+
+@test "the patch account lands in the returned task itself" {
+  ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'account' "$ana"
+  grep -qi ' itself' "$ana"
+}

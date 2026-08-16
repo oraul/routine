@@ -48,7 +48,7 @@
       text, and the second is read before writing rather than diffed
       against the target
 
-- [ ] 4.3 Red→green: `agents/analyst.md` writes the patch note into the
+- [x] 4.3 Red→green: `agents/analyst.md` writes the patch note into the
       returned task itself — what the defect invalidated and what
       changed in response. The `## Reconciliation` line it already
       writes lives in `grounding.md`, which is outside the developer's
