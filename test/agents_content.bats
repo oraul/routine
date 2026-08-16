@@ -259,3 +259,9 @@ load test_helper
   dev="$ROUTINE_REPO_ROOT/agents/developer.md"
   grep -qi 'merely' "$dev"
 }
+
+@test "the re-served rule separates interruption from defect return" {
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -qi 'interruption' "$dev"
+  grep -qi 'amended' "$dev"
+}

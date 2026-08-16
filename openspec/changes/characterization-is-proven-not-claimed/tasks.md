@@ -42,7 +42,7 @@
       only where the developer *writes* it, so a redoing developer may
       not read why its task came back
 
-- [ ] 4.2 Red→green: the re-served rule distinguishes the two cases it
+- [x] 4.2 Red→green: the re-served rule distinguishes the two cases it
       currently conflates — an **interruption** leaves partial work and
       the same text, a **defect return** leaves no work and amended
       text, and the second is read before writing rather than diffed

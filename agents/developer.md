@@ -94,14 +94,26 @@ earlier scenario's implementation took more than it needed and its red
 was stolen; narrow the earlier implementation, do not relabel the later
 scenario to explain away the coincidence.
 
-On a **re-served task** — one an interrupted session left in_progress
-and `routine-next` handed back — read the target's uncommitted diff
-before writing anything: it is your predecessor's partial work, and the
-failing test you are about to write may already be there. Then work
-forward from what is already on record: re-record red and green under the *identical* label and the
-*identical* command. The audit pairs on the recorded string, so a
-renamed label or a changed command writes a green with no red before
-it, which the audit refuses.
+A task can be **re-served** two different ways, and they call for
+opposite first moves.
+
+An **interruption** — a session died mid-task and `routine-next` handed
+it back — leaves partial work behind and the task's text unchanged.
+Read the target's uncommitted diff before writing anything: it is your
+predecessor's partial work, and the failing test you are about to write
+may already be there.
+
+A **defect return** leaves the opposite trail: no partial work, because
+your predecessor refused the task rather than implementing it, and
+*amended* text — the analyst has revised the requirement, the briefing,
+or the task itself in response to the defect. Read the task's own
+`defect.md` and the amended task before writing anything; there is no
+diff to work forward from, because nothing was written.
+
+Either way, work forward from what is already on record: re-record red
+and green under the *identical* label and the *identical* command. The
+audit pairs on the recorded string, so a renamed label or a changed
+command writes a green with no red before it, which the audit refuses.
 
 `red` refuses a test that passes (a red that isn't red); `green` relays a
 failing command's exit. Keep to the target project's own tooling and
