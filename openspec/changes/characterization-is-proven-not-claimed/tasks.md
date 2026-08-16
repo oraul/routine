@@ -12,7 +12,7 @@
 
 ## 2. The return carries what the analyst needs to patch
 
-- [ ] 2.1 Red→green: `routine-defect` attaches the captured failure to
+- [x] 2.1 Red→green: `routine-defect` attaches the captured failure to
       the task's defect record when one exists, and still records a
       return when none does — a defect from a source other than a
       characterization must not be refused for lacking one
