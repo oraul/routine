@@ -56,14 +56,34 @@ analyst may not.
    passing at birth means too much was taken earlier, not that a
    characterization was found.
 
-## What is already there and is not being rebuilt
+## The developer redoing the task cannot currently see the patch
 
-**Sending it back to the developer as a fresh interaction.** That is the
-existing loop: the analyst amends, `routine-next` re-serves the task,
-and a stateless developer picks it up with the amended text. Run 0005
-exercised exactly this — 01-02 returned, was amended, was re-served, and
-went green. Nothing to build; it is named here so the change is not read
-as adding a road that already exists.
+The *road* back to the developer exists — the analyst amends,
+`routine-next` re-serves, a fresh stateless developer picks it up. Run
+0005 exercised it and 01-02 went green. No road needs building.
+
+What the developer receives on that road is the problem, and it is a
+hole rather than a thin spot:
+
+- **`defect.md` is not in the developer's closed context list.** The
+  file appears once in `agents/developer.md`, in the Refusals section,
+  where the developer *writes* it. A developer redoing a returned task
+  may therefore write the account of why it came back and may not read
+  one.
+- **The re-served rule covers the wrong case.** It addresses "one an
+  interrupted session left in_progress" and prescribes reading the
+  target's uncommitted diff. A defect return is the opposite situation:
+  no partial work, because the predecessor refused — and *amended text*,
+  which the rule never mentions.
+- **The reconciliation is written where the developer cannot read it.**
+  The analyst records `- <task-id> — <what the defect invalidated>` in
+  `grounding.md`, and the lint enforces it. `grounding.md` is not in the
+  developer's closed list.
+
+In run 0005 the redoing developer knew all of this only because the
+driver's delegation payload said so by hand. That is the driver
+compensating for an interface, which is the same fault E1 and E4 fixed
+elsewhere.
 
 ## Honest scoping of item 4
 

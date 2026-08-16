@@ -34,3 +34,23 @@
       implementation per scenario and names the misreading — a later
       scenario passing at birth means an earlier one took too much, not
       that a characterization was found
+
+## 4. The developer redoing a task can see the patch
+
+- [ ] 4.1 Red→green: `agents/developer.md`'s closed context list admits
+      the task's own `defect.md` when present — today it names the file
+      only where the developer *writes* it, so a redoing developer may
+      not read why its task came back
+
+- [ ] 4.2 Red→green: the re-served rule distinguishes the two cases it
+      currently conflates — an **interruption** leaves partial work and
+      the same text, a **defect return** leaves no work and amended
+      text, and the second is read before writing rather than diffed
+      against the target
+
+- [ ] 4.3 Red→green: `agents/analyst.md` writes the patch note into the
+      returned task itself — what the defect invalidated and what
+      changed in response. The `## Reconciliation` line it already
+      writes lives in `grounding.md`, which is outside the developer's
+      closed list, so today the account exists where the reader cannot
+      reach it
