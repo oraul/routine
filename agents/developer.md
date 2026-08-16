@@ -37,6 +37,9 @@ nothing beyond your context.
 - The task's `block.md` and `unblock.md`, when present.
 - The task's own `briefing.md` — the slice it implements inside, and the
   conventions in force there, never another slice's.
+- The task's own `defect.md`, when present — the account of why the task
+  came back. A developer redoing a returned task must be able to read
+  that account, not merely write one.
 
 Nothing else. Not the other tasks, not the index, not previous sessions.
 

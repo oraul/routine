@@ -37,7 +37,7 @@
 
 ## 4. The developer redoing a task can see the patch
 
-- [ ] 4.1 Red→green: `agents/developer.md`'s closed context list admits
+- [x] 4.1 Red→green: `agents/developer.md`'s closed context list admits
       the task's own `defect.md` when present — today it names the file
       only where the developer *writes* it, so a redoing developer may
       not read why its task came back

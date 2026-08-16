@@ -254,3 +254,8 @@ load test_helper
   grep -qi 'narrowest' "$dev"
   grep -qi 'stolen' "$dev"
 }
+
+@test "a redoing developer may read why its task came back" {
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  grep -qi 'merely' "$dev"
+}
