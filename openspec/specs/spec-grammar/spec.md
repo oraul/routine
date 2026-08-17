@@ -90,7 +90,7 @@ evidence behind the contract: a `## Evidence` section whose every
 non-empty line matches `- <path> — <claim>` — the claim stating what
 the file was found to contain or do, with `- <path> — ruled out:
 <reason>` the blessed form for surveyed-and-rejected paths; a
-`## Alternatives` section and an `## Assumptions` section each holding
+`## Alternatives` section, an `## Assumptions` section, and a `## Questions` section each holding
 at least one `- ` bullet, with the literal floor `- none — <why
 nothing qualifies>` as the considered opt-out. `bin/routine-spec-lint`
 SHALL check every Evidence line individually (one well-formed bullet
@@ -135,6 +135,19 @@ content — a false claim is the approve reader's catch, not the lint's. The fil
 - **WHEN** `grounding.md` has no `Grounded-at:` line, or its value is
   not a 40-hex commit id
 - **THEN** the lint exits non-zero naming the line and the form
+
+#### Scenario: Silent Questions fail
+- **WHEN** `## Questions` carries no bullet
+- **THEN** the lint fails naming the `- none — <why nothing qualifies>`
+  floor, so a ticket with nothing to ask says so rather than omitting the
+  section
+
+#### Scenario: A question separates intent from derivation
+- **WHEN** a grounding records a claim the target has no opinion on —
+  product intent rather than a reading of the code
+- **THEN** it belongs under `## Questions` with the provisional reading
+  the decomposition was built on, not under `## Assumptions`, whose
+  entries are citable to a path in the target
 
 ### Requirement: The defect list survives the run
 `routine-spec-lint` SHALL mirror every defect line it prints to stderr
