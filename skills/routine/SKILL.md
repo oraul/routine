@@ -93,6 +93,9 @@ it inherits your environment:
 Requirement: <the human's requirement, verbatim>
 ROUTINE_TICKET_DIR: <resolved absolute path to the ticket>
 TARGET: <resolved absolute path to the target project root>
+Context: <what the target is and what its operator cares about, when not
+  obvious from the target itself — a stateless analyst otherwise derives
+  intent from code that never recorded it>
 ```
 
 The analyst writes `requirement.md`, briefings, and tasks in the ticket.
@@ -121,8 +124,11 @@ characterize.log: <resolved absolute path to the ticket>/tasks/<task-id>/charact
 
 ## 3. approve — hard stop
 
-Show the human `requirement.md` and every `briefing.md`. **Stop and wait**
-for the human to say proceed. This is the only human checkpoint in the
+Show the human `requirement.md`, every `briefing.md`, and the ticket's
+`## Questions` from `grounding.md` — the analyst's claims about product
+intent, which only the operator can answer, and which are invisible at
+every other point in the loop. **Stop and wait** for the human to say
+proceed. This is the only human checkpoint in the
 operational loop; never continue without it. When the human proceeds,
 record it: `routine-approve "$ROUTINE_TICKET_DIR" "<their remarks, if
 any>"` — the audit refuses a run whose approval left no evidence, and

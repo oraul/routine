@@ -81,6 +81,10 @@ Grounded-at: 0123456789abcdef0123456789abcdef01234567
 
 ## Assumptions
 - local auth only; no SSO in scope
+
+## Questions
+- none — a local password check settles in the code, with no product
+  intent left for the operator to rule on
 GRD
   : > "$ticket/index.tsv"
   "$ROUTINE_REPO_ROOT/bin/routine-next" "$ticket" > /dev/null

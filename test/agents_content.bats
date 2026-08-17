@@ -202,6 +202,19 @@ load test_helper
   grep -q 'routine-tdd red' "$dev"
 }
 
+# Cross-contract: both files describe the same phase, so they must not
+# describe it two different ways. The developer's contract already says
+# the birth claim "gets proven"; the analyst's contract must name the
+# evidence that proves it, rather than denying any evidence exists.
+@test "the agent contracts agree on what characterize records" {
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'gets proven' "$dev"
+  grep -q '## Characterization:' "$ana"
+  grep -Fq 'tdd.characterize' "$ana"
+  ! grep -q 'records no TDD' "$ana"
+}
+
 @test "the developer's closed list admits its own briefing" {
   dev="$ROUTINE_REPO_ROOT/agents/developer.md"
   grep -q 'briefing.md' "$dev"
@@ -270,4 +283,30 @@ load test_helper
   ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
   grep -qi 'account' "$ana"
   grep -qi ' itself' "$ana"
+}
+
+@test "a question is separated from a derivation by its own heading" {
+  ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -q '## Questions' "$ana"
+  grep -qi 'operator can answer' "$ana"
+  grep -q '## Assumptions' "$ana"
+}
+
+@test "each question carries the provisional reading it was decomposed against" {
+  ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'provisional' "$ana"
+  grep -qi 'operator may override' "$ana"
+  grep -q -- '- none — <why nothing qualifies>' "$ana"
+}
+
+@test "approve shows the questions beside the requirement and briefings" {
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  awk '/^## 3\./,/^## 4\./' "$skill" | grep -q '## Questions'
+  awk '/^## 3\./,/^## 4\./' "$skill" | grep -qi 'operator'
+}
+
+@test "the specify payload template carries what the operator cares about" {
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  awk '/^## 2\./,/^## 3\./' "$skill" | awk '/^```$/{f=!f; next} f' | grep -qi 'context'
+  awk '/^## 2\./,/^## 3\./' "$skill" | grep -qi 'operator cares about'
 }
