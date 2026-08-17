@@ -3,7 +3,7 @@
 # routine-description: Record the human checkpoint: the proceed and any remarks become ticket evidence
 # routine-usage: routine-approve <ticket-dir> [note]
 # routine-exit: 0 — recorded — ticket.approve on the record, note appended when given
-# routine-exit: 1 — refused — no passing gate.analyst on record
+# routine-exit: 1 — refused — no passing gate.analyst on record, or grounding.md carries a non-floor '## Questions' section and no note was given
 # routine-exit: 2 — usage — a ticket directory with telemetry is required
 # routine-test: test/approve.bats
 # The human checkpoint as evidence: records the proceed (and any remarks)
@@ -28,6 +28,29 @@ fi
 if ! grep -q '"event":"gate.analyst"[^}]*"exit":0,' "$ticket/telemetry.jsonl"; then
   echo "routine-approve: no passing gate.analyst on record — approval of ungated artifacts is meaningless" >&2
   exit 1
+fi
+
+# A question only the operator can answer is cheap to overturn now and a
+# caller-visible break after implementation. The '- none — <why>' floor
+# (same shape routine-record-lint already applies) means asking is a
+# deliberate act, so only a deliberately-raised, still-unanswered question
+# blocks — and a note counts as the human having answered it.
+grounding="$ticket/grounding.md"
+if [ -z "$note" ] && [ -f "$grounding" ] && grep -q '^## Questions' "$grounding"; then
+  non_floor="$(awk '
+    /^## Questions/ {a=1; next}
+    a && /^#/ {a=0}
+    a && /^- / {
+      label = $0
+      sub(/^- /, "", label)
+      if (label !~ /^none — /) print "- " label
+    }
+  ' "$grounding")"
+  if [ -n "$non_floor" ]; then
+    echo "routine-approve: unanswered operator questions block the proceed:" >&2
+    printf '%s\n' "$non_floor" >&2
+    exit 1
+  fi
 fi
 
 if [ -n "$note" ]; then

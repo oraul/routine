@@ -47,3 +47,34 @@ pass_analyst_gate() {
   [ "$status" -eq 0 ]
   tail -1 "$ticket/telemetry.jsonl" | grep -q '"event":"ticket.approve"'
 }
+
+@test "an unanswered operator question blocks the proceed without a note" {
+  make_ticket
+  pass_analyst_gate
+  printf '## Questions\n- does rounding favor the customer or the business — provisional: customer; operator may override\n' \
+    > "$ticket/grounding.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *"rounding favor the customer"*) ;; *) false ;; esac
+  grep -q '"event":"gate.analyst"' "$ticket/telemetry.jsonl"
+  ! grep -q '"event":"ticket.approve"' "$ticket/telemetry.jsonl"
+}
+
+@test "a note answers the questions and the proceed is recorded" {
+  make_ticket
+  pass_analyst_gate
+  printf '## Questions\n- does rounding favor the customer or the business — provisional: customer; operator may override\n' \
+    > "$ticket/grounding.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket" "customer rounding confirmed"
+  [ "$status" -eq 0 ]
+  tail -1 "$ticket/telemetry.jsonl" | grep -q '"event":"ticket.approve"'
+}
+
+@test "a floor of nothing to ask never blocks the proceed" {
+  make_ticket
+  pass_analyst_gate
+  printf '## Questions\n- none — nothing to ask\n' > "$ticket/grounding.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket"
+  [ "$status" -eq 0 ]
+  tail -1 "$ticket/telemetry.jsonl" | grep -q '"event":"ticket.approve"'
+}

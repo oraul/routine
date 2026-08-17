@@ -34,7 +34,7 @@
 - [ ] 3.1 Red→green: `skills/routine/SKILL.md`'s approve step shows the
       questions alongside `requirement.md` and the briefings
 
-- [ ] 3.2 Red→green: `routine-approve` refuses a proceed that leaves
+- [x] 3.2 Red→green: `routine-approve` refuses a proceed that leaves
       non-floor questions unanswered, and still records a proceed when
       the section is at its floor — a ticket with nothing to ask must not
       be blocked
