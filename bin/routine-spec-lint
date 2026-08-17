@@ -55,7 +55,7 @@ else
   if ! grep -Eq '^Grounded-at: [0-9a-f]{40}$' "$grounding"; then
     fail "grounding.md" "missing or malformed 'Grounded-at: <sha>' line (a 40-hex commit id of the target at grounding time)"
   fi
-  for _gsec in Evidence Alternatives Assumptions; do
+  for _gsec in Evidence Alternatives Assumptions Questions; do
     grep -q "^## $_gsec" "$grounding" \
       || fail "grounding.md" "missing '## $_gsec' section"
   done
@@ -74,7 +74,7 @@ $(awk '/^## Evidence/ {a=1; next} a && /^#/ {a=0} a && NF {print}' "$grounding")
 EOF_EVIDENCE
   # Silence is unconsidered, not inapplicable: each of these sections
   # carries at least one bullet, with '- none — <why>' the honest floor.
-  for _gsec in Alternatives Assumptions; do
+  for _gsec in Alternatives Assumptions Questions; do
     if ! awk -v sec="$_gsec" '$0 == "## " sec {a=1; next} a && /^#/ {a=0} a && /^- / {found=1} END {exit !found}' "$grounding"; then
       fail "grounding.md" "empty $_gsec — record at least one bullet, or '- none — <why nothing qualifies>'"
     fi

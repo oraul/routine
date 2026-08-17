@@ -40,6 +40,9 @@ Grounded-at: 0123456789abcdef0123456789abcdef01234567
 
 ## Assumptions
 - local auth only; no SSO in scope
+
+## Questions
+- none — a password credential check carries no product-intent decision the code doesn't already settle
 GRD
 }
 
@@ -201,6 +204,9 @@ Grounded-at: 0123456789abcdef0123456789abcdef01234567
 
 ## Assumptions
 - local auth only; no SSO in scope
+
+## Questions
+- none — a password credential check carries no product-intent decision the code doesn't already settle
 GRD
 }
 
@@ -324,6 +330,9 @@ Grounded-at: 0123456789abcdef0123456789abcdef01234567
 
 ## Assumptions
 - local auth only; no SSO in scope
+
+## Questions
+- none — a password credential check carries no product-intent decision the code doesn't already settle
 GEOF
 }
 
@@ -389,6 +398,20 @@ PYEOF
   run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
   [ "$status" -ne 0 ]
   case "$output" in *Assumptions*"- none —"*) ;; *) false ;; esac
+}
+
+@test "silent questions fail naming the floor" {
+  make_good_ticket
+  python3 - "$ticket/grounding.md" <<'PYEOF'
+import sys
+p = sys.argv[1]
+s = open(p).read().replace(
+  "- none — a password credential check carries no product-intent decision the code doesn't already settle\n", '')
+open(p, 'w').write(s)
+PYEOF
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *Questions*"- none —"*) ;; *) false ;; esac
 }
 
 @test "a bare id inside prose does not reconcile" {

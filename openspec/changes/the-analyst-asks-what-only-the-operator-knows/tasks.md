@@ -25,7 +25,7 @@
       decomposition was built on, so the loop never stalls waiting for an
       answer and the override stays cheap
 
-- [ ] 2.3 Red→green: `routine-spec-lint` enforces the new section's
+- [x] 2.3 Red→green: `routine-spec-lint` enforces the new section's
       presence and floor the way it already enforces `## Alternatives`
       and `## Assumptions`
 
