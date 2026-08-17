@@ -93,6 +93,9 @@ it inherits your environment:
 Requirement: <the human's requirement, verbatim>
 ROUTINE_TICKET_DIR: <resolved absolute path to the ticket>
 TARGET: <resolved absolute path to the target project root>
+Context: <what the target is and what its operator cares about, when not
+  obvious from the target itself — a stateless analyst otherwise derives
+  intent from code that never recorded it>
 ```
 
 The analyst writes `requirement.md`, briefings, and tasks in the ticket.

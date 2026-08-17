@@ -304,3 +304,9 @@ load test_helper
   awk '/^## 3\./,/^## 4\./' "$skill" | grep -q '## Questions'
   awk '/^## 3\./,/^## 4\./' "$skill" | grep -qi 'operator'
 }
+
+@test "the specify payload template carries what the operator cares about" {
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  awk '/^## 2\./,/^## 3\./' "$skill" | awk '/^```$/{f=!f; next} f' | grep -qi 'context'
+  awk '/^## 2\./,/^## 3\./' "$skill" | grep -qi 'operator cares about'
+}

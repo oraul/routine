@@ -39,5 +39,5 @@
       the section is at its floor — a ticket with nothing to ask must not
       be blocked
 
-- [ ] 3.3 Red→green: the specify payload template gains a context field
+- [x] 3.3 Red→green: the specify payload template gains a context field
       naming what the app is and what the operator cares about
