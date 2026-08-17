@@ -298,3 +298,9 @@ load test_helper
   grep -qi 'operator may override' "$ana"
   grep -q -- '- none — <why nothing qualifies>' "$ana"
 }
+
+@test "approve shows the questions beside the requirement and briefings" {
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  awk '/^## 3\./,/^## 4\./' "$skill" | grep -q '## Questions'
+  awk '/^## 3\./,/^## 4\./' "$skill" | grep -qi 'operator'
+}

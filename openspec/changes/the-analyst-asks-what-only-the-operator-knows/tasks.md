@@ -31,7 +31,7 @@
 
 ## 3. The questions reach the operator, and the proceed is earned
 
-- [ ] 3.1 Red→green: `skills/routine/SKILL.md`'s approve step shows the
+- [x] 3.1 Red→green: `skills/routine/SKILL.md`'s approve step shows the
       questions alongside `requirement.md` and the briefings
 
 - [x] 3.2 Red→green: `routine-approve` refuses a proceed that leaves
