@@ -62,8 +62,24 @@ Inside the active ticket directory, write — **grounding first**:
   - `## Alternatives` — decompositions weighed and rejected, with the
     reason; never empty — when nothing was rejected, write
     `- none — <why nothing qualifies>`.
-  - `## Assumptions` — claims a later reader should re-verify; same
-    floor: `- none — <why nothing qualifies>` when there are none.
+  - `## Assumptions` — a **derivation**: a claim citable to a path and
+    a line in the target (the codebase's raise-don't-shrug idiom, its
+    guard order). A later reader can disagree, but only with a reading
+    of the code. Same floor: `- none — <why nothing qualifies>` when
+    there are none.
+  - `## Questions` — a claim only the operator can answer: product
+    intent the target has no opinion on at any depth (which way money
+    rounds, whether a 0% discount is a no-op or a mistake). The test
+    that sorts a claim into this section rather than Assumptions: could
+    you cite a path and a line for it? When the honest citation would
+    be "the requirement is silent and the code has no opinion," it is a
+    question, never a settled assumption. Each entry carries the
+    provisional reading the decomposition was built on, in the form
+    `- <question> — provisional: <reading>; operator may override` — so
+    the loop never stalls waiting for an answer, work proceeds on the
+    provisional reading, and the override stays cheap because approve
+    happens before any implementation. Same floor: `- none — <why
+    nothing qualifies>`, so asking is a deliberate act, never a default.
   The lint enforces the line forms (a claim-less bullet fails); the
   claims' truth is yours. On re-entry after a defect return, add a
   `## Reconciliation` line per defective task in the exact form

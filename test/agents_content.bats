@@ -284,3 +284,17 @@ load test_helper
   grep -qi 'account' "$ana"
   grep -qi ' itself' "$ana"
 }
+
+@test "a question is separated from a derivation by its own heading" {
+  ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -q '## Questions' "$ana"
+  grep -qi 'operator can answer' "$ana"
+  grep -q '## Assumptions' "$ana"
+}
+
+@test "each question carries the provisional reading it was decomposed against" {
+  ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'provisional' "$ana"
+  grep -qi 'operator may override' "$ana"
+  grep -q -- '- none — <why nothing qualifies>' "$ana"
+}

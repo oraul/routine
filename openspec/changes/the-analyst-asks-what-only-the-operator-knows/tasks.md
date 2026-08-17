@@ -15,13 +15,13 @@
 
 ## 2. A question is not an assumption
 
-- [ ] 2.1 Red→green: `agents/analyst.md` separates a derivation (citable
+- [x] 2.1 Red→green: `agents/analyst.md` separates a derivation (citable
       to a path and a line in the target) from a question only the
       operator can answer (product intent the code has no opinion on),
       and records the questions under their own heading with the
       `- none — <why nothing qualifies>` floor
 
-- [ ] 2.2 Red→green: each question carries the provisional reading the
+- [x] 2.2 Red→green: each question carries the provisional reading the
       decomposition was built on, so the loop never stalls waiting for an
       answer and the override stays cheap
 
