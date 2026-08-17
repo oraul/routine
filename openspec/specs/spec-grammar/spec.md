@@ -14,7 +14,7 @@ only: `requirement.md` exists, contains a `# Requirement:` header, a
 `Type: <bug|feature|greenfield|epic>` declaration, and at least one RFC
 2119 keyword (SHALL, MUST, SHOULD, or MAY); every briefing directory
 contains `briefing.md` and at least one task directory; every `task.md`
-contains at least one scenario heading of either form — `## Scenario: <label>` for red-then-green behaviour (the label the audit binds tdd evidence to) or `## Characterization: <label>` for a green-at-birth pin whose coverage is the task's passing developer gate — at least one scenario using Given/When/Then
+contains at least one scenario heading of either form — `## Scenario: <label>` for red-then-green behaviour (the label the audit binds tdd evidence to) or `## Characterization: <label>` for a green-at-birth pin whose birth claim is proven by `routine-tdd characterize`, recording a `tdd.characterize` line and no red/green pair — at least one scenario using Given/When/Then
 lines, a `## Acceptance` section with at least one enumerated item, and
 a `## Caffeine` section whose lines each match `- <topic>` and resolve
 against `caffeine/` — and the list SHALL NOT be empty: `testing/tdd`

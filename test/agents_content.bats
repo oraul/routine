@@ -202,6 +202,19 @@ load test_helper
   grep -q 'routine-tdd red' "$dev"
 }
 
+# Cross-contract: both files describe the same phase, so they must not
+# describe it two different ways. The developer's contract already says
+# the birth claim "gets proven"; the analyst's contract must name the
+# evidence that proves it, rather than denying any evidence exists.
+@test "the agent contracts agree on what characterize records" {
+  dev="$ROUTINE_REPO_ROOT/agents/developer.md"
+  ana="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'gets proven' "$dev"
+  grep -q '## Characterization:' "$ana"
+  grep -Fq 'tdd.characterize' "$ana"
+  ! grep -q 'records no TDD' "$ana"
+}
+
 @test "the developer's closed list admits its own briefing" {
   dev="$ROUTINE_REPO_ROOT/agents/developer.md"
   grep -q 'briefing.md' "$dev"

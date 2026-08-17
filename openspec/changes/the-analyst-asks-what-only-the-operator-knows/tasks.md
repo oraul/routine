@@ -1,13 +1,13 @@
 ## 1. The interface check, red against main before anything is fixed
 
-- [ ] 1.1 Red→green: `test/agents_content.bats` asserts the two agent
+- [x] 1.1 Red→green: `test/agents_content.bats` asserts the two agent
       contracts agree about the TDD phases and what evidence each
       records. Its red is `main` as it stands — run it before touching
       `agents/analyst.md`, capture the failure, and only then fix the
       contradiction, because correcting the contracts first destroys the
       only unforced red this change can get
 
-- [ ] 1.2 Red→green: `agents/analyst.md` and
+- [x] 1.2 Red→green: `agents/analyst.md` and
       `openspec/specs/spec-grammar/spec.md` describe the characterization
       phase as PR #91 built it — proven with `routine-tdd characterize`,
       recording a `tdd.characterize` line and no red/green pair, rather

@@ -94,9 +94,10 @@ Inside the active ticket directory, write — **grounding first**:
     developer records its TDD evidence under it verbatim, and the audit
     refuses a done task whose labels lack their covering green. A
     green-at-birth pin of existing behaviour uses `## Characterization:
-    <label>` instead — the same Given/When/Then body, but its coverage
-    is the task's developer gate, so the developer records no TDD
-    evidence for it,
+    <label>` instead — the same Given/When/Then body, but its coverage is
+    the task's developer gate: its birth claim is proven with
+    `routine-tdd characterize`, which records a `tdd.characterize` line
+    and no red/green pair, never through `routine-tdd red`,
   - a `## Acceptance` section with an enumerated, non-empty list,
   - a `## Caffeine` section naming the topics **this task** needs, each on
     its own line in the exact form `- <namespace>/<topic>` (e.g.
