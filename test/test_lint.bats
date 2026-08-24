@@ -51,12 +51,23 @@ lint() {
   [[ "$output" == *"it should work correctly"* ]]
 }
 
+# why: one fixture carries all 17 openers as 17 distinct tests (each
+# opener differs in its first word, so the full names are unique without
+# help), linted once — the same per-opener coverage the old per-opener
+# loop had, plus it now exercises report-everything-in-one-run for the
+# naming rule the way "all violations are reported in one run" already
+# does for the others.
 @test "every mechanism opener in the denylist is caught" {
+  names=()
   for opener in test tests testing check checks verify verifies should it \
                 ensure ensures can will does works handles correctly; do
-    fixture a.bats "$opener the thing that matters"
-    lint
-    [ "$status" -eq 1 ] || { echo "opener not caught: $opener"; false; }
+    names+=("$opener the thing that matters")
+  done
+  fixture a.bats "${names[@]}"
+  lint
+  [ "$status" -eq 1 ]
+  for name in "${names[@]}"; do
+    [[ "$output" == *"$name"* ]] || { echo "opener not named in output: $name"; false; }
   done
 }
 

@@ -60,13 +60,18 @@ in the PR and the next release record, whichever way they fall.
 
 ## Also in scope — the same fault one level up
 
-Two tests in `test_lint.bats` loop over items, invoking the whole lint
-per item: *every mechanism opener in the denylist is caught* runs it
-17 times (618 ms), *every expectation token form the corpus uses is
-accepted* has the same shape (220 ms). Verified before proposing: a
+One test in `test_lint.bats` loops over items, invoking the whole
+lint per item: *every mechanism opener in the denylist is caught* runs
+it 17 times (618 ms). The proposal first claimed *every expectation
+token form the corpus uses is accepted* (220 ms) "has the same shape"
+— refuted during apply: that test was single-fixture single-run from
+its birth commit, and its 220 ms was the old lint's per-test judging
+cost on one run, not a loop. The claim was written from a timing
+number without reading the test, which is exactly the ungrounded-
+prediction failure task Y2 exists to refuse. Verified before proposing: a
 fixture holding four bad openers, linted once, reports all four by
 name — the lint already batch-reports, and one of this file's own
-tests pins that. Each loop collapses to one fixture and one run
+tests pins that. The one real loop collapses to one fixture and one run
 asserting every item appears in the output. Green today and green
 after — a characterization of batch reporting, not TDD evidence, and
 the tasks say so.

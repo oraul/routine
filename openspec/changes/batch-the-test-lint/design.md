@@ -68,9 +68,10 @@ red→green evidence for a change whose behavioural diff is empty.
 carrying all 17 bad names, one lint run, and 17 assertions that each
 opener's name appears in the output — the same coverage, one launch
 instead of 17, and it now also exercises report-everything-in-one-run,
-which this suite pins elsewhere. Same shape for the token-form test
-(all forms as separate tests in one fixture, one run, exit 0). Both
-are green before and after; the tasks label them characterization,
+which this suite pins elsewhere. The token-form test needed no
+collapse — apply found it already single-fixture single-run since its
+birth commit, refuting the proposal's premise about it. The collapsed
+test is green before and after; the tasks label it characterization,
 not red→green — the mislabelling lesson from `record-citations-in-
 range` task 1.2 applies verbatim.
 
