@@ -51,12 +51,23 @@ lint() {
   [[ "$output" == *"it should work correctly"* ]]
 }
 
+# why: one fixture carries all 17 openers as 17 distinct tests (each
+# opener differs in its first word, so the full names are unique without
+# help), linted once — the same per-opener coverage the old per-opener
+# loop had, plus it now exercises report-everything-in-one-run for the
+# naming rule the way "all violations are reported in one run" already
+# does for the others.
 @test "every mechanism opener in the denylist is caught" {
+  names=()
   for opener in test tests testing check checks verify verifies should it \
                 ensure ensures can will does works handles correctly; do
-    fixture a.bats "$opener the thing that matters"
-    lint
-    [ "$status" -eq 1 ] || { echo "opener not caught: $opener"; false; }
+    names+=("$opener the thing that matters")
+  done
+  fixture a.bats "${names[@]}"
+  lint
+  [ "$status" -eq 1 ]
+  for name in "${names[@]}"; do
+    [[ "$output" == *"$name"* ]] || { echo "opener not named in output: $name"; false; }
   done
 }
 
@@ -327,4 +338,41 @@ lint() {
   printf '  grep -q telemetry "$doc"\n}\n' >> "$CORPUS/a.bats"
   lint
   [ "$status" -eq 0 ]
+}
+
+# The cost pin: tool launches are bounded per suite file, never per test.
+# A PATH shim directory tallies every external grep/awk/sed/sort/uniq
+# launch (the tools the lint's per-file awk pass and the shell walk both
+# rely on); each shim appends one line then execs the real tool by an
+# absolute path resolved when the shim is written, so a shim can never
+# invoke another shim. Thirty is the corpus size (two files), not an
+# implementation count: per-test judging spends roughly fifteen launches
+# per test on this same corpus, an order of magnitude over the bound.
+@test "scanning cost is bounded per suite file rather than per test" {
+  names=()
+  for i in $(seq 1 30); do
+    names+=("case $i proves the fixture body is real")
+  done
+  fixture a.bats "${names[@]}"
+
+  names=()
+  for i in $(seq 1 30); do
+    names+=("run $i proves the fixture body is real too")
+  done
+  fixture b.bats "${names[@]}"
+
+  shimdir="$BATS_TEST_TMPDIR/shim"
+  mkdir -p "$shimdir"
+  tally="$BATS_TEST_TMPDIR/tally"
+  : > "$tally"
+  for tool in grep awk sed sort uniq; do
+    abs="$(command -v "$tool")"
+    printf '#!/bin/sh\necho x >> "%s"\nexec "%s" "$@"\n' "$tally" "$abs" \
+      > "$shimdir/$tool"
+    chmod +x "$shimdir/$tool"
+  done
+
+  PATH="$shimdir:$PATH" run "$ROUTINE_REPO_ROOT/bin/routine-test-lint" "$CORPUS"
+  [ "$status" -eq 0 ]
+  [ "$(wc -l < "$tally")" -le 30 ]
 }
