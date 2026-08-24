@@ -14,6 +14,13 @@
 # command exits 0, so a body that never touches a recognised expectation
 # token can never fail and defends no claim either. This lint pins both,
 # it does not clean up.
+#
+# Every rule below is judged inside one awk pass per suite file, never in
+# shell: a per-test pipeline (measured at ~15 launches per test, 6,902 for
+# this repository's 446 tests) pays per-file cost per test. The same
+# checks inside one awk process cost milliseconds. The shell keeps only
+# the walk, the violation tally, the usage check and the exact summary
+# strings — everything else moved into the awk program below.
 set -u
 
 # shellcheck source=/dev/null
@@ -28,24 +35,75 @@ if [ ! -d "$dir" ]; then
 fi
 
 # An opener plus a literal space, never a word boundary: \b is absent from
-# BSD grep, and a boundary match refuses `testing/tdd ...`, which is a
-# caffeine topic path rather than the word "testing".
+# BSD grep (and from awk's ERE dialect too), and a boundary match refuses
+# `testing/tdd ...`, which is a caffeine topic path rather than the word
+# "testing". awk has no case-insensitive match flag, so the name side is
+# lowered with tolower() and matched against this already-lowercase list.
 openers='test|tests|testing|check|checks|verify|verifies|should|it|ensure|ensures|can|will|does|works|handles|correctly'
 
-# The expectation gate is a token scan, deliberately not a bash parser: a
-# scan admits false negatives, and the answer is to widen this list, never
-# to start parsing shell. Measured against this repository's own 350
-# bodies before it was written: every one matches at least one token.
 violations=0
-report() {
-  echo "test-lint: $1: $2 — $3"
-  violations=$((violations + 1))
+
+# Everything that used to be a shell pipeline per name and per body line
+# now runs inside this one awk program per file. It extracts names and
+# bodies exactly as the old extraction pass did (brace-depth counting,
+# never a shell parse of the body), then judges every rule against the
+# arrays it just built: naming (opener, word count, length), duplicates,
+# the expectation-token body rule, the pairing rule and the isolation
+# rule. Violation lines print in the same order the shell produced them
+# in: naming rules in declaration order, then duplicates, then per test
+# body -> pairing -> isolation in test order. The program is passed
+# straight to awk as its own argument, never through an intermediate
+# shell variable, so its many literal $0/$1-style tokens are never
+# mistaken by shellcheck for shell expansions that should have used
+# double quotes.
+for file in "$dir"/*.bats; do
+  [ -f "$file" ] || continue
+
+  out="$(awk -v openers="$openers" -v SQ="'" '
+BEGIN { n = 0; depth = 0 }
+
+# Extraction: the name is between the first quote and the last quote
+# before the opening brace, on the @test line itself; the body is
+# everything up to the matching close brace, tracked by counting braces
+# rather than by parsing shell. A body spanning several lines, or several
+# tests sharing one line, still yields the right span.
+depth == 0 && /^@test[ \t]/ {
+  qstart = index($0, "\"")
+  bpos = index($0, "{")
+  if (qstart == 0 || bpos == 0) { next }
+  upto = substr($0, 1, bpos - 1)
+  lastq = 0
+  for (k = length(upto); k > qstart; k--) {
+    if (substr(upto, k, 1) == "\"") { lastq = k; break }
+  }
+  if (lastq == 0) { next }
+  n++
+  names[n] = substr($0, qstart + 1, lastq - qstart - 1)
+  rc[n] = 0
+  seg = substr($0, bpos)
+  depth = 0
+  for (k = 1; k <= length(seg); k++) {
+    c = substr(seg, k, 1)
+    if (c == "{") { depth++ }
+    else if (c == "}") { depth-- }
+  }
+  rest = substr(seg, 2)
+  if (length(rest) > 0) {
+    rc[n]++
+    rawline[n, rc[n]] = rest
+  }
+  next
 }
 
-has_expectation() {
-  printf '%s\n' "$1" | grep -Fq \
-    -e '[ ' -e '[[' -e 'status' -e 'output' -e 'grep' -e 'diff ' \
-    -e 'assert' -e 'refute' -e '-eq' -e '-ne' -e '! '
+depth > 0 {
+  for (k = 1; k <= length($0); k++) {
+    c = substr($0, k, 1)
+    if (c == "{") { depth++ }
+    else if (c == "}") { depth-- }
+  }
+  rc[n]++
+  rawline[n, rc[n]] = $0
+  next
 }
 
 # The pairing gate: `! grep -q X "$doc"` passes when $doc does not exist,
@@ -56,103 +114,112 @@ has_expectation() {
 #
 # The subject is the file/glob argument a negated grep line reads: the
 # last shell word of the line, up to (but not through) a real unquoted
-# pipe. A doubled pipe (||, the OR operator) is not a pipe boundary and
-# is skipped so scanning continues past it; a single pipe (real command
+# pipe. A doubled pipe (||, the OR operator) is not a pipe boundary and is
+# skipped so scanning continues past it; a single pipe (real command
 # piping) ends the scan, since the file argument for the clause under
 # test is whatever came before it. Quoting is tracked so a `|` living
-# inside a quoted pattern (an alternation like 'admin|packages') is never
+# inside a quoted pattern (an alternation like admin|packages) is never
 # mistaken for either.
-pairing_subject() {
-  printf '%s\n' "$1" | awk -v SQ="'" '
-  {
-    line = $0
-    n = length(line)
-    sq = 0; dq = 0
-    buf = ""
-    lastword = ""
-    stop = 0
-    i = 1
-    while (i <= n && !stop) {
-      c = substr(line, i, 1)
-      if (sq) {
-        if (c == SQ) sq = 0
-        buf = buf c
-        i++
-        continue
-      }
-      if (dq) {
-        if (c == "\"") dq = 0
-        buf = buf c
-        i++
-        continue
-      }
-      if (c == SQ) { sq = 1; buf = buf c; i++; continue }
-      if (c == "\"") { dq = 1; buf = buf c; i++; continue }
-      if (c == "|") {
-        nc = (i < n) ? substr(line, i + 1, 1) : ""
-        if (nc == "|") {
-          if (buf != "") { lastword = buf; buf = "" }
-          i += 2
-          continue
-        }
-        if (buf != "") { lastword = buf; buf = "" }
-        stop = 1
-        continue
-      }
-      if (c == " " || c == "\t") {
-        if (buf != "") { lastword = buf; buf = "" }
-        i++
-        continue
-      }
+function pairing_subject(line,    nlen, sq, dq, buf, lastword, stop, i, c, nc) {
+  nlen = length(line)
+  sq = 0; dq = 0
+  buf = ""
+  lastword = ""
+  stop = 0
+  i = 1
+  while (i <= nlen && !stop) {
+    c = substr(line, i, 1)
+    if (sq) {
+      if (c == SQ) sq = 0
       buf = buf c
       i++
+      continue
     }
-    if (buf != "") lastword = buf
-    print lastword
-  }'
+    if (dq) {
+      if (c == "\"") dq = 0
+      buf = buf c
+      i++
+      continue
+    }
+    if (c == SQ) { sq = 1; buf = buf c; i++; continue }
+    if (c == "\"") { dq = 1; buf = buf c; i++; continue }
+    if (c == "|") {
+      nc = (i < nlen) ? substr(line, i + 1, 1) : ""
+      if (nc == "|") {
+        if (buf != "") { lastword = buf; buf = "" }
+        i += 2
+        continue
+      }
+      if (buf != "") { lastword = buf; buf = "" }
+      stop = 1
+      continue
+    }
+    if (c == " " || c == "\t") {
+      if (buf != "") { lastword = buf; buf = "" }
+      i++
+      continue
+    }
+    buf = buf c
+    i++
+  }
+  if (buf != "") lastword = buf
+  return lastword
 }
 
 # A body line is a candidate negated-grep assertion when a `!` is
 # followed by whitespace then the word "grep" — never anchored to line
 # start, since the real corpus carries `[ ! -f X ] || ! grep -q Y X` as
-# one line, and the bang guarding the grep sits mid-line.
-is_negated_grep() {
-  # The bang may guard the grep directly (`! grep -q X "$doc"`) or guard a
-  # pipeline that ends in one (`! printf '%s' "$output" | grep -q X`).
-  # Both are negated greps and both pass when the subject is empty or
-  # absent, so both are candidates. `! -f` is a unary test, not a command,
-  # which is why the bang must be followed by a letter.
-  printf '%s\n' "$1" | grep -Eq '! +[a-zA-Z_]' || return 1
-  printf '%s\n' "$1" | grep -q 'grep'
+# one line, and the bang guarding the grep sits mid-line. The bang may
+# guard the grep directly, or guard a pipeline that ends in one; both are
+# negated greps and both pass when the subject is empty or absent.
+function is_negated_grep(line) {
+  if (!(line ~ /! +[a-zA-Z_]/)) return 0
+  if (index(line, "grep") == 0) return 0
+  return 1
+}
+
+# The pairing gate escapes a subject the same way the sed call once did,
+# character by character rather than one combined character class, so a
+# backslash added for one character is never re-escaped by a later rule.
+function escape_subject(s,    r) {
+  r = s
+  gsub(/\\/, "\\\\", r)
+  gsub(/\[/, "\\[", r)
+  gsub(/\]/, "\\]", r)
+  gsub(/\./, "\\.", r)
+  gsub(/\*/, "\\*", r)
+  gsub(/\^/, "\\^", r)
+  gsub(/\$/, "\\$", r)
+  gsub(/\//, "\\/", r)
+  return r
 }
 
 # A candidate protector line: names the same subject, carries some
 # expectation token, and is not itself a negation of that same subject
 # (another negated grep, or a negated unary test like `! -f`) — two
 # negatives about one subject still prove nothing was ever looked at.
-is_positive_for_subject() {
-  line="$1"; subject="$2"
-  printf '%s\n' "$line" | grep -Fq -- "$subject" || return 1
+function is_positive_for_subject(line, subject,    esc) {
+  if (index(line, subject) == 0) return 0
 
   # A body that BUILDS the subject has established it as surely as one
   # that asserts on it: a fixture write proves the file is there, so the
   # negation that follows cannot be reading an absence.
-  printf '%s\n' "$line" | grep -Eq \
-    "(>>?|cp |mv |touch |mkdir |tee )[^|]*$(printf '%s' "$subject" \
-      | sed 's/[][\.*^$/]/\\&/g')" && return 0
+  esc = escape_subject(subject)
+  if (line ~ ("(>>?|cp |mv |touch |mkdir |tee )[^|]*" esc)) return 1
 
   # An existence test pairs even when negated. `[ ! -f "$f" ] || ! grep -q
   # x "$f"` is the author handling vacuity on purpose — the disjunction
   # says "absent, or present without the forbidden thing", which is the
   # very distinction this rule exists to force.
-  printf '%s\n' "$line" | grep -Eq '\[ *!? *-[a-zA-Z] ' && return 0
+  if (line ~ /\[ *!? *-[a-zA-Z] /) return 1
 
-  printf '%s\n' "$line" | grep -Fq \
-    -e '[ ' -e '[[' -e 'grep' -e 'diff ' -e 'assert' -e 'refute' \
-    -e '-eq' -e '-ne' || return 1
-  is_negated_grep "$line" && return 1
-  printf '%s\n' "$line" | grep -Eq '! +-[a-zA-Z]($|[^a-zA-Z])' && return 1
-  return 0
+  if (!(index(line, "[ ") > 0 || index(line, "[[") > 0 || \
+        index(line, "grep") > 0 || index(line, "diff ") > 0 || \
+        index(line, "assert") > 0 || index(line, "refute") > 0 || \
+        index(line, "-eq") > 0 || index(line, "-ne") > 0)) return 0
+  if (is_negated_grep(line)) return 0
+  if (line ~ /! +-[a-zA-Z]($|[^a-zA-Z])/) return 0
+  return 1
 }
 
 # $output is exempt only when the body proves the command reached a known
@@ -161,216 +228,183 @@ is_positive_for_subject() {
 # grep over an empty string passes — reporting the forbidden thing absent
 # when in truth nothing ran. Asserting $status is what rules that out, so
 # $status is the pairing partner for $output exactly as an existence test
-# is for a file.
-is_exempt_subject() {
-  # shellcheck disable=SC2016 # literal source text, deliberately unexpanded
-  case "$1" in
-    '"$output"' | '$output') ;;
-    *) return 1 ;;
-  esac
-  printf '%s\n' "$2" | grep -q 'status' || return 1
+# is for a file. jn/joined are the continuation-joined lines of the
+# current test, populated by build_joined just before this is called.
+function is_exempt_subject(subject, jn,    k) {
+  if (subject != "\"$output\"" && subject != "$output") return 0
+  for (k = 1; k <= jn; k++) {
+    if (index(joined[k], "status") > 0) return 1
+  }
   return 0
 }
 
 # A backslash continuation is one logical line wearing two physical ones.
-# The corpus writes `! printf '%s' "$output" | awk '...' \` and puts the
+# The corpus writes `! printf "%s" "$output" | awk "..." \` and puts the
 # `| grep -q X` on the next line — scanned separately, neither half looks
-# like a negated grep, and the rule would silently never see it.
-join_continuations() {
-  printf '%s\n' "$1" | awk '
-    { line = $0
-      while (line ~ /\\[ \t]*$/ && (getline nxt) > 0) {
-        sub(/\\[ \t]*$/, "", line)
-        sub(/^[ \t]+/, " ", nxt)
-        line = line nxt
-      }
-      print line }'
+# like a negated grep, and the rule would silently never see it. `joined`
+# is a shared scratch array, rebuilt fresh for each test before use.
+function build_joined(i,    k, jn, line, nxt) {
+  jn = 0
+  k = 1
+  while (k <= rc[i]) {
+    line = rawline[i, k]
+    while (line ~ /\\[ \t]*$/ && k < rc[i]) {
+      k++
+      nxt = rawline[i, k]
+      sub(/\\[ \t]*$/, "", line)
+      sub(/^[ \t]+/, " ", nxt)
+      line = line nxt
+    }
+    jn++
+    joined[jn] = line
+    k++
+  }
+  return jn
 }
 
-# Each bats test is its own process with its own BATS_TEST_TMPDIR, and
-# that boundary is the whole reason order dependence cannot arise in this
-# corpus. A shared tmpdir, or a write into the repository, is the only way
-# to opt out of it — so both are refused. Removing the hazard beats
-# detecting it afterwards with a seeded order, which is why this rule
-# exists and that one does not. Reads stay unrestricted: the content pins
-# grep the repository constantly, and a read cannot make one test depend
-# on another.
-check_isolation() {
-  ifile="$1"; iname="$2"
-  # A line writing into a .bats file is building a fixture corpus for
-  # another lint run: the forbidden tokens on it are data, not this test's
-  # own behaviour. Only this suite does that, and without the distinction
-  # the rule refuses the very tests that prove it works.
-  ibody="$(printf '%s\n' "$3" | grep -v '>>* *"[^"]*\.bats"')"
-
-  if printf '%s\n' "$ibody" | grep -q 'BATS_SUITE_TMPDIR'; then
-    report "$ifile" "$iname" \
-      "uses BATS_SUITE_TMPDIR; state shared across tests is the only way order can matter (isolation rule)"
-  fi
-  if printf '%s\n' "$ibody" | grep -q 'BATS_FILE_TMPDIR'; then
-    report "$ifile" "$iname" \
-      "uses BATS_FILE_TMPDIR; state shared across tests is the only way order can matter (isolation rule)"
-  fi
-  if printf '%s\n' "$ibody" | grep -Eq \
-    '(>>?|cp |mv |rm |mkdir |sed -i|touch )[^|]*\$\{?ROUTINE_REPO_ROOT'; then
-    report "$ifile" "$iname" \
-      "writes into \$ROUTINE_REPO_ROOT; every write belongs in BATS_TEST_TMPDIR (isolation rule)"
-  fi
+function has_expectation(i,    k, line) {
+  for (k = 1; k <= rc[i]; k++) {
+    line = rawline[i, k]
+    if (index(line, "[ ") > 0) return 1
+    if (index(line, "[[") > 0) return 1
+    if (index(line, "status") > 0) return 1
+    if (index(line, "output") > 0) return 1
+    if (index(line, "grep") > 0) return 1
+    if (index(line, "diff ") > 0) return 1
+    if (index(line, "assert") > 0) return 1
+    if (index(line, "refute") > 0) return 1
+    if (index(line, "-eq") > 0) return 1
+    if (index(line, "-ne") > 0) return 1
+    if (index(line, "! ") > 0) return 1
+  }
+  return 0
 }
 
-check_pairing() {
-  pf="$1"; pname="$2"; pbody="$(join_continuations "$3")"
-  while IFS= read -r pline; do
-    is_negated_grep "$pline" || continue
-    subj="$(pairing_subject "$pline")"
-    [ -n "$subj" ] || continue
-    is_exempt_subject "$subj" "$pbody" && continue
+function check_pairing(i,    jn, k, k2, pline, subj, other, paired) {
+  jn = build_joined(i)
+  for (k = 1; k <= jn; k++) {
+    pline = joined[k]
+    if (!is_negated_grep(pline)) continue
+    subj = pairing_subject(pline)
+    if (subj == "") continue
+    if (is_exempt_subject(subj, jn)) continue
 
     # A line can pair itself. `[ ! -f "$f" ] || ! grep -q x "$f"` carries
     # both halves: the disjunction says "absent, or present without the
     # forbidden thing", which is precisely the distinction this rule
     # exists to force. Checked before the scan, which skips this line.
-    if printf '%s\n' "$pline" | grep -Eq '\[ *!? *-[a-zA-Z] '; then
-      continue
-    fi
+    if (pline ~ /\[ *!? *-[a-zA-Z] /) continue
 
-    paired=1
-    while IFS= read -r other; do
-      [ "$other" = "$pline" ] && continue
-      if is_positive_for_subject "$other" "$subj"; then
-        paired=0
-        break
-      fi
-    done <<PBODY
-$pbody
-PBODY
-
-    if [ "$paired" -eq 1 ]; then
-      report "$pf" "$pname" \
-        "negates $subj with no positive assertion on the same subject; absent and merely-unlooked-at both pass (pairing rule)"
-    fi
-  done <<PBODY2
-$pbody
-PBODY2
+    paired = 0
+    for (k2 = 1; k2 <= jn; k2++) {
+      other = joined[k2]
+      if (other == pline) continue
+      if (is_positive_for_subject(other, subj)) { paired = 1; break }
+    }
+    if (!paired) {
+      printf "test-lint: %s: %s — negates %s with no positive assertion on the same subject; absent and merely-unlooked-at both pass (pairing rule)\n", FILENAME, names[i], subj
+    }
+  }
 }
 
-for file in "$dir"/*.bats; do
-  [ -f "$file" ] || continue
+# Each bats test is its own process with its own BATS_TEST_TMPDIR, and
+# that boundary is the whole reason order dependence cannot arise in this
+# corpus. A shared tmpdir, or a write into the repository, is the only way
+# to opt out of it — so both are refused. Reads stay unrestricted: the
+# content pins grep the repository constantly, and a read cannot make one
+# test depend on another. A line writing into a .bats file is building a
+# fixture corpus for another lint run: the forbidden tokens on it are
+# data, not behaviour belonging to this test, and are excluded from all
+# three checks below exactly as the shell version excluded them.
+function check_isolation(i,    k, line, suite_tmp, file_tmp, wrote_root) {
+  suite_tmp = 0
+  file_tmp = 0
+  wrote_root = 0
+  for (k = 1; k <= rc[i]; k++) {
+    line = rawline[i, k]
+    if (line ~ />>* *"[^"]*\.bats"/) continue
+    if (index(line, "BATS_SUITE_TMPDIR") > 0) suite_tmp = 1
+    if (index(line, "BATS_FILE_TMPDIR") > 0) file_tmp = 1
+    if (line ~ /(>>?|cp |mv |rm |mkdir |sed -i|touch )[^|]*\$\{?ROUTINE_REPO_ROOT/) wrote_root = 1
+  }
+  if (suite_tmp) {
+    printf "test-lint: %s: %s — uses BATS_SUITE_TMPDIR; state shared across tests is the only way order can matter (isolation rule)\n", FILENAME, names[i]
+  }
+  if (file_tmp) {
+    printf "test-lint: %s: %s — uses BATS_FILE_TMPDIR; state shared across tests is the only way order can matter (isolation rule)\n", FILENAME, names[i]
+  }
+  if (wrote_root) {
+    printf "test-lint: %s: %s — writes into $ROUTINE_REPO_ROOT; every write belongs in BATS_TEST_TMPDIR (isolation rule)\n", FILENAME, names[i]
+  }
+}
 
-  # The name is what bats prints on failure: everything between the first
-  # quote and the last one before the opening brace.
-  names="$(sed -n 's/^@test  *"\(.*\)" *{.*$/\1/p' "$file")"
+END {
+  # 1. Naming rules, in declaration order: opener, then word count, then
+  # length, for each name before moving to the next.
+  for (i = 1; i <= n; i++) {
+    name = names[i]
+    lname = tolower(name)
+    if (lname ~ ("^(" openers ") ")) {
+      printf "test-lint: %s: %s — opens with a mechanism word; state the claim instead (naming rule)\n", FILENAME, name
+    }
+    nf = split(name, w, " ")
+    if (nf < 3) {
+      printf "test-lint: %s: %s — is a label, not a claim (fewer than three words) (naming rule)\n", FILENAME, name
+    }
+    if (length(name) > 100) {
+      printf "test-lint: %s: %s — carries provenance, not a claim (over 100 characters) (naming rule)\n", FILENAME, name
+    }
+  }
 
-  if [ -n "$names" ]; then
-    while IFS= read -r name; do
-      [ -n "$name" ] || continue
+  # 2. Duplicates: uniqueness is scoped to this file, since bats runs and
+  # reports one suite at a time, while the same claim in two files is two
+  # true statements about two subjects. `sort | uniq -d` used to report
+  # each repeated name once, in sorted order; this insertion sort (the
+  # corpus of repeats is always tiny) reproduces that ordering in-process.
+  for (i = 1; i <= n; i++) cnt[names[i]]++
+  dn = 0
+  for (i = 1; i <= n; i++) {
+    nm = names[i]
+    if (cnt[nm] > 1 && !seen[nm]) {
+      seen[nm] = 1
+      dn++
+      duplist[dn] = nm
+    }
+  }
+  for (i = 2; i <= dn; i++) {
+    keyv = duplist[i]
+    j = i - 1
+    while (j >= 1 && duplist[j] > keyv) {
+      duplist[j + 1] = duplist[j]
+      j--
+    }
+    duplist[j + 1] = keyv
+  }
+  for (i = 1; i <= dn; i++) {
+    printf "test-lint: %s: %s — is declared twice in this suite; a repeat makes a failure ambiguous (naming rule)\n", FILENAME, duplist[i]
+  }
 
-      if printf '%s' "$name" | grep -Eqi "^($openers) "; then
-        report "$file" "$name" "opens with a mechanism word; state the claim instead (naming rule)"
-      fi
+  # 3. Per test, in test order: the body (expectation) rule, then
+  # pairing, then isolation — the same order the shell loop produced.
+  for (i = 1; i <= n; i++) {
+    if (!has_expectation(i)) {
+      printf "test-lint: %s: %s — asserts nothing; add an expectation token (body rule)\n", FILENAME, names[i]
+    }
+    check_pairing(i)
+    check_isolation(i)
+  }
+}
+' "$file")"
 
-      words="$(printf '%s' "$name" | awk '{print NF}')"
-      if [ "$words" -lt 3 ]; then
-        report "$file" "$name" "is a label, not a claim (fewer than three words) (naming rule)"
-      fi
-
-      if [ "${#name}" -gt 100 ]; then
-        report "$file" "$name" "carries provenance, not a claim (over 100 characters) (naming rule)"
-      fi
-    done <<EOF
-$names
-EOF
-
-    # Uniqueness is per suite: bats runs and reports one file at a time, so
-    # a repeat inside a file makes a failing line ambiguous, while the same
-    # claim in two suites is two true statements about two subjects.
-    dupes="$(printf '%s\n' "$names" | sort | uniq -d)"
-    if [ -n "$dupes" ]; then
-      while IFS= read -r dupe; do
-        [ -n "$dupe" ] || continue
-        report "$file" "$dupe" "is declared twice in this suite; a repeat makes a failure ambiguous (naming rule)"
-      done <<EOF
-$dupes
-EOF
-    fi
+  if [ -n "$out" ]; then
+    while IFS= read -r vline; do
+      [ -n "$vline" ] || continue
+      printf '%s\n' "$vline"
+      violations=$((violations + 1))
+    done <<VIOLATIONS
+$out
+VIOLATIONS
   fi
-
-  # The expectation gate: extract each test's name and body by counting
-  # brace characters (never by parsing shell) so a body spanning several
-  # lines, or several tests sharing one line, still yields the right span.
-  # A heredoc that happens to hold balanced braces (every fixture in this
-  # repo does — JSON, scripts) is scanned along with the rest of the body;
-  # a fixture that merely quotes an expectation token is accepted too,
-  # which is fine, since building such a corpus is itself assertion-bearing
-  # work that this repository always follows with a real check.
-  body_name=""
-  in_body=0
-  body=""
-  while IFS= read -r line; do
-    case "$line" in
-      '@@TL_NAME@@'*)
-        body_name="${line#@@TL_NAME@@}"
-        body=""
-        in_body=1
-        ;;
-      '@@TL_END@@')
-        if [ "$in_body" -eq 1 ] && ! has_expectation "$body"; then
-          report "$file" "$body_name" "asserts nothing; add an expectation token (body rule)"
-        fi
-        if [ "$in_body" -eq 1 ]; then
-          check_pairing "$file" "$body_name" "$body"
-          check_isolation "$file" "$body_name" "$body"
-        fi
-        in_body=0
-        ;;
-      *)
-        if [ "$in_body" -eq 1 ]; then
-          if [ -z "$body" ]; then
-            body="$line"
-          else
-            body="$body
-$line"
-          fi
-        fi
-        ;;
-    esac
-  done <<EOF
-$(awk '
-  BEGIN { depth = 0 }
-  depth == 0 && /^@test[ \t]/ {
-    qstart = index($0, "\"")
-    bpos = index($0, "{")
-    if (qstart == 0 || bpos == 0) { next }
-    upto = substr($0, 1, bpos - 1)
-    lastq = 0
-    for (k = length(upto); k > qstart; k--) {
-      if (substr(upto, k, 1) == "\"") { lastq = k; break }
-    }
-    if (lastq == 0) { next }
-    print "@@TL_NAME@@" substr($0, qstart + 1, lastq - qstart - 1)
-    seg = substr($0, bpos)
-    depth = 0
-    for (k = 1; k <= length(seg); k++) {
-      c = substr(seg, k, 1)
-      if (c == "{") { depth++ }
-      else if (c == "}") { depth-- }
-    }
-    rest = substr(seg, 2)
-    if (length(rest) > 0) { print rest }
-    if (depth == 0) { print "@@TL_END@@" }
-    next
-  }
-  depth > 0 {
-    for (k = 1; k <= length($0); k++) {
-      c = substr($0, k, 1)
-      if (c == "{") { depth++ }
-      else if (c == "}") { depth-- }
-    }
-    print
-    if (depth == 0) { print "@@TL_END@@" }
-  }
-' "$file")
-EOF
 done
 
 if [ "$violations" -gt 0 ]; then

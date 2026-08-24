@@ -328,3 +328,40 @@ lint() {
   lint
   [ "$status" -eq 0 ]
 }
+
+# The cost pin: tool launches are bounded per suite file, never per test.
+# A PATH shim directory tallies every external grep/awk/sed/sort/uniq
+# launch (the tools the lint's per-file awk pass and the shell walk both
+# rely on); each shim appends one line then execs the real tool by an
+# absolute path resolved when the shim is written, so a shim can never
+# invoke another shim. Thirty is the corpus size (two files), not an
+# implementation count: per-test judging spends roughly fifteen launches
+# per test on this same corpus, an order of magnitude over the bound.
+@test "scanning cost is bounded per suite file rather than per test" {
+  names=()
+  for i in $(seq 1 30); do
+    names+=("case $i proves the fixture body is real")
+  done
+  fixture a.bats "${names[@]}"
+
+  names=()
+  for i in $(seq 1 30); do
+    names+=("run $i proves the fixture body is real too")
+  done
+  fixture b.bats "${names[@]}"
+
+  shimdir="$BATS_TEST_TMPDIR/shim"
+  mkdir -p "$shimdir"
+  tally="$BATS_TEST_TMPDIR/tally"
+  : > "$tally"
+  for tool in grep awk sed sort uniq; do
+    abs="$(command -v "$tool")"
+    printf '#!/bin/sh\necho x >> "%s"\nexec "%s" "$@"\n' "$tally" "$abs" \
+      > "$shimdir/$tool"
+    chmod +x "$shimdir/$tool"
+  done
+
+  PATH="$shimdir:$PATH" run "$ROUTINE_REPO_ROOT/bin/routine-test-lint" "$CORPUS"
+  [ "$status" -eq 0 ]
+  [ "$(wc -l < "$tally")" -le 30 ]
+}

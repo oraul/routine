@@ -1,6 +1,6 @@
 ## 1. The lint pays per suite, and a counter proves it
 
-- [ ] 1.1 Red→green: a fixture corpus of two suites of thirty clean
+- [x] 1.1 Red→green: a fixture corpus of two suites of thirty clean
       tests runs under a PATH-shim tally, and `routine-test-lint`
       finishes it in at most thirty tool launches — red today (per-test
       judging spends ~900), green once every rule family judges inside
