@@ -97,8 +97,9 @@ make_roads_fixture() {
   printf '%s\n' "$output" | grep -q 'stale waiver: beta.skip'
 }
 
-@test "the live roads file declares the check's own road and the sole waiver" {
+@test "the live roads file declares the check's own road and the honest waivers" {
   roads="$ROUTINE_REPO_ROOT/lib/roads.txt"
   grep -qx 'harness.roads' "$roads"
   grep -q '^app.deps — never walked: ' "$roads"
+  grep -q '^ticket.replay — never walked: ' "$roads"
 }

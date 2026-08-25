@@ -13,6 +13,6 @@
 
 ## 2. The road
 
-- [ ] 2.1 Red→green: `ticket.replay` declared in `lib/roads.txt` with
+- [x] 2.1 Red→green: `ticket.replay` declared in `lib/roads.txt` with
       its honest waiver; the road-check waiver test renamed for two
       waivers and pinning both — `test/road_check.bats`

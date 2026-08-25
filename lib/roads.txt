@@ -20,6 +20,7 @@ harness.release
 harness.roads
 harness.script
 harness.selfcheck
+ticket.replay — never walked: the first live replay is the queued C5 experiment run — the road-check refuses this waiver as stale the moment one runs
 spec.defective
 spec.lint
 tdd.characterize
