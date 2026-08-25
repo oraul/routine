@@ -277,7 +277,7 @@ fingerprint SHALL have one implementation, shared with the audit.
 ### Requirement: A replay moves only the rails
 `bin/routine-replay <archived-ticket-dir>` SHALL create a fresh ticket
 whose `requirement.md` is byte-identical to the archived one, against a
-detached target worktree checked out at the archived grounding's
+target worktree on a replay-named branch at the archived grounding's
 `Grounded-at` anchor, because the claim "the rails improved" is
 uncontrolled while the requirement's wording and the target's state
 move with them — the replay holds both still so only the rails differ.
@@ -327,3 +327,10 @@ decides nothing about what the difference means.
 #### Scenario: The archived outcome is shown for comparison
 - **WHEN** a replay ticket is created
 - **THEN** the output names the archived run's final telemetry event
+
+#### Scenario: The worktree passes the preflight
+- **WHEN** a replay worktree is created
+- **THEN** its HEAD is a branch (`replay/<archived-id>-<sha8>`) at the
+  anchor commit, because the preflight gate refuses a detached HEAD —
+  the first live replay was refused exactly there and had to branch by
+  hand
