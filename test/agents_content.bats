@@ -50,6 +50,19 @@ load test_helper
   grep -qi 'settles' "$doc"
 }
 
+@test "the analyst tries to refute its own decomposition" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'refute' "$doc"
+  grep -qi 'support-gathering' "$doc"
+}
+
+@test "the analyst records inconvenient probes at full fidelity" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'inconvenient' "$doc"
+  grep -qi 'fidelity' "$doc"
+  grep -qi 'curated' "$doc"
+}
+
 @test "the analyst emits labels and never an empty manifest" {
   doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
   grep -q '## Scenario:' "$doc"

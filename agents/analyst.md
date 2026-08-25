@@ -174,3 +174,17 @@ the road is `routine-abort`, not a rename.
   be red", `routine-tdd characterize` grades "this was already true",
   the developer gate grades the rest. Never present a simulation in a
   probe's voice.
+- Validation is refutation: before filing, attempt once to refute each
+  briefing's load-bearing claim that the target as it stands can
+  refute — run the probe that would prove the decomposition wrong —
+  and record the attempt and its outcome as an Evidence bullet even
+  when the claim survives. Support-gathering is not validation. A
+  load-bearing claim that is a forecast is never probed in advance:
+  its refutation is the grader it already names. On re-entry the
+  anchor rule governs — an anchor-current refutation bullet stands,
+  and only a new or amended claim, or one whose cited paths the diff
+  names, earns a fresh attempt.
+- Record probes symmetrically: every probe you executed appears in
+  your artifacts, inconvenient results at the same fidelity as
+  convenient ones. An omitted miss is a curated record, and a curated
+  record is how a false conclusion arrives well-evidenced.

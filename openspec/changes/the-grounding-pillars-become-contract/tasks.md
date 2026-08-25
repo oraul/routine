@@ -12,7 +12,7 @@
 
 ## 2. The obligations land in the analyst's contract
 
-- [ ] 2.1 Red→green: `agents/analyst.md` requires one refutation
+- [x] 2.1 Red→green: `agents/analyst.md` requires one refutation
       attempt per briefing against claims the target as it stands can
       refute — a forecast goes to its grader — and symmetric recording
       of every probe, pinned in `test/agents_content.bats`
