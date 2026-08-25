@@ -2,7 +2,7 @@
 
 ## 1. The carry becomes an exit code
 
-- [ ] 1.1 Red→green: `bin/routine-change-check <change-id>` passes a
+- [x] 1.1 Red→green: `bin/routine-change-check <change-id>` passes a
       complete carry (extended-in-place lines included), names the
       capability, requirement, and first lost line of an incomplete
       one, fails a MODIFIED requirement absent from the live spec,
