@@ -153,7 +153,12 @@ at the moment it refused, not the developer's paraphrase of it.
 Decide staleness by the anchor, never by anxiety: the Evidence bullets
 are current when `Grounded-at` equals `git -C "$TARGET" rev-parse
 HEAD` **and** `git -C "$TARGET" status --porcelain` prints nothing —
-then trust every claim and do not re-open the files. Otherwise
+then trust every claim and do not re-open the files — except the
+spot-check: the lint names one sampled Evidence bullet per run, chosen
+by the file's own bytes rather than by anyone's preference, and
+re-verifying that one bullet never counts as a re-search. Trust is the
+default, not a prohibition; a curated record survives only where
+nothing is ever re-run. Otherwise
 re-verify **only** the bullets whose paths appear in
 `git -C "$TARGET" diff --name-only <sha>` (the anchor against the
 worktree, so committed and uncommitted changes both count) plus any

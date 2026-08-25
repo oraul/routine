@@ -11,6 +11,6 @@
 
 ## 2. The trust rule lifts its prohibition
 
-- [ ] 2.1 Red→green: `agents/analyst.md` — re-verifying the sampled
+- [x] 2.1 Red→green: `agents/analyst.md` — re-verifying the sampled
       bullet never counts as a re-search; trust stays the default —
       pinned in `test/agents_content.bats`
