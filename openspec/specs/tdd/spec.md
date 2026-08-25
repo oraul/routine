@@ -20,7 +20,7 @@ rejected value or write error) `routine-tdd` SHALL exit 3 naming the
 cause and SHALL NOT report the phase as recorded. It SHALL enforce the
 phase: under `red` a passing command SHALL make `routine-tdd` exit
 non-zero naming the violation (a red that isn't red); under `green` a
-failing command's exit code SHALL be relayed; and under `characterize` a failing command SHALL make `routine-tdd` exit non-zero naming the violation, because `characterize` asserts the scenario was already true before the developer touched anything and a failing one is a false claim in the spec rather than work for the developer. `characterize` and `green` SHALL stay distinct phases though both require a passing command, because the audit demands a covering red for a `## Scenario:` label and none for a `## Characterization:` one, and merging them would erase the distinction it pairs on. When `characterize` refuses, `routine-tdd` SHALL persist the command's verbatim output to a script-owned log in the task's own directory, truncated per run, so the analyst reads what actually printed rather than a paraphrase. The evidence line SHALL be
+failing command's exit code SHALL be relayed; and under `characterize` a failing command SHALL make `routine-tdd` exit non-zero naming the violation, because `characterize` asserts the scenario was already true before the developer touched anything and a failing one is a false claim in the spec rather than work for the developer. `characterize` and `green` SHALL stay distinct phases though both require a passing command, because the audit demands a covering red for a `## Scenario:` label and none for a `## Characterization:` one, and merging them would erase the distinction it pairs on. When `characterize` refuses, `routine-tdd` SHALL persist the command's verbatim output to a script-owned log in the task's own directory, truncated per run, so the analyst reads what actually printed rather than a paraphrase. A passing `characterize` SHALL remove that task's `characterize.log`: the claim is proven, the refusal history lives in telemetry, and a stale log left behind reaches a re-entering analyst as the current failure — measured three times in one run — so the interface built to deliver verbatim evidence would deliver wrong evidence confidently. The evidence line SHALL be
 emitted before any refusal exit.
 
 #### Scenario: Red evidence recorded
@@ -71,3 +71,9 @@ emitted before any refusal exit.
 - **THEN** the command's output is persisted verbatim to the task's
   script-owned log, replacing any previous run's, so the reader is never
   guessing which failure is current
+
+#### Scenario: A pass removes the stale refusal log
+- **WHEN** a refused `characterize` has written the task's log and a
+  later `characterize` for the same task passes
+- **THEN** the task's `characterize.log` is gone, because a proven
+  claim leaves no stale failure for a re-entering analyst to trust
