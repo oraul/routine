@@ -54,6 +54,49 @@ make_roads_fixture() {
   printf '%s\n' "$output" | grep -q 'usage'
 }
 
+@test "an undeclared road walked fails naming the event" {
+  make_roads_fixture
+  printf '%s\n' \
+    '{"ts":"2026-01-01T00:00:02Z","event":"gamma.rogue","script":"bin/x","ticket":"","task":"","exit":0,"ms":1}' \
+    >> "$fixture/runs/app/telemetry.jsonl"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-road-check"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q 'undeclared road walked: gamma.rogue'
+}
+
+@test "a declared road never walked fails naming the waiver form" {
+  make_roads_fixture
+  printf '%s\n' 'delta.never' >> "$fixture/lib/roads.txt"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-road-check"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q 'declared road never walked: delta.never'
+  printf '%s\n' "$output" | grep -q 'never walked: <why>'
+}
+
+@test "a stale waiver fails naming the event" {
+  make_roads_fixture
+  printf '%s\n' \
+    '{"ts":"2026-01-01T00:00:03Z","event":"beta.skip","script":"bin/x","ticket":"","task":"","exit":0,"ms":1}' \
+    >> "$fixture/runs/app/telemetry.jsonl"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-road-check"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q 'stale waiver: beta.skip was walked'
+}
+
+@test "every violation surfaces in one run" {
+  make_roads_fixture
+  printf '%s\n' 'delta.never' >> "$fixture/lib/roads.txt"
+  printf '%s\n' \
+    '{"ts":"2026-01-01T00:00:04Z","event":"gamma.rogue","script":"bin/x","ticket":"","task":"","exit":0,"ms":1}' \
+    '{"ts":"2026-01-01T00:00:05Z","event":"beta.skip","script":"bin/x","ticket":"","task":"","exit":0,"ms":1}' \
+    >> "$fixture/runs/app/telemetry.jsonl"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-road-check"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q 'undeclared road walked: gamma.rogue'
+  printf '%s\n' "$output" | grep -q 'declared road never walked: delta.never'
+  printf '%s\n' "$output" | grep -q 'stale waiver: beta.skip'
+}
+
 @test "the live roads file declares the check's own road and the sole waiver" {
   roads="$ROUTINE_REPO_ROOT/lib/roads.txt"
   grep -qx 'harness.roads' "$roads"

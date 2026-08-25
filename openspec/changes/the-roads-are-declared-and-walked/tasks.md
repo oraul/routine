@@ -13,7 +13,7 @@
       plus `harness.roads` (sole waiver: `app.deps`), and
       `bin/routine-road-check` passes a clean fixture, exits 2 on a
       missing runs directory or roads file — `test/road_check.bats`
-- [ ] 2.2 Red→green: the three violation roads — undeclared walked,
+- [x] 2.2 Red→green: the three violation roads — undeclared walked,
       declared unwalked, stale waiver — each named, all reported in one
       run, exit 1; nested ticket telemetry counts as walked —
       `test/road_check.bats`
