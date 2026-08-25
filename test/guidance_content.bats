@@ -78,6 +78,41 @@ load test_helper
   grep -qi 'settles' "$doc"
 }
 
+# The motto pins word-bound 'kill': the bare substring already matches
+# 'skills' in project.md, so an unbounded grep would be green on the
+# un-edited file — a fake red, found by attacking the pin before
+# trusting it.
+@test "the contract carries the lifecycle motto" {
+  doc="$ROUTINE_REPO_ROOT/CLAUDE.md"
+  grep -qiw 'kill' "$doc"
+  grep -qi 'survives' "$doc"
+  grep -qi 'knowledge' "$doc"
+}
+
+@test "the conventions carry the motto beside the laws" {
+  doc="$ROUTINE_REPO_ROOT/openspec/project.md"
+  grep -qiw 'kill' "$doc"
+  grep -qi 'survives' "$doc"
+  grep -qi 'knowledge' "$doc"
+}
+
+@test "the conventions name the seven grounding pillars" {
+  doc="$ROUTINE_REPO_ROOT/openspec/project.md"
+  grep -qi 'provenance' "$doc"
+  grep -qi 'refutation' "$doc"
+  grep -qi 'independent instruments' "$doc"
+  grep -qi 'freshness' "$doc"
+  grep -qi 'symmetric' "$doc"
+  grep -qi 'confound' "$doc"
+  grep -qi 'exercised roads' "$doc"
+}
+
+@test "a pillar is vocabulary and never a gate" {
+  doc="$ROUTINE_REPO_ROOT/openspec/project.md"
+  grep -qi 'never a gate' "$doc"
+  grep -qi 'earned separately' "$doc"
+}
+
 @test "the public face distinguishes the scout from the two agents" {
   doc="$ROUTINE_REPO_ROOT/README.md"
   grep -qi 'scout' "$doc"

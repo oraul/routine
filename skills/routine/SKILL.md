@@ -114,6 +114,7 @@ grounding.md: <resolved absolute path to the ticket>/grounding.md
 lint.log: <resolved absolute path to the ticket>/lint.log
 defect.md: <resolved absolute path to the ticket>/tasks/<task-id>/defect.md — every task that has one
 characterize.log: <resolved absolute path to the ticket>/tasks/<task-id>/characterize.log — when a `routine-tdd characterize` refusal captured one
+approve.md: <resolved absolute path to the ticket>/approve.md — when present: the operator's recorded rulings, each binding until the operator moves it
 ```
 
   Recovery reads those files — never a re-run of the gate, which would

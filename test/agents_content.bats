@@ -50,6 +50,45 @@ load test_helper
   grep -qi 'settles' "$doc"
 }
 
+@test "the analyst tries to refute its own decomposition" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'refute' "$doc"
+  grep -qi 'support-gathering' "$doc"
+}
+
+@test "the analyst records inconvenient probes at full fidelity" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'inconvenient' "$doc"
+  grep -qi 'fidelity' "$doc"
+  grep -qi 'curated' "$doc"
+}
+
+@test "a probe quotes its command and output inside the evidence line" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'quotes' "$doc"
+  grep -qi 'fenced' "$doc"
+}
+
+# grep -F on the filename pins: a regex dot is any-char and could
+# bless a file the pin should redden — the #92 lesson.
+@test "re-entry reads the operator's rulings when present" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qF 'approve.md' "$doc"
+  grep -qi 'binds' "$doc"
+  grep -qi 'when present' "$doc"
+}
+
+@test "a causal claim names its confound or drops the cause" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'confound' "$doc"
+  grep -qi 'variable' "$doc"
+}
+
+@test "the revise payload hands over the operator's rulings" {
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  awk '/^## 2\./,/^## 3\./' "$skill" | grep -qF 'approve.md'
+}
+
 @test "the analyst emits labels and never an empty manifest" {
   doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
   grep -q '## Scenario:' "$doc"
