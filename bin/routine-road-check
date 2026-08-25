@@ -1,0 +1,90 @@
+#!/usr/bin/env bash
+# routine-script: routine-road-check
+# routine-description: Judge the declared telemetry roads against walked evidence, both directions
+# routine-usage: routine-road-check [runs-dir]
+# routine-exit: 0 — every declared road walked or honestly waivered, nothing undeclared observed
+# routine-exit: 1 — violations — undeclared road walked, declared road unwalked, or stale waiver
+# routine-exit: 2 — usage — roads file or runs directory missing, or extra arguments
+# routine-test: test/road_check.bats
+# The exercised-roads rail: an unexercised road is a claim never
+# tested. Declared comes from lib/roads.txt, walked from every
+# telemetry.jsonl under the runs dir at any depth; the event field is
+# read as field 8 of a quote-split, which the fixed-key-order
+# requirement guarantees. The check counts itself: harness.roads is
+# declared unwaivered, so its first live run truthfully reports its
+# own road unwalked, walks it by running, and passes from then on.
+set -u
+
+lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
+# shellcheck source=/dev/null
+. "$lib/paths.sh"
+# shellcheck source=/dev/null
+. "$lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
+root="$(routine_root)"
+roads="$root/lib/roads.txt"
+runs_dir="${1:-$root/runs}"
+
+if [ $# -gt 1 ]; then
+  echo "usage: routine-road-check [runs-dir]" >&2
+  exit 2
+fi
+if [ ! -f "$roads" ]; then
+  echo "routine-road-check: no roads file at $roads" >&2
+  exit 2
+fi
+if [ ! -d "$runs_dir" ]; then
+  echo "routine-road-check: no runs directory at $runs_dir" >&2
+  exit 2
+fi
+
+# Three sorted name sets. The waiver marker is matched with index(), a
+# plain string function, so the em-dash never meets a regex engine.
+declared="$(awk '/^[[:space:]]*#/ {next} /^[[:space:]]*$/ {next}
+  { i = index($0, " — never walked: ")
+    if (i) print substr($0, 1, i - 1); else print $0 }' "$roads" | sort -u)"
+waived="$(awk '/^[[:space:]]*#/ {next} /^[[:space:]]*$/ {next}
+  { i = index($0, " — never walked: ")
+    if (i) print substr($0, 1, i - 1) }' "$roads" | sort -u)"
+observed="$(find "$runs_dir" -name telemetry.jsonl -exec cat {} + \
+  | awk -F'"' 'NF >= 8 { print $8 }' | sort -u)"
+
+unwaivered="$(comm -23 <(printf '%s\n' "$declared" | sed '/^$/d') \
+  <(printf '%s\n' "$waived" | sed '/^$/d'))"
+undeclared="$(comm -13 <(printf '%s\n' "$declared" | sed '/^$/d') \
+  <(printf '%s\n' "$observed" | sed '/^$/d'))"
+unwalked="$(comm -23 <(printf '%s\n' "$unwaivered" | sed '/^$/d') \
+  <(printf '%s\n' "$observed" | sed '/^$/d'))"
+stale="$(comm -12 <(printf '%s\n' "$waived" | sed '/^$/d') \
+  <(printf '%s\n' "$observed" | sed '/^$/d'))"
+
+rc=0
+if [ -n "$undeclared" ]; then
+  rc=1
+  while IFS= read -r e; do
+    echo "routine-road-check: undeclared road walked: $e — declare it in lib/roads.txt"
+  done <<< "$undeclared"
+fi
+if [ -n "$unwalked" ]; then
+  rc=1
+  while IFS= read -r e; do
+    echo "routine-road-check: declared road never walked: $e — walk it, or waiver it: '$e — never walked: <why>'"
+  done <<< "$unwalked"
+fi
+if [ -n "$stale" ]; then
+  rc=1
+  while IFS= read -r e; do
+    echo "routine-road-check: stale waiver: $e was walked — drop the waiver"
+  done <<< "$stale"
+fi
+
+if [ "$rc" -eq 0 ]; then
+  n_decl="$(printf '%s\n' "$declared" | sed '/^$/d' | wc -l | tr -d ' ')"
+  n_waiv="$(printf '%s\n' "$waived" | sed '/^$/d' | wc -l | tr -d ' ')"
+  echo "routine-road-check: all declared roads walked or waivered ($n_decl declared, $n_waiv waivered)"
+fi
+
+telemetry_harness_emit harness.roads bin/routine-road-check "$rc" \
+  "$(( $(routine_now_ms) - start_ms ))"
+exit "$rc"

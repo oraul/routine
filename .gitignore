@@ -1,1 +1,4 @@
-runs/
+runs/*
+!runs/routine/
+runs/routine/*
+!runs/routine/README.md
