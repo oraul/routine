@@ -82,6 +82,7 @@ pass_analyst_gate() {
   [ "$status" -ne 0 ]
   case "$output" in *"rounding favor the customer"*) ;; *) false ;; esac
   case "$output" in *"fractional percents"*) ;; *) false ;; esac
+  grep -q '"event":"gate.analyst"' "$ticket/telemetry.jsonl"
   ! grep -q '"event":"ticket.approve"' "$ticket/telemetry.jsonl"
 }
 
@@ -93,6 +94,7 @@ pass_analyst_gate() {
   run "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket" "1: customer, confirmed"
   [ "$status" -ne 0 ]
   case "$output" in *"fractional percents"*) ;; *) false ;; esac
+  grep -q '"event":"gate.analyst"' "$ticket/telemetry.jsonl"
   ! grep -q '"event":"ticket.approve"' "$ticket/telemetry.jsonl"
 }
 
@@ -104,6 +106,7 @@ pass_analyst_gate() {
   run "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket" "$(printf '1: customer\n3: what question is this')"
   [ "$status" -ne 0 ]
   case "$output" in *"3"*) ;; *) false ;; esac
+  grep -q '"event":"gate.analyst"' "$ticket/telemetry.jsonl"
   ! grep -q '"event":"ticket.approve"' "$ticket/telemetry.jsonl"
 }
 

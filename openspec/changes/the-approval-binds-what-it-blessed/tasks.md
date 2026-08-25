@@ -23,3 +23,7 @@
       absent means approve has not yet run) and the skill's approve
       phase teaches the `<n>: <answer>` form — pinned in
       `test/agents_content.bats`
+- [x] 3.2 The refusal tests pair their negations — found by selfcheck's
+      test-lint: negating ticket.approve in telemetry with no positive
+      assertion on the same file passes vacuously when the file is
+      missing
