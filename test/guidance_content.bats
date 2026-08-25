@@ -71,6 +71,13 @@ load test_helper
   grep -qi 'which model answered' "$doc"
 }
 
+@test "the contract separates measured claims from unlabelled predictions" {
+  doc="$ROUTINE_REPO_ROOT/CLAUDE.md"
+  grep -qi 'measured' "$doc"
+  grep -qi 'prediction' "$doc"
+  grep -qi 'settles' "$doc"
+}
+
 @test "the public face distinguishes the scout from the two agents" {
   doc="$ROUTINE_REPO_ROOT/README.md"
   grep -qi 'scout' "$doc"

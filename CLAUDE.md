@@ -27,6 +27,9 @@ Accidental leak = history rewrite + credential rotation, immediately.
   one tasks.md checkbox = one commit (trailers `Change:` and `Task:`).
 - Script-owned state is untouchable: never edit `index.tsv` or
   `telemetry.jsonl` by hand — call the `bin/` scripts.
+- A claim is either measured — say what ran — or a prediction — name the
+  evidence that settles it. Never a third thing: an unlabelled sentence
+  is how a wrong count reaches a published record.
 
 ## Who runs at which tier
 

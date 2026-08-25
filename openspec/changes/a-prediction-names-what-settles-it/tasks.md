@@ -1,6 +1,6 @@
 ## 1. The rule lands where claims travel ungraded
 
-- [ ] 1.1 Red→green: `CLAUDE.md` states the prediction rule — measured
+- [x] 1.1 Red→green: `CLAUDE.md` states the prediction rule — measured
       says what ran, a prediction names what settles it, never a third
       thing — pinned in `test/guidance_content.bats` on words verified
       absent from the file today
