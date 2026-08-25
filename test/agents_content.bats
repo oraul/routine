@@ -76,6 +76,16 @@ load test_helper
   grep -qF 'approve.md' "$doc"
   grep -qi 'binds' "$doc"
   grep -qi 'when present' "$doc"
+  # Every recorded proceed writes the file now, so the old reading of
+  # absence — "no remarks were recorded" — is a contract sentence that
+  # outlived its mechanism.
+  ! grep -q 'no remarks were recorded' "$doc"
+}
+
+@test "the approve phase teaches the per-question answer form" {
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  awk '/^## 3\./,/^## 4\./' "$skill" | grep -qF '<n>: <answer>'
+  awk '/^## 3\./,/^## 4\./' "$skill" | grep -qF 'Approved-at'
 }
 
 @test "a causal claim names its confound or drops the cause" {

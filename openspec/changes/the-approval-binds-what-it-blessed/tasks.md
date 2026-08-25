@@ -19,7 +19,7 @@
 
 ## 3. The contracts follow the mechanism
 
-- [ ] 3.1 Red→green: the analyst's absence clause tightens (approve.md
+- [x] 3.1 Red→green: the analyst's absence clause tightens (approve.md
       absent means approve has not yet run) and the skill's approve
       phase teaches the `<n>: <answer>` form — pinned in
       `test/agents_content.bats`
