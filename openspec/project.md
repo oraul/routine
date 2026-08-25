@@ -1,6 +1,8 @@
 # routine — Project Conventions
 
 > An efficient routine is a daily routine being refined.
+>
+> Evidence tries to kill the claim; what survives is knowledge.
 
 **routine** is a Claude Code plugin that runs a spec-first, two-agent
 development loop (analyst, developer) against any target project with zero

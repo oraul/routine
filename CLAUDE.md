@@ -4,6 +4,11 @@
 development loop on deterministic bash rails. This file is what you must
 know before touching anything; details live where the pointers point.
 
+> **Evidence tries to kill the claim; what survives is knowledge.**
+> The lifecycle motto: validation is an attempt to refute, never a
+> search for agreement. It binds this session, both agents, and every
+> record.
+
 ## Never vibe — spec first
 
 Every behavior change starts as an OpenSpec change (`/opsx:propose`),

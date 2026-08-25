@@ -2,7 +2,7 @@
 
 ## 1. The motto and the pillars land in the guidance
 
-- [ ] 1.1 Red→green: `CLAUDE.md` and `openspec/project.md` carry the
+- [x] 1.1 Red→green: `CLAUDE.md` and `openspec/project.md` carry the
       lifecycle motto, pinned in `test/guidance_content.bats` on words
       verified absent today — the `kill` pin word-bounded, because the
       bare substring already matches `skills`
