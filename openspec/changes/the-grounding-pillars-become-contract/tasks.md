@@ -16,7 +16,7 @@
       attempt per briefing against claims the target as it stands can
       refute — a forecast goes to its grader — and symmetric recording
       of every probe, pinned in `test/agents_content.bats`
-- [ ] 2.2 Red→green: `agents/analyst.md` widens Evidence to admit an
+- [x] 2.2 Red→green: `agents/analyst.md` widens Evidence to admit an
       executed probe quoting its command and decisive output in the
       line form, reads `approve.md` when present on re-entry as a
       binding ruling, claims a cause only when one variable moved, and

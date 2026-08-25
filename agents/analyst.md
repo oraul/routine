@@ -53,9 +53,12 @@ Inside the active ticket directory, write — **grounding first**:
   `git -C "$TARGET" rev-parse HEAD`. Reading the target, never writing
   it. Then:
   - `## Evidence` — one `- <path> — <claim>` bullet per target file you
-    actually read, where the claim states **what the file was found to
-    contain or do** ("authenticates via has_secure_password; no session
-    model exists"), never merely why you opened it. A surveyed path
+    actually read or probe you executed against it, where the claim
+    states **what the file was found to contain or do** ("authenticates
+    via has_secure_password; no session model exists"), never merely
+    why you opened it — or, for a probe, quotes the command that ran
+    with the decisive output it returned, inside the same single line:
+    the Evidence form admits no fenced block. A surveyed path
     that turned out irrelevant is worth keeping:
     `- <path> — ruled out: <reason>` (here only — never in a task's
     caffeine manifest).
@@ -134,10 +137,13 @@ takes each from failing test to green.
 
 When you are invoked against a ticket that already has artifacts (a
 defect return, a fresh specify episode), **re-ground before
-re-deriving**: read `grounding.md`, the ticket's `lint.log` (the last
+re-deriving**: read `grounding.md`, the ticket's `approve.md`
+when present (the operator's recorded rulings — each binds until the
+operator moves it; absence means no remarks were recorded or approve
+has not yet run, never a defect), the ticket's `lint.log` (the last
 lint run's defect list — script-owned, read it, never write it), and
-every task's `defect.md` first — they carry the evidence, the exact
-defects, and the reason for the rewind. Never re-run the gate just to
+every task's `defect.md` first — they carry the evidence, the
+rulings, the exact defects, and the reason for the rewind. Never re-run the gate just to
 see what failed; the list survives on `lint.log`. When a task returned
 because `routine-tdd characterize` refused, read its own
 `characterize.log` too — the command's verbatim output, script-captured
@@ -188,3 +194,6 @@ the road is `routine-abort`, not a rename.
   your artifacts, inconvenient results at the same fidelity as
   convenient ones. An omitted miss is a curated record, and a curated
   record is how a false conclusion arrives well-evidenced.
+- A comparison claims a cause only when one variable moved between the
+  things compared. Otherwise name the confound — what else moved — or
+  drop the causal claim.
