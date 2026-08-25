@@ -79,6 +79,18 @@ EOF_EVIDENCE
       fail "grounding.md" "empty $_gsec — record at least one bullet, or '- none — <why nothing qualifies>'"
     fi
   done
+  # A question's provisional reading is load-bearing grammar — the words
+  # the decomposition was built on ride the bullet. Judged per bullet
+  # like Evidence, with the '- none — <why>' floor exempt; the reading's
+  # truth stays the approve reader's, only its presence is form.
+  while IFS= read -r _qline; do
+    [ -n "$_qline" ] || continue
+    case "$_qline" in "- none — "*) continue ;; esac
+    printf '%s\n' "$_qline" | grep -q ' — provisional: [^[:space:]]' \
+      || fail "grounding.md" "Questions line '$_qline' must carry ' — provisional: <reading>' (the reading the decomposition was built on)"
+  done <<EOF_QUESTIONS
+$(awk '/^## Questions/ {a=1; next} a && /^#/ {a=0} a && /^- / {print}' "$grounding")
+EOF_QUESTIONS
   for _dfile in "$ticket"/briefings/*/tasks/*/defect.md; do
     [ -f "$_dfile" ] || continue
     _db="$(basename "$(dirname "$(dirname "$(dirname "$_dfile")")")")"

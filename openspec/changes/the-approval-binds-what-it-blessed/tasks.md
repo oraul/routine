@@ -2,7 +2,7 @@
 
 ## 1. The question form joins the grammar
 
-- [ ] 1.1 Red→green: `routine-spec-lint` refuses a non-floor
+- [x] 1.1 Red→green: `routine-spec-lint` refuses a non-floor
       `## Questions` bullet without ` — provisional: <reading>`,
       per line, floor exempt — `test/spec_lint.bats`
 
