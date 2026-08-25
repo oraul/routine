@@ -84,3 +84,13 @@ See https://claude.ai/code/session_0000000000000000000000000"
   case "$output" in *Change:*) ;; *) false ;; esac
   printf '%s\n' "$output" | grep -c 'never judged' | grep -qx 0
 }
+
+@test "the sensitive patterns live once in the shared library" {
+  lib="$ROUTINE_REPO_ROOT/lib/sensitive.sh"
+  grep -q 'routine_sensitive=' "$lib"
+  grep -qF 'claude\.ai/code/session' "$lib"
+  grep -qF 'lib/sensitive.sh' "$ROUTINE_REPO_ROOT/bin/routine-convention-check"
+  # One implementation: the checker's own inline list is gone, while
+  # the source line above proves what replaced it.
+  ! grep -qF "sensitive='" "$ROUTINE_REPO_ROOT/bin/routine-convention-check"
+}

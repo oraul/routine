@@ -32,14 +32,20 @@ fail() {
   fails=1
 }
 
-# Sensitive shapes. Breadth is GitHub secret scanning's job; this list is
-# this repository's own hard-rule history. The checker and its tests are
-# excluded from the diff scan — they must name what they hunt.
-sensitive='claude\.ai/code/session|session_[A-Za-z0-9]{16,}|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|sk-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|BEGIN [A-Z ]*PRIVATE KEY'
+# Sensitive shapes: one shared implementation in lib/sensitive.sh. The
+# checker, its tests, and the shared library are excluded from the diff
+# scan — they must name what they hunt.
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/sensitive.sh"
+# shellcheck disable=SC2154  # assigned in lib/sensitive.sh, unfollowed above
+sensitive="$routine_sensitive"
 
 hits="$(git -C "$target" diff "$base"..HEAD -- . \
   ':(exclude)bin/routine-convention-check' \
   ':(exclude)test/convention_check.bats' \
+  ':(exclude)lib/sensitive.sh' \
+  ':(exclude)bin/routine-pr-body-check' \
+  ':(exclude)test/pr_body_check.bats' \
   | grep -E '^\+' | grep -En "$sensitive" || true)"
 if [ -n "$hits" ]; then
   fail "sensitive pattern in the diff:"
