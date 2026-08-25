@@ -131,9 +131,18 @@ intent, which only the operator can answer, and which are invisible at
 every other point in the loop. **Stop and wait** for the human to say
 proceed. This is the only human checkpoint in the
 operational loop; never continue without it. When the human proceeds,
-record it: `routine-approve "$ROUTINE_TICKET_DIR" "<their remarks, if
-any>"` — the audit refuses a run whose approval left no evidence, and
-the remarks become ticket evidence instead of transcript exhaust.
+record it: `routine-approve "$ROUTINE_TICKET_DIR" "<answers and
+remarks, if any>"` — the audit refuses a run whose approval left no
+evidence, and the answers become ticket evidence instead of transcript
+exhaust. When `## Questions` holds open (non-floor) entries, the
+proceed is earned per question: the note carries one `<n>: <answer>`
+line per question, numbered in the order shown, free remarks riding on
+their own lines — the gate refuses a missing or unknown index and
+records nothing. Every recorded proceed appends the Q/A pairs and an
+`Approved-at` fingerprint of exactly what was shown to `approve.md`,
+and the audit refuses a conclude whose artifacts moved after the last
+proceed — an amendment means re-approving, because re-specified work
+is new work.
 
 ## 4. develop
 

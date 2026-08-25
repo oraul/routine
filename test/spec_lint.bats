@@ -414,6 +414,23 @@ PYEOF
   case "$output" in *Questions*"- none —"*) ;; *) false ;; esac
 }
 
+@test "a question without its provisional reading fails" {
+  make_good_ticket
+  printf '%s\n' '- does rounding favor the customer or the business' \
+    >> "$ticket/grounding.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *provisional*) ;; *) false ;; esac
+}
+
+@test "a question with its provisional reading passes" {
+  make_good_ticket
+  printf '%s\n' '- does rounding favor the customer — provisional: customer; operator may override' \
+    >> "$ticket/grounding.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -eq 0 ]
+}
+
 @test "a bare id inside prose does not reconcile" {
   make_good_ticket
   printf '## 2026-08-12T00:00:00Z\n\nscenario contradicts acceptance\n' \

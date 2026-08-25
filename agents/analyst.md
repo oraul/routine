@@ -139,8 +139,9 @@ When you are invoked against a ticket that already has artifacts (a
 defect return, a fresh specify episode), **re-ground before
 re-deriving**: read `grounding.md`, the ticket's `approve.md`
 when present (the operator's recorded rulings — each binds until the
-operator moves it; absence means no remarks were recorded or approve
-has not yet run, never a defect), the ticket's `lint.log` (the last
+operator moves it; absence means approve has not yet run, never a
+defect, because every recorded proceed writes the file), the ticket's
+`lint.log` (the last
 lint run's defect list — script-owned, read it, never write it), and
 every task's `defect.md` first — they carry the evidence, the
 rulings, the exact defects, and the reason for the rewind. Never re-run the gate just to

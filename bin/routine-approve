@@ -1,20 +1,26 @@
 #!/usr/bin/env bash
 # routine-script: routine-approve
-# routine-description: Record the human checkpoint: the proceed and any remarks become ticket evidence
+# routine-description: Record the human checkpoint: the proceed answers each question and fingerprints what it blessed
 # routine-usage: routine-approve <ticket-dir> [note]
-# routine-exit: 0 — recorded — ticket.approve on the record, note appended when given
-# routine-exit: 1 — refused — no passing gate.analyst on record, or grounding.md carries a non-floor '## Questions' section and no note was given
+# routine-exit: 0 — recorded — ticket.approve on the record, the Q/A entry and fingerprint appended
+# routine-exit: 1 — refused — no passing gate.analyst on record, or an open question lacks its numbered answer, or an answer names no open question
 # routine-exit: 2 — usage — a ticket directory with telemetry is required
 # routine-test: test/approve.bats
-# The human checkpoint as evidence: records the proceed (and any remarks)
-# the approve phase used to lose to the transcript. Refuses to approve
-# artifacts the analyst gate never passed — approval orders after the
-# gate by construction, never by claim.
+# The human checkpoint as evidence: the proceed is earned per question
+# ('<n>: <answer>' lines matched by position to the non-floor Questions
+# bullets — one word can no longer pass every question at once), and
+# every recorded proceed appends a Q/A entry with an Approved-at
+# fingerprint of exactly what the operator was shown, so a later reader
+# can tell whether the approved artifacts are the concluded ones.
+# Refuses to approve artifacts the analyst gate never passed — approval
+# orders after the gate by construction, never by claim.
 set -u
 
 lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
 # shellcheck source=/dev/null
 . "$lib/telemetry.sh"
+# shellcheck source=/dev/null
+. "$lib/approve.sh"
 
 start_ms="$(routine_now_ms)"
 
@@ -34,30 +40,78 @@ fi
 # caller-visible break after implementation. The '- none — <why>' floor
 # (same shape routine-record-lint already applies) means asking is a
 # deliberate act, so only a deliberately-raised, still-unanswered question
-# blocks — and a note counts as the human having answered it.
+# blocks — and each one is answered by its own '<n>: <answer>' line,
+# matched by position, because a single free-text note used to dissolve
+# every question at once. Coverage is the gate's; quality is the human's.
 grounding="$ticket/grounding.md"
-if [ -z "$note" ] && [ -f "$grounding" ] && grep -q '^## Questions' "$grounding"; then
-  non_floor="$(awk '
+questions=""
+if [ -f "$grounding" ]; then
+  questions="$(awk '
     /^## Questions/ {a=1; next}
     a && /^#/ {a=0}
     a && /^- / {
       label = $0
       sub(/^- /, "", label)
-      if (label !~ /^none — /) print "- " label
+      if (label !~ /^none — /) print label
     }
   ' "$grounding")"
-  if [ -n "$non_floor" ]; then
-    echo "routine-approve: unanswered operator questions block the proceed:" >&2
-    printf '%s\n' "$non_floor" >&2
+fi
+n_questions=0
+[ -n "$questions" ] && n_questions="$(printf '%s\n' "$questions" | wc -l | tr -d ' ')"
+
+errs=""
+add_err() { errs="${errs}${errs:+
+}routine-approve: $1"; }
+
+if [ "$n_questions" -gt 0 ]; then
+  seen=""
+  while IFS= read -r _line; do
+    printf '%s\n' "$_line" | grep -Eq '^[0-9]+: ' || continue
+    idx="${_line%%:*}"
+    case " $seen " in
+      *" $idx "*) add_err "answer $idx is given twice — one answer per question" ;;
+    esac
+    if [ "$idx" -lt 1 ] || [ "$idx" -gt "$n_questions" ]; then
+      add_err "answer $idx names no open question ($n_questions open)"
+    fi
+    seen="$seen $idx"
+  done <<EOF_NOTE
+$note
+EOF_NOTE
+  n=1
+  while [ "$n" -le "$n_questions" ]; do
+    case " $seen " in
+      *" $n "*) ;;
+      *) add_err "question $n is unanswered — $(printf '%s\n' "$questions" | awk -v n="$n" 'NR==n')" ;;
+    esac
+    n=$((n + 1))
+  done
+  if [ -n "$errs" ]; then
+    echo "routine-approve: the proceed is earned per question — answer each as '<n>: <answer>':" >&2
+    printf '%s\n' "$errs" >&2
     exit 1
   fi
 fi
 
-if [ -n "$note" ]; then
-  {
-    printf '## %s\n\n%s\n\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$note"
-  } >> "$ticket/approve.md"
-fi
+# Every recorded proceed writes its entry: the Q/A pairs verbatim, any
+# free remarks, and the fingerprint of exactly what the operator was
+# shown — so approve.md absent now means approve has not yet run.
+{
+  printf '## %s\n\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+  n=1
+  while [ "$n" -le "$n_questions" ]; do
+    printf 'Q%s: %s\n' "$n" "$(printf '%s\n' "$questions" | awk -v n="$n" 'NR==n')"
+    printf 'A%s: %s\n' "$n" "$(printf '%s\n' "$note" | awk -v n="$n" -F': ' \
+      '$1 == n { sub(/^[0-9]+: /, ""); print; exit }')"
+    n=$((n + 1))
+  done
+  [ "$n_questions" -gt 0 ] && printf '\n'
+  remarks="$(printf '%s\n' "$note" | awk 'NF && $0 !~ /^[0-9]+: /')"
+  if [ -n "$remarks" ]; then
+    printf '%s\n\n' "$remarks"
+  fi
+  printf 'Approved-at: %s\n\n' "$(approve_fingerprint "$ticket")"
+} >> "$ticket/approve.md"
 
 telemetry_emit "$ticket/telemetry.jsonl" ticket.approve bin/routine-approve \
   "$(basename "$ticket")" "" 0 "$(( $(routine_now_ms) - start_ms ))"
