@@ -2,7 +2,7 @@
 
 ## 1. The lint checks the citation
 
-- [ ] 1.1 Red→green: `routine-spec-lint` fails a non-floor Questions
+- [x] 1.1 Red→green: `routine-spec-lint` fails a non-floor Questions
       bullet whose ruled marker cites an answer no `approve.md` entry
       records (missing file included), naming the bullet and the
       missing ruling, while a marker citing a recorded `A<n>:` passes —
