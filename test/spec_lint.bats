@@ -449,6 +449,66 @@ PYEOF
   case "$output" in *01-01*) ;; *) false ;; esac
 }
 
+@test "a marker citing a recorded ruling passes" {
+  make_good_ticket
+  printf '%s\n' \
+    '- does rounding favor the customer — provisional: RULED at approve (approve.md A2): customer favor stands' \
+    >> "$ticket/grounding.md"
+  printf '%s\n' '## 2026-08-01T00:00:00Z' '' \
+    'Q1: some earlier question' 'A1: answered earlier' '' \
+    'Q2: does rounding favor the customer' 'A2: customer favor stands' '' \
+    'Approved-at: 0000000000000000000000000000000000000000' '' \
+    > "$ticket/approve.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -eq 0 ]
+}
+
+@test "a marker citing a ruling fails when approve.md is missing" {
+  make_good_ticket
+  printf '%s\n' \
+    '- does rounding favor the customer — provisional: RULED at approve (approve.md A2): customer favor stands' \
+    >> "$ticket/grounding.md"
+  [ ! -f "$ticket/approve.md" ]
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *"approve.md A2"*) ;; *) false ;; esac
+}
+
+@test "a marker citing an index no entry records fails" {
+  make_good_ticket
+  printf '%s\n' \
+    '- does rounding favor the customer — provisional: RULED at approve (approve.md A2): customer favor stands' \
+    >> "$ticket/grounding.md"
+  printf '%s\n' '## 2026-08-01T00:00:00Z' '' \
+    'Q1: some earlier question' 'A1: answered earlier' '' \
+    'Approved-at: 0000000000000000000000000000000000000000' '' \
+    > "$ticket/approve.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *"approve.md A2"*) ;; *) false ;; esac
+}
+
+@test "the citation failure names the offending questions bullet" {
+  make_good_ticket
+  printf '%s\n' \
+    '- does rounding favor the customer — provisional: RULED at approve (approve.md A2): customer favor stands' \
+    >> "$ticket/grounding.md"
+  [ ! -f "$ticket/approve.md" ]
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *"does rounding favor the customer"*) ;; *) false ;; esac
+}
+
+@test "a malformed ruled marker fails naming its required form" {
+  make_good_ticket
+  printf '%s\n' \
+    '- does rounding favor the customer — provisional: RULED at approve (approve.md A): no index cited' \
+    >> "$ticket/grounding.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *"approve.md A<n>"*) ;; *) false ;; esac
+}
+
 @test "a defect return demands reconciliation naming the task id" {
   make_good_ticket
   write_grounding

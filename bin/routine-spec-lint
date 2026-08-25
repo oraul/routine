@@ -83,11 +83,35 @@ EOF_EVIDENCE
   # the decomposition was built on ride the bullet. Judged per bullet
   # like Evidence, with the '- none — <why>' floor exempt; the reading's
   # truth stays the approve reader's, only its presence is form.
+  # A bullet's ruled marker names an answer the record must actually hold —
+  # #106 lets it lift routine-approve's per-question refusal, so a path a
+  # gate trusts must be harnessed. Form only: existence of the cited A<n>
+  # entry, never whether it says what the marker claims.
+  _ruled_prefix='RULED at approve (approve.md A'
   while IFS= read -r _qline; do
     [ -n "$_qline" ] || continue
     case "$_qline" in "- none — "*) continue ;; esac
     printf '%s\n' "$_qline" | grep -q ' — provisional: [^[:space:]]' \
       || fail "grounding.md" "Questions line '$_qline' must carry ' — provisional: <reading>' (the reading the decomposition was built on)"
+    case "$_qline" in
+      *"$_ruled_prefix"*)
+        _cite="${_qline#*"$_ruled_prefix"}"
+        _cite="${_cite%%)*}"
+        case "$_cite" in
+          ''|*[!0-9]*)
+            fail "grounding.md" "Questions line '$_qline' carries a malformed ruled marker — 'RULED at approve (approve.md A<n>)' needs a numeric index before ')'"
+            ;;
+          *)
+            _approve="$ticket/approve.md"
+            if [ -f "$_approve" ] && grep -Eq "^A${_cite}: " "$_approve"; then
+              :
+            else
+              fail "grounding.md" "Questions line '$_qline' cites approve.md A$_cite, but no approve.md entry records it"
+            fi
+            ;;
+        esac
+        ;;
+    esac
   done <<EOF_QUESTIONS
 $(awk '/^## Questions/ {a=1; next} a && /^#/ {a=0} a && /^- / {print}' "$grounding")
 EOF_QUESTIONS

@@ -151,7 +151,16 @@ ruled marker to that bullet —
 the original provisional text kept in place: the marker is what lets
 the approve gate stop demanding a re-answer for a ruling that already
 binds, and a marker in any other words is invisible to the gate that
-reads it. Never re-run the gate just to
+reads it. Before baking an override, validate it like any
+load-bearing claim: attempt once to refute the ruling's
+implementability where the target as it stands can refute it —
+run the probe that would prove the ruling cannot be built as
+written — and record the attempt as an Evidence bullet either way. A
+refuted ruling is never baked: it returns to the operator with the
+probe quoted, because a ruling and a requirement that cannot both be
+true are cheapest to catch at reconciliation, not mid-build. A
+forecast ruling stays under the forecast rule — its grader is named,
+never probed in advance. Never re-run the gate just to
 see what failed; the list survives on `lint.log`. When a task returned
 because `routine-tdd characterize` refused, read its own
 `characterize.log` too — the command's verbatim output, script-captured
