@@ -6,7 +6,7 @@
       lifecycle motto, pinned in `test/guidance_content.bats` on words
       verified absent today — the `kill` pin word-bounded, because the
       bare substring already matches `skills`
-- [ ] 1.2 Red→green: `openspec/project.md` names the seven grounding
+- [x] 1.2 Red→green: `openspec/project.md` names the seven grounding
       pillars with one-line obligations and the vocabulary-never-a-gate
       rule, pinned in `test/guidance_content.bats`
 

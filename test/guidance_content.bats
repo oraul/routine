@@ -96,6 +96,23 @@ load test_helper
   grep -qi 'knowledge' "$doc"
 }
 
+@test "the conventions name the seven grounding pillars" {
+  doc="$ROUTINE_REPO_ROOT/openspec/project.md"
+  grep -qi 'provenance' "$doc"
+  grep -qi 'refutation' "$doc"
+  grep -qi 'independent instruments' "$doc"
+  grep -qi 'freshness' "$doc"
+  grep -qi 'symmetric' "$doc"
+  grep -qi 'confound' "$doc"
+  grep -qi 'exercised roads' "$doc"
+}
+
+@test "a pillar is vocabulary and never a gate" {
+  doc="$ROUTINE_REPO_ROOT/openspec/project.md"
+  grep -qi 'never a gate' "$doc"
+  grep -qi 'earned separately' "$doc"
+}
+
 @test "the public face distinguishes the scout from the two agents" {
   doc="$ROUTINE_REPO_ROOT/README.md"
   grep -qi 'scout' "$doc"

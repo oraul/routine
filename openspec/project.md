@@ -40,6 +40,31 @@ enforce the rails.
    build it, however natural it feels mid-implementation.
 10. **Boring by design.** Plain names, plain bash, no cleverness, no lore.
 
+## Grounding pillars — the vocabulary of evidence
+
+Every recorded claim is judged against seven pillars, named here so
+records, retros, and reviews cite a pillar by name instead of
+re-deriving the standard:
+
+1. **Provenance** — every claim names its instrument and its anchor:
+   what ran, against which commit.
+2. **Refutation first** — validation is an attempt to break the claim;
+   support-gathering is not validation.
+3. **Independent instruments** — evidence comes from a meter the
+   claimant does not control; a self-report is testimony, telemetry is
+   evidence.
+4. **Freshness** — evidence decays with its anchor; a moved anchor
+   re-verifies exactly what moved.
+5. **Symmetric recording** — what refuted you is recorded at the same
+   fidelity as what confirmed you.
+6. **Confound honesty** — a comparison claims only what its variables
+   allow: name the confound or drop the cause.
+7. **Exercised roads** — every road a contract opens is walked and
+   harnessed; a path that has never run is a claim never tested.
+
+A pillar is vocabulary, never a gate: the script that enforces one is
+earned separately, from retro evidence, like every abstraction here.
+
 ## Stack
 
 - **Runtime:** bash 3.2-compatible scripts + BSD/GNU coreutils only.
