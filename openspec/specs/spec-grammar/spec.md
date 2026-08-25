@@ -101,6 +101,7 @@ invalidated>`, matched without interpreting the id as a pattern. All
 checks are mechanical form checks; the linter never judges the claim's
 content — a false claim is the approve reader's catch, not the lint's. The file SHALL also carry a `Grounded-at: <sha>` header line (column 0, a 40-hex commit id — the target's HEAD when the evidence was gathered, obtained by reading the target, never writing it); the lint checks presence and form only.
 Every non-floor `## Questions` bullet SHALL carry its provisional reading in the form `- <question> — provisional: <reading>` with a non-empty reading, checked per line exactly as Evidence is — the reading is the load-bearing half, the words the decomposition was built on — while the `- none — <why>` floor stays exempt.
+Whenever `## Evidence` holds bullets, `bin/routine-spec-lint` SHALL additionally name one sampled Evidence bullet as the spot-check to re-verify — selected deterministically from the file's own bytes, never by the author, so verification cannot be steered toward convenient claims — reported on stdout and never gating: the sample line changes no exit code. The lint stays form-only; the sample is a selection, not a judgment.
 
 #### Scenario: Missing grounding fails the lint
 - **WHEN** a ticket has no `grounding.md`
@@ -156,6 +157,13 @@ Every non-floor `## Questions` bullet SHALL carry its provisional reading in the
   ` — provisional: <reading>` part
 - **THEN** the lint exits non-zero naming the line and the required
   form
+
+#### Scenario: A spot-check sample is named without gating
+- **WHEN** the lint runs over a grounding whose `## Evidence` holds
+  bullets
+- **THEN** it names exactly one of them as the sampled spot-check and
+  the exit code is what the form checks alone decide
+
 ### Requirement: The defect list survives the run
 `routine-spec-lint` SHALL mirror every defect line it prints to stderr
 into the ticket's script-owned `lint.log`, truncating the file at the

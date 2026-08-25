@@ -82,6 +82,13 @@ load test_helper
   ! grep -q 'no remarks were recorded' "$doc"
 }
 
+@test "re-entry trust is a default, not a prohibition" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'sampled' "$doc"
+  grep -qi 'spot-check' "$doc"
+  grep -qi 'never counts' "$doc"
+}
+
 @test "the approve phase teaches the per-question answer form" {
   skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
   awk '/^## 3\./,/^## 4\./' "$skill" | grep -qF '<n>: <answer>'

@@ -414,6 +414,13 @@ PYEOF
   case "$output" in *Questions*"- none —"*) ;; *) false ;; esac
 }
 
+@test "the lint names one sampled evidence bullet without gating" {
+  make_good_ticket
+  run "$ROUTINE_REPO_ROOT/bin/routine-spec-lint" "$ticket"
+  [ "$status" -eq 0 ]
+  case "$output" in *"spot-check"*"app/models/user.rb"*) ;; *) false ;; esac
+}
+
 @test "a question without its provisional reading fails" {
   make_good_ticket
   printf '%s\n' '- does rounding favor the customer or the business' \
