@@ -6,6 +6,9 @@
       `runs/routine/README.md`, the marker committed, pinned by
       `git check-ignore` and `git ls-files` assertions in
       `test/harness_telemetry.bats`
+- [x] 1.2 Red→green: the scaffold pin follows the restructured ignore
+      rules — discovered by the full selfcheck, which reddened
+      `test/scaffold.bats`'s single-entry `runs/` assertion
 
 ## 2. Declared roads are walked or waivered
 
