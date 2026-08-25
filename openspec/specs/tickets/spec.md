@@ -211,7 +211,19 @@ SHALL be earned per question: the note's lines of the form
 bullets, and the gate SHALL refuse — recording nothing — while any
 index lacks an answer, naming each open question, or while an answer
 names an index no question holds; lines in no `<n>:` form remain free
-remarks and bind to nothing. A single free-text note SHALL NOT
+remarks and bind to nothing. A non-floor bullet carrying the ruled
+marker — the fixed text `RULED at approve (approve.md A` followed by
+its answer index, the form the analyst's reconciliation appends when
+it bakes a recorded ruling into the bullet — SHALL NOT demand a fresh
+answer: left unanswered it no longer blocks, and the recorded entry's
+`A<n>:` line SHALL say the ruling stands, because a standing ruling
+binds until the operator moves it and a demanded re-answer teaches
+the operator to type filler that carries no judgment. An answer given
+to a ruled question SHALL record verbatim exactly as any answer
+does — answering a ruled question is how the operator moves its
+ruling. Ruled bullets SHALL keep their positions in the numbering, so
+an answer's index never depends on which siblings are ruled. A single
+free-text note SHALL NOT
 dissolve the section, because one word could previously pass every
 question at once and only an exit code makes a question answered —
 while whether an answer is good, whether a question is real, and
@@ -273,6 +285,23 @@ fingerprint SHALL have one implementation, shared with the audit.
   note
 - **THEN** `approve.md` gains a timestamped entry carrying the
   `Approved-at:` fingerprint
+
+#### Scenario: A standing ruling stops demanding a re-answer
+- **WHEN** the only non-floor question's bullet carries
+  `RULED at approve (approve.md A1): <the standing reading>` and
+  `routine-approve` runs with no `1:` line
+- **THEN** the proceed records, and the entry's `A1:` line says the
+  ruling stands
+
+#### Scenario: Answering a ruled question moves its ruling
+- **WHEN** a ruled bullet's index is answered as `1: <new ruling>`
+- **THEN** the answer records verbatim in the entry's `A1:` line
+
+#### Scenario: An unruled sibling still blocks
+- **WHEN** question 1 is ruled, question 2 is not, and the note
+  answers neither
+- **THEN** the gate refuses naming only question 2, and nothing is
+  recorded
 
 ### Requirement: A replay moves only the rails
 `bin/routine-replay <archived-ticket-dir>` SHALL create a fresh ticket
