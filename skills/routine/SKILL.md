@@ -138,7 +138,11 @@ exhaust. When `## Questions` holds open (non-floor) entries, the
 proceed is earned per question: the note carries one `<n>: <answer>`
 line per question, numbered in the order shown, free remarks riding on
 their own lines — the gate refuses a missing or unknown index and
-records nothing. Every recorded proceed appends the Q/A pairs and an
+records nothing. A bullet already carrying the `RULED at approve`
+marker no longer demands its line — the standing ruling binds and the
+entry records that it stands — while answering its index anyway
+moves its ruling; indices never shift, so a ruled question keeps its
+number. Every recorded proceed appends the Q/A pairs and an
 `Approved-at` fingerprint of exactly what was shown to `approve.md`,
 and the audit refuses a conclude whose artifacts moved after the last
 proceed — an amendment means re-approving, because re-specified work

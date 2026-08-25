@@ -14,6 +14,6 @@
       marker form appended to a ruled bullet, provisional text kept in
       place — `agents/analyst.md`, pinned in
       `test/agents_content.bats`
-- [ ] 2.2 Red→green: the skill's approve phase says a ruled question
+- [x] 2.2 Red→green: the skill's approve phase says a ruled question
       no longer demands its line and answering one moves its ruling —
       `skills/routine/SKILL.md`, pinned in `test/agents_content.bats`

@@ -380,3 +380,9 @@ load test_helper
   grep -qi 'the standing reading' "$doc"
   grep -qi 'kept in place' "$doc"
 }
+
+@test "the approve phase lets a standing ruling stand" {
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  awk '/^## 3\./,/^## 4\./' "$skill" | grep -qF 'RULED at approve'
+  awk '/^## 3\./,/^## 4\./' "$skill" | grep -qi 'moves its ruling'
+}
