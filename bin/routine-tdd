@@ -28,7 +28,9 @@
 # under the pipeline stage. On refusal the scratch file is copied,
 # truncating, into the in_progress task's own directory as
 # characterize.log (the same in_progress derivation routine-defect
-# uses); on a pass it is discarded.
+# uses); on a pass the scratch file is discarded and that same task's
+# characterize.log, if a prior refusal left one, is removed — a proven
+# claim leaves no stale failure for a re-entering analyst to trust.
 set -u
 
 lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
@@ -97,6 +99,14 @@ if [ "$phase" = characterize ] && [ "$code" -ne 0 ]; then
   fi
   rm -f "$characterize_tmp"
   exit 1
+fi
+if [ "$phase" = characterize ]; then
+  if row="$(index_first_with_status "$ROUTINE_TICKET_DIR/index.tsv" in_progress 2>/dev/null)"; then
+    b="$(printf '%s' "$row" | cut -f2)"
+    t="$(printf '%s' "$row" | cut -f3)"
+    task_dir="$ROUTINE_TICKET_DIR/briefings/$b/tasks/$t"
+    rm -f "$task_dir/characterize.log"
+  fi
 fi
 [ -z "$characterize_tmp" ] || rm -f "$characterize_tmp"
 echo "routine-tdd: $phase recorded as: $recorded"
