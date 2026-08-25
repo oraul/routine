@@ -13,9 +13,10 @@ no sensitive data ever lands, and history stays readable by convention.
 — session URLs, common credential shapes (GitHub tokens, API-key prefixes,
 AWS key ids), and private key blocks — and SHALL exit non-zero naming each
 hit. The pattern list SHALL have one implementation, in `lib/sensitive.sh`,
-shared by every check that hunts these shapes. The checker script, its test
-file, and the shared pattern library SHALL be excluded from the diff scan,
-since they must name the patterns they hunt.
+shared by every check that hunts these shapes. The hunters' own files —
+each checker script, its test file, and the shared pattern library — SHALL
+be excluded from the diff scan, since they must name the patterns they
+hunt.
 
 #### Scenario: Leaked token in the diff
 - **WHEN** a commit in the range adds a GitHub-token-shaped string
