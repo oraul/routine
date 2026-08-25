@@ -36,6 +36,32 @@ EOF
   [ "$before" = "$after" ]
 }
 
+@test "a stale approval is a violation naming re-approval" {
+  make_run
+  printf '## 2026-01-01T00:02:30Z\n\nApproved-at: 00000000\n\n' \
+    > "$ticket/approve.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *"re-approve"*) ;; *) false ;; esac
+}
+
+@test "a matching fingerprint stays silent" {
+  make_run
+  fp="$(. "$ROUTINE_REPO_ROOT/lib/approve.sh"; approve_fingerprint "$ticket")"
+  printf '## 2026-01-01T00:02:30Z\n\nApproved-at: %s\n\n' "$fp" \
+    > "$ticket/approve.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -eq 0 ]
+}
+
+@test "a note-only approve file skips the fingerprint rule" {
+  make_run
+  printf '## 2026-01-01T00:02:30Z\n\nold-format note, no fingerprint\n\n' \
+    > "$ticket/approve.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-audit" "$ticket"
+  [ "$status" -eq 0 ]
+}
+
 @test "first event must be ticket.new" {
   make_run
   sed '1d' "$ticket/telemetry.jsonl" > "$ticket/t.new" \

@@ -13,7 +13,7 @@
       questions, refuses missing or unknown indices with nothing
       recorded, and writes a `Q<n>`/`A<n>` + `Approved-at:` entry on
       every proceed — `test/approve.bats`
-- [ ] 2.2 Red→green: `routine-audit` recomputes the fingerprint when
+- [x] 2.2 Red→green: `routine-audit` recomputes the fingerprint when
       the last entry carries one and counts a mismatch as a violation;
       fingerprint-less tickets skip the rule — `test/audit.bats`
 
