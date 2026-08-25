@@ -386,3 +386,10 @@ load test_helper
   awk '/^## 3\./,/^## 4\./' "$skill" | grep -qF 'RULED at approve'
   awk '/^## 3\./,/^## 4\./' "$skill" | grep -qi 'moves its ruling'
 }
+
+@test "an override is probed before it is baked" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'implementability' "$doc"
+  grep -qi 'refuted ruling' "$doc"
+  grep -qi 'probe quoted' "$doc"
+}

@@ -10,7 +10,7 @@
 
 ## 2. The ruling is probed before it is baked
 
-- [ ] 2.1 Red→green: the analyst's reconciliation rule extends the
+- [x] 2.1 Red→green: the analyst's reconciliation rule extends the
       refutation obligation to overrides — probe implementability
       where the target can refute it, record the attempt either way,
       return a refuted ruling with the probe quoted —
