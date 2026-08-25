@@ -108,6 +108,17 @@ make_ticket() {
   ! grep -q "first-run" "$log"
 }
 
+@test "a passing characterize removes the prior refusal log" {
+  make_ticket
+  log="$ticket/briefings/01-auth/tasks/01-login/characterize.log"
+  env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \
+    characterize "scenario" -- bash -c 'echo stale-failure; exit 1' > /dev/null || true
+  [ -f "$log" ]
+  env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \
+    characterize "scenario" -- true > /dev/null
+  [ ! -f "$log" ]
+}
+
 @test "the evidence binds red and green to the same command" {
   make_ticket
   env ROUTINE_TICKET_DIR="$ticket" "$ROUTINE_REPO_ROOT/bin/routine-tdd" \
