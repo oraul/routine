@@ -8,7 +8,7 @@
 
 ## 2. The proceed is earned per question and fingerprinted
 
-- [ ] 2.1 Red→green: `lib/approve.sh` provides the shared fingerprint;
+- [x] 2.1 Red→green: `lib/approve.sh` provides the shared fingerprint;
       `routine-approve` requires `<n>: <answer>` coverage of the open
       questions, refuses missing or unknown indices with nothing
       recorded, and writes a `Q<n>`/`A<n>` + `Approved-at:` entry on

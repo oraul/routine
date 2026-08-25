@@ -60,14 +60,73 @@ pass_analyst_gate() {
   ! grep -q '"event":"ticket.approve"' "$ticket/telemetry.jsonl"
 }
 
-@test "a note answers the questions and the proceed is recorded" {
+@test "a numbered answer earns the proceed and pairs in the record" {
   make_ticket
   pass_analyst_gate
   printf '## Questions\n- does rounding favor the customer or the business — provisional: customer; operator may override\n' \
     > "$ticket/grounding.md"
-  run "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket" "customer rounding confirmed"
+  run "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket" "1: customer rounding confirmed"
   [ "$status" -eq 0 ]
   tail -1 "$ticket/telemetry.jsonl" | grep -q '"event":"ticket.approve"'
+  grep -q '^Q1: does rounding favor the customer' "$ticket/approve.md"
+  grep -q '^A1: customer rounding confirmed' "$ticket/approve.md"
+  grep -Eq '^Approved-at: [0-9a-f]{8}$' "$ticket/approve.md"
+}
+
+@test "a free-text note no longer answers open questions" {
+  make_ticket
+  pass_analyst_gate
+  printf '## Questions\n- does rounding favor the customer — provisional: customer; operator may override\n- are fractional percents allowed — provisional: integers only; operator may override\n' \
+    > "$ticket/grounding.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket" "sounds fine to me"
+  [ "$status" -ne 0 ]
+  case "$output" in *"rounding favor the customer"*) ;; *) false ;; esac
+  case "$output" in *"fractional percents"*) ;; *) false ;; esac
+  ! grep -q '"event":"ticket.approve"' "$ticket/telemetry.jsonl"
+}
+
+@test "a missing index is refused naming the open question" {
+  make_ticket
+  pass_analyst_gate
+  printf '## Questions\n- does rounding favor the customer — provisional: customer; operator may override\n- are fractional percents allowed — provisional: integers only; operator may override\n' \
+    > "$ticket/grounding.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket" "1: customer, confirmed"
+  [ "$status" -ne 0 ]
+  case "$output" in *"fractional percents"*) ;; *) false ;; esac
+  ! grep -q '"event":"ticket.approve"' "$ticket/telemetry.jsonl"
+}
+
+@test "an answer naming no open question is refused" {
+  make_ticket
+  pass_analyst_gate
+  printf '## Questions\n- does rounding favor the customer — provisional: customer; operator may override\n' \
+    > "$ticket/grounding.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket" "$(printf '1: customer\n3: what question is this')"
+  [ "$status" -ne 0 ]
+  case "$output" in *"3"*) ;; *) false ;; esac
+  ! grep -q '"event":"ticket.approve"' "$ticket/telemetry.jsonl"
+}
+
+@test "a bare proceed still writes its fingerprinted entry" {
+  make_ticket
+  pass_analyst_gate
+  run "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket"
+  [ "$status" -eq 0 ]
+  grep -Eq '^Approved-at: [0-9a-f]{8}$' "$ticket/approve.md"
+}
+
+@test "the fingerprint moves with the artifacts" {
+  make_ticket
+  pass_analyst_gate
+  printf 'v1 of the requirement\n' > "$ticket/requirement.md"
+  "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket" > /dev/null
+  first="$(grep '^Approved-at: ' "$ticket/approve.md" | tail -1)"
+  printf 'v2 — amended after the proceed\n' > "$ticket/requirement.md"
+  "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket" > /dev/null
+  second="$(grep '^Approved-at: ' "$ticket/approve.md" | tail -1)"
+  [ -n "$first" ]
+  [ -n "$second" ]
+  [ "$first" != "$second" ]
 }
 
 @test "a floor of nothing to ask never blocks the proceed" {
