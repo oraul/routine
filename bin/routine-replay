@@ -81,6 +81,7 @@ fi
 if ! ticket="$(TARGET="$target" "$bin/routine-ticket-new")"; then
   git -C "$target" worktree remove --force "$wt" >/dev/null 2>&1
   rm -rf "$wt_parent"
+  rmdir "$root/runs/$app/replays" 2>/dev/null || true
   echo "routine-replay: refuse — allocation refused; the worktree was removed" >&2
   exit 1
 fi

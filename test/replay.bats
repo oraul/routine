@@ -37,6 +37,41 @@ replay() {
     "$ROUTINE_REPO_ROOT/bin/routine-replay" "$@"
 }
 
+@test "the question is held still against the anchored past" {
+  make_replay_fixture
+  replay "$arch"
+  [ "$status" -eq 0 ]
+  ticket="$fixture/runs/app/tickets/0003"
+  [ -d "$ticket" ]
+  cmp -s "$arch/requirement.md" "$ticket/requirement.md"
+  wt="$fixture/runs/app/replays/0002-$(printf '%.8s' "$anchor")/app"
+  [ "$(git -C "$wt" rev-parse HEAD)" = "$anchor" ]
+  grep -q 'v1' "$wt/lib.rb"
+  grep -qF "Replay-of: $arch" "$ticket/replay.md"
+  grep -qF "Anchor: $anchor" "$ticket/replay.md"
+  head -1 "$ticket/telemetry.jsonl" | grep -q '"event":"ticket.new"'
+  grep -q '"event":"ticket.replay"' "$ticket/telemetry.jsonl"
+  printf '%s\n' "$output" | grep -q 'archived run ended with: ticket.abort'
+}
+
+@test "a refused allocation removes the worktree it created" {
+  make_replay_fixture
+  mkdir -p "$fixture/runs/app/tickets/0009"
+  replay "$arch"
+  [ "$status" -eq 1 ]
+  [ -d "$fixture/runs/app" ]
+  [ ! -d "$fixture/runs/app/replays" ]
+  [ "$(git -C "$tgt" worktree list | wc -l | tr -d ' ')" -eq 1 ]
+}
+
+@test "an existing replay worktree is refused" {
+  make_replay_fixture
+  mkdir -p "$fixture/runs/app/replays/0002-$(printf '%.8s' "$anchor")"
+  replay "$arch"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q 'already exists'
+}
+
 @test "no archived ticket argument is a usage error" {
   make_replay_fixture
   replay
