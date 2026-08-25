@@ -46,6 +46,7 @@ replay() {
   cmp -s "$arch/requirement.md" "$ticket/requirement.md"
   wt="$fixture/runs/app/replays/0002-$(printf '%.8s' "$anchor")/app"
   [ "$(git -C "$wt" rev-parse HEAD)" = "$anchor" ]
+  [ "$(git -C "$wt" symbolic-ref --short HEAD)" = "replay/0002-$(printf '%.8s' "$anchor")" ]
   grep -q 'v1' "$wt/lib.rb"
   grep -qF "Replay-of: $arch" "$ticket/replay.md"
   grep -qF "Anchor: $anchor" "$ticket/replay.md"

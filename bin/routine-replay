@@ -71,8 +71,13 @@ fi
 # failure that can leave state behind is the refused allocation, and
 # that path removes the worktree before exiting — a replay that failed
 # to allocate must not leave state a later run trips over.
+# A branch, not a detached HEAD: the preflight gate refuses detachment,
+# and the first live replay was refused exactly there. The branch name
+# carries the replay's identity; its tip is the anchor, so the
+# held-still guarantee is unchanged.
 mkdir -p "$wt_parent"
-if ! git -C "$target" worktree add --detach --quiet "$wt" "$anchor"; then
+if ! git -C "$target" worktree add -b "replay/$arch_id-$(printf '%.8s' "$anchor")" \
+  --quiet "$wt" "$anchor"; then
   rm -rf "$wt_parent"
   echo "routine-replay: refuse — could not create worktree at $wt" >&2
   exit 1
