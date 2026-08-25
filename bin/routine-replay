@@ -1,0 +1,101 @@
+#!/usr/bin/env bash
+# routine-script: routine-replay
+# routine-description: Hold the question still: a fresh ticket from an archived requirement, target at its anchor
+# routine-usage: routine-replay <archived-ticket-dir>
+# routine-env: TARGET — the target repository the archived run grounded against (default: current directory)
+# routine-exit: 0 — replay ticket created — paths and the archived final event printed
+# routine-exit: 1 — refused — missing requirement or anchor, unreachable anchor, existing replay worktree, or a refused allocation (nothing left behind)
+# routine-exit: 2 — usage — an archived ticket directory is required
+# routine-test: test/replay.bats
+# The confound instrument: "the rails improved" is uncontrolled while
+# the requirement's wording and the target's state move with the
+# rails. The replay holds both still — requirement.md byte-identical,
+# target checked out at the archived Grounded-at — so only the rails
+# differ. The worktree's leaf is named for the app, because every gate
+# derives its state tree from the target's toplevel basename, and a
+# replay-named leaf would mint a second tree the preflight refuses on.
+# Only the requirement crosses; grounding, briefings, and tasks are
+# what the current rails must produce from the same question. The
+# comparison of outcomes stays the operator's judgment.
+set -u
+
+lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
+bin="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=/dev/null
+. "$lib/paths.sh"
+# shellcheck source=/dev/null
+. "$lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
+
+arch="${1:-}"
+if [ -z "$arch" ] || [ ! -d "$arch" ]; then
+  echo "usage: routine-replay <archived-ticket-dir>" >&2
+  exit 2
+fi
+if [ ! -f "$arch/requirement.md" ]; then
+  echo "routine-replay: refuse — $arch has no requirement.md to hold still" >&2
+  exit 1
+fi
+anchor=""
+if [ -f "$arch/grounding.md" ]; then
+  anchor="$(grep -m1 '^Grounded-at: ' "$arch/grounding.md" | awk '{print $2}')"
+fi
+case "$anchor" in
+  *[!0-9a-f]*|"")
+    echo "routine-replay: refuse — no well-formed 'Grounded-at: <sha>' in $arch/grounding.md; a run that predates the anchor rule cannot be replayed honestly" >&2
+    exit 1 ;;
+esac
+if [ "${#anchor}" -ne 40 ]; then
+  echo "routine-replay: refuse — no well-formed 'Grounded-at: <sha>' in $arch/grounding.md; a run that predates the anchor rule cannot be replayed honestly" >&2
+  exit 1
+fi
+
+target="${TARGET:-$PWD}"
+if ! git -C "$target" cat-file -e "$anchor^{commit}" 2>/dev/null; then
+  echo "routine-replay: refuse — the target cannot resolve anchor $anchor" >&2
+  exit 1
+fi
+
+root="$(routine_root)"
+app="$(routine_app_key "$target")"
+arch_id="$(basename "$arch")"
+wt_parent="$root/runs/$app/replays/$arch_id-$(printf '%.8s' "$anchor")"
+wt="$wt_parent/$app"
+if [ -e "$wt_parent" ]; then
+  echo "routine-replay: refuse — replay target already exists at $wt_parent; remove it first" >&2
+  exit 1
+fi
+
+# Preconditions first, worktree second, allocation last: the only
+# failure that can leave state behind is the refused allocation, and
+# that path removes the worktree before exiting — a replay that failed
+# to allocate must not leave state a later run trips over.
+mkdir -p "$wt_parent"
+if ! git -C "$target" worktree add --detach --quiet "$wt" "$anchor"; then
+  rm -rf "$wt_parent"
+  echo "routine-replay: refuse — could not create worktree at $wt" >&2
+  exit 1
+fi
+
+if ! ticket="$(TARGET="$target" "$bin/routine-ticket-new")"; then
+  git -C "$target" worktree remove --force "$wt" >/dev/null 2>&1
+  rm -rf "$wt_parent"
+  rmdir "$root/runs/$app/replays" 2>/dev/null || true
+  echo "routine-replay: refuse — allocation refused; the worktree was removed" >&2
+  exit 1
+fi
+
+cp "$arch/requirement.md" "$ticket/requirement.md"
+printf 'Replay-of: %s\nAnchor: %s\nTarget: %s\n' \
+  "$arch" "$anchor" "$wt" > "$ticket/replay.md"
+telemetry_emit "$ticket/telemetry.jsonl" ticket.replay bin/routine-replay \
+  "$(basename "$ticket")" "" 0 "$(( $(routine_now_ms) - start_ms ))"
+
+archived_end="$(tail -1 "$arch/telemetry.jsonl" 2>/dev/null \
+  | awk -F'"' 'NF >= 8 { print $8 }')"
+echo "routine-replay: ticket $ticket"
+echo "routine-replay: target $wt at $anchor"
+echo "routine-replay: archived run ended with: ${archived_end:-unknown}"
+echo "routine-replay: run the loop with TARGET=$wt — only the requirement crossed"
+exit 0
