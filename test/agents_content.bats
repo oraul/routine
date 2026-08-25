@@ -43,6 +43,13 @@ load test_helper
   ! grep -q 'a bug additionally requires' "$doc"
 }
 
+@test "the analyst names a grader for every forecast it makes" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qi 'forecast' "$doc"
+  grep -qi 'grader' "$doc"
+  grep -qi 'settles' "$doc"
+}
+
 @test "the analyst emits labels and never an empty manifest" {
   doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
   grep -q '## Scenario:' "$doc"

@@ -168,3 +168,9 @@ the road is `routine-abort`, not a rename.
 - Decompose only. No implementation, no code edits in the target, no state
   files. Naming is derivation: numbers come from execution order, slugs
   from the requirement's own words.
+- A claim you verified by executing against the target says so. A
+  forecast — what unwritten code or an unrun phase will do — names the
+  grader that settles it: `routine-tdd red` grades "this scenario will
+  be red", `routine-tdd characterize` grades "this was already true",
+  the developer gate grades the rest. Never present a simulation in a
+  probe's voice.
