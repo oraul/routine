@@ -132,6 +132,42 @@ pass_analyst_gate() {
   [ "$first" != "$second" ]
 }
 
+@test "a standing ruling stops demanding a fresh answer" {
+  make_ticket
+  pass_analyst_gate
+  printf '## Questions\n- does rounding favor the customer — provisional: customer; operator may override RULED at approve (approve.md A1): customer, per finance\n' \
+    > "$ticket/grounding.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket"
+  [ "$status" -eq 0 ]
+  tail -1 "$ticket/telemetry.jsonl" | grep -q '"event":"ticket.approve"'
+  grep -q '^A1: the ruling stands (RULED, not re-answered this proceed)$' "$ticket/approve.md"
+}
+
+@test "answering a ruled question records the moved ruling verbatim" {
+  make_ticket
+  pass_analyst_gate
+  printf '## Questions\n- does rounding favor the customer — provisional: customer; operator may override RULED at approve (approve.md A1): customer, per finance\n' \
+    > "$ticket/grounding.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket" "1: business, finance reversed the ruling"
+  [ "$status" -eq 0 ]
+  tail -1 "$ticket/telemetry.jsonl" | grep -q '"event":"ticket.approve"'
+  grep -q '^A1: business, finance reversed the ruling$' "$ticket/approve.md"
+}
+
+@test "an unruled sibling still blocks beside a ruled question" {
+  make_ticket
+  pass_analyst_gate
+  printf '## Questions\n- does rounding favor the customer — provisional: customer; operator may override RULED at approve (approve.md A1): customer, per finance\n- are fractional percents allowed — provisional: integers only; operator may override\n' \
+    > "$ticket/grounding.md"
+  run "$ROUTINE_REPO_ROOT/bin/routine-approve" "$ticket"
+  [ "$status" -ne 0 ]
+  case "$output" in *"fractional percents"*) ;; *) false ;; esac
+  case "$output" in *"rounding favor the customer"*) false ;; esac
+  grep -q '"event":"gate.analyst"' "$ticket/telemetry.jsonl"
+  ! grep -q '"event":"ticket.approve"' "$ticket/telemetry.jsonl"
+  [ ! -f "$ticket/approve.md" ]
+}
+
 @test "a floor of nothing to ask never blocks the proceed" {
   make_ticket
   pass_analyst_gate

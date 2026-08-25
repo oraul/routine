@@ -2,7 +2,7 @@
 
 ## 1. The gate lets a standing ruling stand
 
-- [ ] 1.1 Red→green: `routine-approve` stops demanding an answer for a
+- [x] 1.1 Red→green: `routine-approve` stops demanding an answer for a
       non-floor bullet carrying the ruled marker — unanswered records
       an `A<n>:` line saying the ruling stands, an answer records
       verbatim (moving the ruling), an unruled sibling still refuses
