@@ -41,6 +41,24 @@ lint() {
   [ "$status" -eq 0 ]
 }
 
+@test "the lint names one sampled entry without gating" {
+  make_root
+  rec="$BATS_TEST_TMPDIR/record.md"
+  printf '%s\n' \
+    '# Release record: v1.3.0' \
+    '' \
+    '## Caffeine' \
+    '- none — nothing new this release' \
+    '' \
+    '## Gate' \
+    '- coverage dropped and nothing failed the build' \
+    '  evidence: runs/2026-08-01/coverage.txt shows 71% vs 75%' \
+    > "$rec"
+  lint
+  [ "$status" -eq 0 ]
+  case "$output" in *"spot-check"*"coverage dropped"*) ;; *) false ;; esac
+}
+
 @test "the none floor satisfies a section that improved nothing" {
   make_root
   rec="$BATS_TEST_TMPDIR/record.md"

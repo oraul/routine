@@ -153,6 +153,21 @@ EOF
   fi
 fi
 
+# The spot-check sample: one non-floor entry named per run across both
+# sections, chosen by the record's own bytes so the author never picks
+# which claim gets re-run. Reported, never gating — a curated record
+# survives only where nothing is ever re-run. The floor exclusion uses
+# index(), keeping the em-dash out of any regex engine.
+_sc_entries="$(awk '/^## Caffeine$/ || /^## Gate$/ {a=1; next}
+  /^## / {a=0}
+  a && /^- / { if (index($0, "- none — ") != 1) print }' "$file")"
+if [ -n "$_sc_entries" ]; then
+  _sc_n="$(printf '%s\n' "$_sc_entries" | wc -l | tr -d ' ')"
+  _sc_idx=$(( $(cksum < "$file" | awk '{print $1}') % _sc_n + 1 ))
+  _sc_entry="$(printf '%s\n' "$_sc_entries" | awk -v n="$_sc_idx" 'NR == n')"
+  echo "record-lint: spot-check — re-run this entry's evidence before publishing: $_sc_entry"
+fi
+
 if [ "$fails" -gt 0 ]; then
   echo "record-lint: $fails violation(s)" >&2
   exit 1

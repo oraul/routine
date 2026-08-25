@@ -5,7 +5,7 @@
 - [x] 1.1 Red→green: `routine-spec-lint` names one sampled Evidence
       bullet per run, deterministically from the file's bytes,
       reported and never gating — `test/spec_lint.bats`
-- [ ] 1.2 Red→green: `routine-record-lint` names one sampled non-floor
+- [x] 1.2 Red→green: `routine-record-lint` names one sampled non-floor
       entry per run across both sections, reported and never gating —
       `test/record_lint.bats`
 
