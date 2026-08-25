@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# routine-script: routine-change-check
+# routine-description: Judge a change's MODIFIED-requirement deltas against the live spec each one claims to carry
+# routine-usage: routine-change-check <change-id>
+# routine-exit: 0 — every MODIFIED requirement's delta carries its live spec (or the change claims no deltas)
+# routine-exit: 1 — a MODIFIED requirement lost a live line, or names a requirement the live spec does not hold
+# routine-exit: 2 — usage — no change id given, or openspec/changes/<id> is not a directory
+# routine-test: test/change_check.bats
+# The carry check: for every requirement under a delta's '## MODIFIED
+# Requirements' section, the same-named requirement in the live spec
+# must survive line for line — heading to next heading, blank lines
+# exempt — either identical or folded into an extended line. '## ADDED
+# Requirements' sections carry nothing and are skipped; a change with
+# no specs/ deltas passes untouched. Runs before sync, where the
+# comparison still decides something.
+set -u
+
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
+root="$(routine_root)"
+
+change_id="${1:-}"
+change_dir="$root/openspec/changes/$change_id"
+if [ -z "$change_id" ] || [ ! -d "$change_dir" ]; then
+  echo "usage: routine-change-check <change-id>" >&2
+  exit 2
+fi
+
+specs_dir="$change_dir/specs"
+rc=0
+
+for cap_dir in "$specs_dir"/*/; do
+  [ -d "$cap_dir" ] || continue
+  cap="$(basename "$cap_dir")"
+  delta_file="${cap_dir}spec.md"
+  [ -f "$delta_file" ] || continue
+  live_file="$root/openspec/specs/$cap/spec.md"
+
+  # The MODIFIED section's body: everything after the heading line up to
+  # (not including) the next level-2 heading, or end of file.
+  modified="$(awk '
+    /^## MODIFIED Requirements/ { a = 1; next }
+    a && /^## / { exit }
+    a { print }
+  ' "$delta_file")"
+  [ -n "$modified" ] || continue
+
+  names="$(printf '%s\n' "$modified" | sed -n 's/^### Requirement: //p')"
+  [ -n "$names" ] || continue
+
+  while IFS= read -r name; do
+    [ -n "$name" ] || continue
+
+    # A requirement block runs heading to next level-3 or level-2
+    # heading (never a level-4 '#### Scenario:' heading, which nests
+    # inside it).
+    delta_block="$(printf '%s\n' "$modified" | awk -v want="### Requirement: $name" '
+      $0 == want { f = 1; print; next }
+      f && (/^### / || /^## /) { exit }
+      f { print }
+    ')"
+
+    live_block=""
+    if [ -f "$live_file" ]; then
+      live_block="$(awk -v want="### Requirement: $name" '
+        $0 == want { f = 1; print; next }
+        f && (/^### / || /^## /) { exit }
+        f { print }
+      ' "$live_file")"
+    fi
+
+    if [ -z "$live_block" ]; then
+      echo "routine-change-check: $cap: requirement not in live spec: $name" >&2
+      rc=1
+      continue
+    fi
+
+    lost=""
+    while IFS= read -r line; do
+      [ -n "$line" ] || continue
+      if printf '%s\n' "$delta_block" | grep -qF -- "$line"; then
+        continue
+      fi
+      lost="$line"
+      break
+    done <<< "$live_block"
+
+    if [ -n "$lost" ]; then
+      echo "routine-change-check: $cap: $name: lost line: $lost" >&2
+      rc=1
+    fi
+  done <<< "$names"
+done
+
+if [ "$rc" -eq 0 ]; then
+  echo "routine-change-check: every MODIFIED requirement carries its live spec"
+fi
+
+telemetry_harness_emit harness.change bin/routine-change-check "$rc" \
+  "$(( $(routine_now_ms) - start_ms ))"
+exit "$rc"
