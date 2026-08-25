@@ -22,6 +22,20 @@ make_fixture() {
     commit -q --allow-empty -m "root"
 }
 
+# The repo is its own app: the destination ships as tracked content, so
+# repo-context gate verdicts record in every clone instead of depending
+# on an accidental scaffold. Only the marker is tracked; session state
+# under runs/ stays ignored.
+@test "the repository ships its own harness destination" {
+  run git -C "$ROUTINE_REPO_ROOT" check-ignore -q runs/routine/README.md
+  [ "$status" -ne 0 ]
+  run git -C "$ROUTINE_REPO_ROOT" check-ignore -q runs/routine/telemetry.jsonl
+  [ "$status" -eq 0 ]
+  run git -C "$ROUTINE_REPO_ROOT" check-ignore -q runs/shopapp/telemetry.jsonl
+  [ "$status" -eq 0 ]
+  [ "$(git -C "$ROUTINE_REPO_ROOT" ls-files runs/)" = "runs/routine/README.md" ]
+}
+
 @test "selfcheck records its verdict against existing app state" {
   make_fixture
   run env ROUTINE_ROOT="$fixture" TARGET="$tgt" \

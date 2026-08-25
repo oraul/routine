@@ -2,7 +2,7 @@
 
 ## 1. The repository ships its own harness destination
 
-- [ ] 1.1 Red→green: `.gitignore` restructured to re-include exactly
+- [x] 1.1 Red→green: `.gitignore` restructured to re-include exactly
       `runs/routine/README.md`, the marker committed, pinned by
       `git check-ignore` and `git ls-files` assertions in
       `test/harness_telemetry.bats`
