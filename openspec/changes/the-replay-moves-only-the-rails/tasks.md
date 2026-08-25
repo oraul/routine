@@ -2,7 +2,7 @@
 
 ## 1. The instrument
 
-- [ ] 1.1 Red→green: `bin/routine-replay` refuses — usage, missing
+- [x] 1.1 Red→green: `bin/routine-replay` refuses — usage, missing
       requirement, missing or malformed anchor, unreachable anchor —
       creating nothing lasting; `test/replay.bats`
 - [ ] 1.2 Red→green: the happy path — worktree at the anchor under
