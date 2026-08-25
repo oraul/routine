@@ -2,7 +2,7 @@
 
 ## 1. One pattern list, then the check that uses it
 
-- [ ] 1.1 Red→green: the sensitive patterns live once in
+- [x] 1.1 Red→green: the sensitive patterns live once in
       `lib/sensitive.sh` and `routine-convention-check` sources them,
       behavior unchanged — `test/convention_check.bats` pins the
       library and keeps the behavior honest
