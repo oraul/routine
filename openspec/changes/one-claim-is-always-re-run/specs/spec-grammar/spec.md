@@ -74,6 +74,7 @@ Whenever `## Evidence` holds bullets, `bin/routine-spec-lint` SHALL additionally
 - **WHEN** a non-floor `## Questions` bullet carries no
   ` — provisional: <reading>` part
 - **THEN** the lint exits non-zero naming the line and the required
+  form
 
 #### Scenario: A spot-check sample is named without gating
 - **WHEN** the lint runs over a grounding whose `## Evidence` holds
