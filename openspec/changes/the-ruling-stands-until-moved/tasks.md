@@ -10,7 +10,7 @@
 
 ## 2. The contracts teach the marker the gate reads
 
-- [ ] 2.1 Red→green: the analyst's reconciliation rule names the exact
+- [x] 2.1 Red→green: the analyst's reconciliation rule names the exact
       marker form appended to a ruled bullet, provisional text kept in
       place — `agents/analyst.md`, pinned in
       `test/agents_content.bats`
