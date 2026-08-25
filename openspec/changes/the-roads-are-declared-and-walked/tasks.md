@@ -9,7 +9,7 @@
 
 ## 2. Declared roads are walked or waivered
 
-- [ ] 2.1 Red→green: `lib/roads.txt` seeded with the measured 28 events
+- [x] 2.1 Red→green: `lib/roads.txt` seeded with the measured 28 events
       plus `harness.roads` (sole waiver: `app.deps`), and
       `bin/routine-road-check` passes a clean fixture, exits 2 on a
       missing runs directory or roads file — `test/road_check.bats`

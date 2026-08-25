@@ -1,0 +1,35 @@
+# Declared telemetry roads — every event name the contracts can emit,
+# judged by bin/routine-road-check against the evidence under runs/: a
+# road not declared here fails the check the first time it fires, a
+# declared road no run ever walked fails until walked or waivered, and
+# a waiver whose road was walked is stale and fails. Waiver form:
+#   <event> — never walked: <why>
+app.deps — never walked: bin/routine-deps has never met a live run; the /caffeinate discovery road has only been exercised through its bats fixtures
+app.scaffold
+gate.analyst
+gate.developer
+gate.developer.doc
+gate.developer.script
+gate.hook
+gate.hook.absent
+gate.preflight
+harness.caffeine
+harness.convention
+harness.mutation
+harness.release
+harness.roads
+harness.script
+harness.selfcheck
+spec.defective
+spec.lint
+tdd.characterize
+tdd.green
+tdd.red
+ticket.abort
+ticket.approve
+ticket.block
+ticket.conclude
+ticket.done
+ticket.new
+ticket.next
+ticket.unblock
