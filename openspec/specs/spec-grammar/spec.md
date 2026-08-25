@@ -101,6 +101,7 @@ invalidated>`, matched without interpreting the id as a pattern. All
 checks are mechanical form checks; the linter never judges the claim's
 content — a false claim is the approve reader's catch, not the lint's. The file SHALL also carry a `Grounded-at: <sha>` header line (column 0, a 40-hex commit id — the target's HEAD when the evidence was gathered, obtained by reading the target, never writing it); the lint checks presence and form only.
 Every non-floor `## Questions` bullet SHALL carry its provisional reading in the form `- <question> — provisional: <reading>` with a non-empty reading, checked per line exactly as Evidence is — the reading is the load-bearing half, the words the decomposition was built on — while the `- none — <why>` floor stays exempt.
+A non-floor `## Questions` bullet carrying the ruled marker `RULED at approve (approve.md A<n>)` SHALL cite an answer the record holds: the lint fails the bullet when the ticket has no `approve.md`, or when no entry in it records an `A<n>:` line for the cited index — because `routine-approve` lifts its refusal on the marker's strength, and a path a gate trusts must be harnessed — while attribution and agreement stay judgments: the lint checks that the cited ruling exists, never that it says what the marker claims.
 Whenever `## Evidence` holds bullets, `bin/routine-spec-lint` SHALL additionally name one sampled Evidence bullet as the spot-check to re-verify — selected deterministically from the file's own bytes, never by the author, so verification cannot be steered toward convenient claims — reported on stdout and never gating: the sample line changes no exit code. The lint stays form-only; the sample is a selection, not a judgment.
 
 #### Scenario: Missing grounding fails the lint
@@ -163,6 +164,18 @@ Whenever `## Evidence` holds bullets, `bin/routine-spec-lint` SHALL additionally
   bullets
 - **THEN** it names exactly one of them as the sampled spot-check and
   the exit code is what the form checks alone decide
+
+#### Scenario: A marker citing a recorded ruling passes
+- **WHEN** a bullet carries `RULED at approve (approve.md A2): <the
+  standing reading>` and some entry in the ticket's `approve.md`
+  records an `A2:` line
+- **THEN** the lint passes the bullet
+
+#### Scenario: A marker citing no recorded ruling fails
+- **WHEN** a bullet carries the ruled marker but the ticket has no
+  `approve.md`, or no entry records the cited `A<n>:` line
+- **THEN** the lint exits non-zero naming the bullet and the ruling it
+  could not find
 
 ### Requirement: The defect list survives the run
 `routine-spec-lint` SHALL mirror every defect line it prints to stderr
