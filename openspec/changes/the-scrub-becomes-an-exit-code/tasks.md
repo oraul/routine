@@ -6,7 +6,7 @@
       `lib/sensitive.sh` and `routine-convention-check` sources them,
       behavior unchanged — `test/convention_check.bats` pins the
       library and keeps the behavior honest
-- [ ] 1.2 Red→green: `bin/routine-pr-body-check <file>` refuses a body
+- [x] 1.2 Red→green: `bin/routine-pr-body-check <file>` refuses a body
       carrying any shared sensitive shape, naming line and pattern
       class without echoing the match; clean body exits 0; usage exits
       2; one `harness.prbody` telemetry line per run and the road

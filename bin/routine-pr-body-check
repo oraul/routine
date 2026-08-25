@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# routine-script: routine-pr-body-check
+# routine-description: Refuse a saved pull request body carrying a sensitive shape, naming the line and pattern class without echoing the match
+# routine-usage: routine-pr-body-check <file>
+# routine-exit: 0 — clean body
+# routine-exit: 1 — a sensitive pattern was found — each hit named by line and class, never the match
+# routine-exit: 2 — usage — a readable file argument is required
+# routine-test: test/pr_body_check.bats
+# The scrub as an exit code: a saved pull request body is scanned for the
+# shared sensitive shapes in lib/sensitive.sh ($routine_sensitive) — one
+# implementation, so a pattern added to the diff hunt in
+# routine-convention-check is never missing here. Output never carries
+# the matched text, since this check's own output travels wherever the
+# body was about to; a hit's class is read off the already-flagged
+# line's own content (a coarse two-way split — session URL vs
+# credential/key shape — kept simple on purpose) rather than a second
+# pattern list that could drift from the shared one.
+set -u
+
+lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
+# shellcheck source=/dev/null
+. "$lib/paths.sh"
+# shellcheck source=/dev/null
+. "$lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
+
+file="${1:-}"
+if [ -z "$file" ] || [ ! -f "$file" ] || [ ! -r "$file" ]; then
+  echo "usage: routine-pr-body-check <file>" >&2
+  telemetry_harness_emit harness.prbody bin/routine-pr-body-check 2 \
+    "$(( $(routine_now_ms) - start_ms ))"
+  exit 2
+fi
+
+# shellcheck source=/dev/null
+. "$lib/sensitive.sh"
+# shellcheck disable=SC2154  # assigned in lib/sensitive.sh, sourced above
+sensitive="$routine_sensitive"
+
+hits="$(grep -En "$sensitive" "$file" || true)"
+
+fails=0
+if [ -n "$hits" ]; then
+  fails=1
+  while IFS= read -r h; do
+    n="${h%%:*}"
+    content="${h#*:}"
+    case "$content" in
+      *session*) class="session URL" ;;
+      *) class="credential/key shape" ;;
+    esac
+    echo "routine-pr-body-check: line $n: $class" >&2
+  done <<< "$hits"
+fi
+
+if [ "$fails" -eq 0 ]; then
+  echo "routine-pr-body-check: clean"
+fi
+
+telemetry_harness_emit harness.prbody bin/routine-pr-body-check "$fails" \
+  "$(( $(routine_now_ms) - start_ms ))"
+exit "$fails"

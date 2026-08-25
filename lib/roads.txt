@@ -16,6 +16,7 @@ gate.preflight
 harness.caffeine
 harness.convention
 harness.mutation
+harness.prbody
 harness.release
 harness.roads
 harness.script
