@@ -91,6 +91,17 @@ EOF_EVIDENCE
   done <<EOF_QUESTIONS
 $(awk '/^## Questions/ {a=1; next} a && /^#/ {a=0} a && /^- / {print}' "$grounding")
 EOF_QUESTIONS
+  # The spot-check sample: one Evidence bullet named per run, chosen by
+  # the file's own bytes so verification cannot be steered toward
+  # convenient claims. Reported, never gating — the selection is
+  # mechanical, the re-running stays human, and trust everywhere else
+  # stays the default.
+  _sc_n="$(awk '/^## Evidence/ {a=1; next} a && /^#/ {a=0} a && /^- / {n++} END {print n + 0}' "$grounding")"
+  if [ "$_sc_n" -gt 0 ]; then
+    _sc_idx=$(( $(cksum < "$grounding" | awk '{print $1}') % _sc_n + 1 ))
+    _sc_bullet="$(awk -v n="$_sc_idx" '/^## Evidence/ {a=1; next} a && /^#/ {a=0} a && /^- / {i++; if (i == n) {print; exit}}' "$grounding")"
+    echo "spec-lint: spot-check — re-verify before filing: $_sc_bullet"
+  fi
   for _dfile in "$ticket"/briefings/*/tasks/*/defect.md; do
     [ -f "$_dfile" ] || continue
     _db="$(basename "$(dirname "$(dirname "$(dirname "$_dfile")")")")"
