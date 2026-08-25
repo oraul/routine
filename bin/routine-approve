@@ -63,6 +63,13 @@ errs=""
 add_err() { errs="${errs}${errs:+
 }routine-approve: $1"; }
 
+# A bullet that already carries the analyst's reconciliation marker holds a
+# ruling on the record; it no longer demands a fresh '<n>: <answer>' line —
+# only the fixed prefix is checked, never whether the cited A<n> exists.
+is_ruled() {
+  printf '%s\n' "$questions" | awk -v n="$1" 'NR==n' | grep -qF 'RULED at approve (approve.md A'
+}
+
 if [ "$n_questions" -gt 0 ]; then
   seen=""
   while IFS= read -r _line; do
@@ -82,7 +89,11 @@ EOF_NOTE
   while [ "$n" -le "$n_questions" ]; do
     case " $seen " in
       *" $n "*) ;;
-      *) add_err "question $n is unanswered — $(printf '%s\n' "$questions" | awk -v n="$n" 'NR==n')" ;;
+      *)
+        if ! is_ruled "$n"; then
+          add_err "question $n is unanswered — $(printf '%s\n' "$questions" | awk -v n="$n" 'NR==n')"
+        fi
+        ;;
     esac
     n=$((n + 1))
   done
@@ -101,8 +112,12 @@ fi
   n=1
   while [ "$n" -le "$n_questions" ]; do
     printf 'Q%s: %s\n' "$n" "$(printf '%s\n' "$questions" | awk -v n="$n" 'NR==n')"
-    printf 'A%s: %s\n' "$n" "$(printf '%s\n' "$note" | awk -v n="$n" -F': ' \
+    answer="$(printf '%s\n' "$note" | awk -v n="$n" -F': ' \
       '$1 == n { sub(/^[0-9]+: /, ""); print; exit }')"
+    if [ -z "$answer" ] && is_ruled "$n"; then
+      answer="the ruling stands (RULED, not re-answered this proceed)"
+    fi
+    printf 'A%s: %s\n' "$n" "$answer"
     n=$((n + 1))
   done
   [ "$n_questions" -gt 0 ] && printf '\n'

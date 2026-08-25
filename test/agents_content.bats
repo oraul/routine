@@ -373,3 +373,16 @@ load test_helper
   awk '/^## 2\./,/^## 3\./' "$skill" | awk '/^```$/{f=!f; next} f' | grep -qi 'context'
   awk '/^## 2\./,/^## 3\./' "$skill" | grep -qi 'operator cares about'
 }
+
+@test "a baked ruling carries the marker the gate reads" {
+  doc="$ROUTINE_REPO_ROOT/agents/analyst.md"
+  grep -qF 'RULED at approve (approve.md A' "$doc"
+  grep -qi 'the standing reading' "$doc"
+  grep -qi 'kept in place' "$doc"
+}
+
+@test "the approve phase lets a standing ruling stand" {
+  skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  awk '/^## 3\./,/^## 4\./' "$skill" | grep -qF 'RULED at approve'
+  awk '/^## 3\./,/^## 4\./' "$skill" | grep -qi 'moves its ruling'
+}

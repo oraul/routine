@@ -144,7 +144,14 @@ defect, because every recorded proceed writes the file), the ticket's
 `lint.log` (the last
 lint run's defect list — script-owned, read it, never write it), and
 every task's `defect.md` first — they carry the evidence, the
-rulings, the exact defects, and the reason for the rewind. Never re-run the gate just to
+rulings, the exact defects, and the reason for the rewind. When you
+bake a recorded ruling back into its question's bullet, append the
+ruled marker to that bullet —
+`RULED at approve (approve.md A<n>): <the standing reading>` — with
+the original provisional text kept in place: the marker is what lets
+the approve gate stop demanding a re-answer for a ruling that already
+binds, and a marker in any other words is invisible to the gate that
+reads it. Never re-run the gate just to
 see what failed; the list survives on `lint.log`. When a task returned
 because `routine-tdd characterize` refused, read its own
 `characterize.log` too — the command's verbatim output, script-captured
