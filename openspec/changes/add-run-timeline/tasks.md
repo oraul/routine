@@ -1,0 +1,59 @@
+## 1. Pin the retro before touching it
+
+- [ ] 1.1 Add a fixture corpus under `test/` and a `test/retro.bats` golden
+      test comparing `bin/routine-retro`'s full output byte for byte against a
+      checked-in expectation; verify by running it green against the retro as
+      it stands today, before any extraction (design D4 — this is the only
+      mechanical proof the refactor changes no number)
+
+## 2. Extract the shared derivations
+
+- [ ] 2.1 Move `epoch()` out of `bin/routine-retro` into `lib/awk/epoch.awk`
+      and invoke it with `awk -f lib/awk/epoch.awk -f …`; verify the 1.1 golden
+      test is still green and its output is byte-identical to the pre-move run
+- [ ] 2.2 Move the per-event failure classification into
+      `lib/awk/classify.awk` and source it the same way; verify the 1.1 golden
+      test is still green and the retro's failure counts are unchanged
+- [ ] 2.3 Run `bin/routine-script-lint` and shellcheck over `bin/` and `lib/`;
+      verify both exit 0 with the new `lib/awk/` files present
+
+## 3. Widen the derivation guard
+
+- [ ] 3.1 Rewrite `test/derivation.bats` to assert `epoch()` is defined exactly
+      once under `lib/awk/` and in no `bin/` script; verify by planting a
+      duplicate `epoch()` in a `bin/` script, showing the guard red, then
+      removing it and showing it green (design D5 — a widened guard that was
+      never shown failing is not known to guard anything)
+- [ ] 3.2 Extend the same guard to the failure classification, which no test
+      covers today; verify the same way — planted fork red, removal green
+
+## 4. The timeline reader
+
+- [ ] 4.1 Write `test/timeline.bats` covering the chronological-order,
+      writes-nothing, and colliding-ticket-ids scenarios against a fixture
+      corpus, and show all three red with no `bin/routine-timeline` present
+- [ ] 4.2 Implement `bin/routine-timeline` reading the retro's exact corpus
+      (design D3) and printing rows ordered by first event with stable
+      app-then-ticket tie-breaking; verify the three 4.1 tests go green
+- [ ] 4.3 Add the outcome and cost scenarios to `test/timeline.bats` —
+      concluded, aborted, live, episodes spent — show them red, then derive
+      each column from telemetry order and `index.tsv` until green
+- [ ] 4.4 Add the failure-count scenario asserting the timeline's count over a
+      fixture equals the retro's over the same fixture; show it red, then wire
+      the timeline to `lib/awk/classify.awk` until green
+- [ ] 4.5 Add the exit-code scenarios — 0 on a printed report, 0 with a
+      say-so line on an empty corpus, 2 on a missing runs directory or usage
+      error; show them red, then implement until green
+- [ ] 4.6 Add the `# routine-script:` frontmatter block declaring name,
+      description, every exit code, and `# routine-test: test/timeline.bats`;
+      verify `bin/routine-script-lint` exits 0
+
+## 5. Close the change
+
+- [ ] 5.1 Run `bin/routine-selfcheck` and record its verdict; verify it exits 0
+      with the full suite green
+- [ ] 5.2 Run `npx --yes @fission-ai/openspec@latest validate --all --strict`
+      and `bin/routine-convention-check origin/main`; verify both exit 0
+- [ ] 5.3 Regenerate `evidence/retro.txt` with `bin/routine-evidence` as its
+      own commit, so the snapshot refresh is reviewable apart from the refactor
+      (design D4); verify the body still equals `bin/routine-retro`'s output
