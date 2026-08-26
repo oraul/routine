@@ -1,4 +1,4 @@
-From c8655b72e4adc8a984d9d1f2f40d5e73eabbf570 Mon Sep 17 00:00:00 2001
+From 132ad46b0aff664c619fa4e0da895c94b79bf382 Mon Sep 17 00:00:00 2001
 From: shopapp <shopapp@example.invalid>
 Date: Sat, 15 Aug 2026 06:17:45 +0000
 Subject: [PATCH 1/9] order model with items, total, and confirmation
@@ -73,7 +73,7 @@ index 0000000..5312d08
 2.43.0
 
 
-From 9ce244bc6bcf555bbb6a3950d801915bf75c69f7 Mon Sep 17 00:00:00 2001
+From 3458f297f0adba06a4cb3eb52ff432b24831f049 Mon Sep 17 00:00:00 2001
 From: shopapp <shopapp@example.invalid>
 Date: Sat, 15 Aug 2026 07:10:52 +0000
 Subject: [PATCH 2/9] orders flag for review when the total strictly exceeds a
@@ -143,7 +143,7 @@ index 5312d08..0b181e4 100644
 2.43.0
 
 
-From e4d527557c8466b122264fdb5c238a48986e96ab Mon Sep 17 00:00:00 2001
+From b191097ea8649489bb7768c96529d2418932102f Mon Sep 17 00:00:00 2001
 From: shopapp <shopapp@example.invalid>
 Date: Sat, 15 Aug 2026 11:48:07 +0000
 Subject: [PATCH 3/9] confirming an order settles its contents
@@ -227,8 +227,8 @@ index 0b181e4..be23316 100644
 2.43.0
 
 
-From ad24ee04be6eef97663c6d3dacbd9601f93bc650 Mon Sep 17 00:00:00 2001
-From: Claude <noreply@anthropic.com>
+From 950a46108be190c35802ce0eaba09f2ac82bdf89 Mon Sep 17 00:00:00 2001
+From: shopapp <shopapp@example.invalid>
 Date: Sun, 16 Aug 2026 10:19:33 +0000
 Subject: [PATCH 4/9] an empty order refuses to price itself
 
@@ -285,8 +285,8 @@ index be23316..b53cbed 100644
 2.43.0
 
 
-From 68c7ffbcb8e8810af4163c6dce0774f51033e2a9 Mon Sep 17 00:00:00 2001
-From: Claude <noreply@anthropic.com>
+From d0948f5331ecfda5486158bde29f272d346703e0 Mon Sep 17 00:00:00 2001
+From: shopapp <shopapp@example.invalid>
 Date: Sun, 16 Aug 2026 10:37:16 +0000
 Subject: [PATCH 5/9] removing a line item from a pending order
 
@@ -397,8 +397,8 @@ index b53cbed..dd68802 100644
 2.43.0
 
 
-From 430ca25287d47099499e312fc0b3a6052c00ee29 Mon Sep 17 00:00:00 2001
-From: Claude <noreply@anthropic.com>
+From 4f0eca7eab16344c8a561d81d40fa3851e7c5891 Mon Sep 17 00:00:00 2001
+From: shopapp <shopapp@example.invalid>
 Date: Mon, 17 Aug 2026 06:06:21 +0000
 Subject: [PATCH 6/9] confirming seals the order, not just its line items
 
@@ -443,8 +443,8 @@ index dd68802..f95bead 100644
 2.43.0
 
 
-From b4a5753376a112cbbda0b87adb0045d1996459eb Mon Sep 17 00:00:00 2001
-From: Claude <noreply@anthropic.com>
+From 735815cf04ee30412c25ea5b9d17fb8d45d35b34 Mon Sep 17 00:00:00 2001
+From: shopapp <shopapp@example.invalid>
 Date: Tue, 25 Aug 2026 04:22:58 +0000
 Subject: [PATCH 7/9] applying a percentage discount to a pending order
 MIME-Version: 1.0
@@ -618,7 +618,7 @@ index f95bead..f2b09e8 100644
 2.43.0
 
 
-From e279b0134b405163d17f676a203671a3ad66e61e Mon Sep 17 00:00:00 2001
+From bc7c931fb92880e20d5b87578c1d8fb7fb677e14 Mon Sep 17 00:00:00 2001
 From: shopapp <shopapp@example.invalid>
 Date: Tue, 25 Aug 2026 19:58:02 +0000
 Subject: [PATCH 8/9] line items carry quantities and the money math follows
@@ -818,8 +818,8 @@ index f2b09e8..7c738ff 100644
 2.43.0
 
 
-From 9c32279874cbb0745ede9c31fb449af8f7ad1e9d Mon Sep 17 00:00:00 2001
-From: Claude <noreply@anthropic.com>
+From 056638dd952e43bde445aea5827d1f73023dcaf5 Mon Sep 17 00:00:00 2001
+From: shopapp <shopapp@example.invalid>
 Date: Tue, 25 Aug 2026 20:21:51 +0000
 Subject: [PATCH 9/9] a settled order's discounts are sealed with the rest of
  it

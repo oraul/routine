@@ -104,6 +104,24 @@ reports `gate.developer runs=4 fails=2` where the live corpus reports
 `runs=28 fails=3` — a 50% failure rate on record against 11%
 measured, shipped through v0.12.0.
 
+### The example app's history was normalized
+
+All nine commits now carry the example app's own identity rather than
+the harness's default, so the published patches read as the app's
+history instead of the tooling's. Content, messages and author dates
+are untouched — verified by rebuilding from the patch and diffing
+against the live app, byte-for-byte identical with the suite green.
+
+The rewrite minted new commit hashes, and the archived tickets'
+`Grounded-at:` anchors deliberately still name the old ones: an anchor
+records what HEAD actually was when the analyst grounded, so rewriting
+it to match would falsify the record. The pre-rewrite chain is
+therefore pinned by the tag `pre-authorship-rewrite` in the app's
+repository, and every archived anchor still resolves through it.
+Deleting that tag would make the queued replays of tickets 0003 and
+0005 impossible — the earning condition for re-anchoring is a decision
+to abandon those replays, not convenience.
+
 ### 2. The evidence bundle — `evidence/<tag>/`
 
 A release's evidence becomes a folder, not a file. A folder named for
