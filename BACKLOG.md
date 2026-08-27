@@ -87,10 +87,18 @@ Three changes were designed against measured state and are queued in
 this order — each depends on the one before it. The decisions below
 are the operator's rulings, not options to re-litigate.
 
-### 1. Finish `add-run-timeline` (already proposed, branch exists)
+### 1. `add-run-timeline` — PARKED at task 1.1 of 17
 
-Proposed at `change/add-run-timeline`, 14 tasks unstarted. Refine it
-with two additions before applying:
+Parked deliberately, not abandoned. The proposal, its design, and its
+task line are on `main` under `openspec/changes/add-run-timeline/`;
+task 1.1 is done and merged (the golden fixture that pins the retro's
+output byte for byte), and tasks 2.1 onward are untouched. Resuming
+means picking up at 2.1 — the extraction of `epoch()` into
+`lib/awk/epoch.awk` — with the golden test already standing guard, so
+no number can move in silence.
+
+The refinement below was already folded into the task line before
+parking, as tasks 6.1 and 6.2:
 
 - `bin/routine-evidence <render>` becomes the single renderer, taking
   a render name (`retro` the default for compatibility, `timeline`
