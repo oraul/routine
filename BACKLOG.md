@@ -276,6 +276,21 @@ falsify the record. A replay of 0003 or 0005 therefore needs its
 anchor mapped by position to the rebuilt chain, recorded in the replay
 ticket rather than by editing the archived one.
 
+### The driving model changes
+
+The operator will drive future sessions with a different Claude
+model. Routine cannot observe which model answered — the agent files
+declare tiers as records of intent, and no script here can check the
+host — so this note is the only boundary marker there will be. What
+it moves: model vintage was already the named residual confound on
+the replay attribution and the stated scope of the framework
+experiment ("this setup, this model vintage"); from this point it is
+a moved variable, and any before/after comparison across the switch
+must say so or drop the causal claim. What it does not move: the
+agent tier declarations (they follow who grades the role, never the
+model), the gates, or a single exit code — the whole point of rails
+that do not care who is driving.
+
 ## Case study: the harness leaves bash — in flight as `add-go-core`
 
 Raised because macOS users hit dialect differences (bash, awk, date,
