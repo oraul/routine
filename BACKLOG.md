@@ -112,7 +112,10 @@ reports `gate.developer runs=4 fails=2` where the live corpus reports
 `runs=28 fails=3` — a 50% failure rate on record against 11%
 measured, shipped through v0.12.0.
 
-### 2. The evidence bundle — `evidence/<tag>/`
+### 2. A release's evidence becomes a directory — NOT STARTED
+
+Designed, not proposed. Nothing exists yet: no spec delta, no branch,
+no tasks. Starting it means a fresh proposal through the loop.
 
 A release's evidence becomes a folder, not a file. A folder named for
 a release is a photograph, so staleness stops being possible by
@@ -178,7 +181,13 @@ unproven:
   and it cannot self-verify on a fresh clone, because the app's gate
   hook lives in gitignored `runs/<app>/hooks/`.
 
-### 3. `routine-example <vX.Y.Z> [dir]` — the reader
+### 3. `routine-example <vX.Y.Z> [dir]` — the reader — NOT STARTED
+
+Designed, not proposed, and deliberately not startable on its own: it
+reads `evidence/<tag>/example.patch`, which item 2 creates. Building
+the reader first would leave it pointing at paths no release writes.
+It ships inside item 2's change rather than after it, because a format
+with no reader is unproven.
 
 A release's evidence is useless if nothing reads it back, so the
 reader ships with the format rather than after it: apply every
@@ -204,7 +213,11 @@ patches sliced from the app's history rebuilt all nine commits in an
 empty repository, byte-for-byte identical to the live app with its
 suite green at 49 runs, 194 assertions.
 
-### 4. The freshness gate
+### 4. The freshness gate — NOT STARTED
+
+Designed, not proposed. Blocked on item 2 for the same reason: it
+refuses a render the release did not just regenerate, and there is no
+per-release directory to check yet.
 
 `routine-release-check` regenerates every render in the bundle being
 cut and compares byte for byte, refusing the release naming the render
