@@ -57,9 +57,17 @@ how to work.
 
 ## Proving-ground work (shopapp)
 
-- **More replays** — 0003 and 0005 have reachable anchors and
-  verbatim requirements; each run strengthens or breaks the
-  one-data-point rails-improved attribution from 0002/0007.
+- **More replays** — 0003 and 0005 carried reachable anchors and
+  verbatim requirements, and each run would strengthen or break the
+  one-data-point rails-improved attribution from 0002/0007. Both
+  prerequisites now live outside this repository: the archived tickets
+  were handed to the operator as an archive of `runs/` at v0.13.0
+  (9 tickets, 11 telemetry files, 1,132 event lines) when the session
+  was cleaned, and the target app's history is
+  `evidence/example-history.patch`. Restoring either is a deliberate
+  act, so this item is doable but no longer self-serve: it needs the
+  archive restored into `runs/` and the app rebuilt from the patch
+  first.
 - **An epic with a live override** — feeds the ruling-probe evidence
   above.
 - **`app.deps`** — the one declared road no live run has ever walked
@@ -249,10 +257,17 @@ The rewrite minted new commit hashes, and the archived tickets'
 records what HEAD actually was when the analyst grounded, so rewriting
 it to match would falsify the record. The pre-rewrite chain is
 therefore pinned by the tag `pre-authorship-rewrite` in the app's
-repository, and every archived anchor still resolves through it.
-Deleting that tag would make the queued replays of tickets 0003 and
-0005 impossible — the earning condition for re-anchoring is a decision
-to abandon those replays, not convenience.
+repository, and every archived anchor resolved through it while that
+repository lived. That tag was container-local and did not survive the
+session being cleaned, which costs nothing that was not already
+accepted: the app rebuilt from `evidence/example-history.patch` starts
+from the rewritten history, so a restored archived ticket's
+`Grounded-at:` names a commit the rebuilt app does not contain. The
+anchors stay unedited regardless — an anchor records what HEAD was at
+grounding time, and rewriting it to match a later rebuild would
+falsify the record. A replay of 0003 or 0005 therefore needs its
+anchor mapped by position to the rebuilt chain, recorded in the replay
+ticket rather than by editing the archived one.
 
 ## Case study: does the harness leave bash?
 
