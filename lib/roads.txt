@@ -19,10 +19,10 @@ harness.convention
 harness.mutation
 harness.prbody
 harness.release
+harness.render
 harness.roads
 harness.script
 harness.selfcheck
-ticket.replay
 spec.defective
 spec.lint
 tdd.characterize
@@ -35,4 +35,5 @@ ticket.conclude
 ticket.done
 ticket.new
 ticket.next
+ticket.replay
 ticket.unblock
