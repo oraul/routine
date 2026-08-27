@@ -11,7 +11,7 @@
 
 ## 2. The first script proves parity
 
-- [ ] 2.1 Red→green: `routine release-notes <tag>` reproduces
+- [x] 2.1 Red→green: `routine release-notes <tag>` reproduces
       `bin/routine-release-notes` byte-for-byte across the existing
       scenarios; the parity test runs both against the same fixture
       repo and diffs their stdout and exit codes — red first with the

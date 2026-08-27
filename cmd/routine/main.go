@@ -15,7 +15,8 @@ import (
 var commit = "unknown"
 
 const usage = "usage: routine <subcommand>\n" +
-	"  version   print the build-time commit provenance\n"
+	"  version         print the build-time commit provenance\n" +
+	"  release-notes   port of bin/routine-release-notes\n"
 
 func main() {
 	os.Exit(run(os.Args[1:]))
@@ -31,6 +32,8 @@ func run(args []string) int {
 	case "version":
 		fmt.Println(commit)
 		return 0
+	case "release-notes":
+		return runReleaseNotes(args[1:])
 	default:
 		fmt.Fprint(os.Stderr, usage)
 		return 2
