@@ -39,6 +39,12 @@ snapshot was true.
 - **THEN** its header declares the corpus the body derives from, so a
   check can tell a stale render from one it cannot judge
 
+#### Scenario: An empty corpus is declared as absent
+- **WHEN** `routine-evidence` runs where no telemetry exists
+- **THEN** its header declares the corpus absent, so a checkout that
+  can regenerate nothing says so rather than rendering a body that
+  looks like a measurement
+
 ## Removed Lines
 
 - a header naming the generating script and the moment it was taken,

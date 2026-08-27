@@ -38,22 +38,25 @@ one rule can disagree with nothing to catch the disagreement.
 - **THEN** the check exits non-zero without executing it
 
 ### Requirement: A render whose corpus is absent is undecided, not blessed
-A render MAY declare the corpus it derives from in its header; run
-evidence is machine-local and gitignored, so a clean checkout can
-regenerate nothing — and `routine-release-check` runs in CI on exactly
-such a checkout. Where a render's declared corpus matches no file, the
-check SHALL print that it could not decide, naming the render, and
-SHALL exit 0 without asserting freshness: refusing would block every
-published release, and passing silently would report a judgment it
-never made. Freshness SHALL therefore be guaranteed only for a release
-cut on a machine holding the corpus, which is the machine where a stale
-render is committed in the first place. A declared corpus SHALL be
-repository-relative, since a path a file can point anywhere is a path
-that can be pointed outside the repository.
+A generator SHALL declare, in the header of what it renders, the corpus
+that render derives from — and SHALL declare it absent when there is
+nothing to render from. Run evidence is machine-local and gitignored,
+so a clean checkout can regenerate nothing, and `routine-release-check`
+runs in CI on exactly such a checkout. Where regeneration declares an
+absent corpus, the check SHALL print that it could not decide, naming
+the render, and SHALL exit 0 without asserting freshness: refusing
+would block every published release, and passing silently would report
+a judgment it never made. The declaration SHALL be read from the
+regenerated output rather than from the committed render, because the
+question is whether this machine has a corpus now, not whether some
+machine had one when the render was made. Freshness SHALL therefore be
+guaranteed only for a release cut on a machine holding the corpus,
+which is the machine where a stale render is committed in the first
+place.
 
 #### Scenario: A corpus-less checkout decides nothing
-- **WHEN** the check runs where the render's declared corpus matches no
-  file
+- **WHEN** the check regenerates a render and that regeneration
+  declares an absent corpus
 - **THEN** it prints that the render was not decided and exits 0
 
 #### Scenario: The undecided case is visible, not silent
