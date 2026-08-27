@@ -1,0 +1,36 @@
+routine retro
+
+events:
+  gate.analyst           runs=1   fails=0   ms min=75 p50=75 p95=75 max=75
+  gate.developer         runs=3   fails=1   ms min=40 p50=45 p95=50 max=50
+  gate.developer.script  runs=3   fails=2   ms min=18 p50=20 p95=22 max=22
+  spec.defective         runs=1   fails=0   ms min=2 p50=2 p95=2 max=2
+  spec.lint              runs=2   fails=1   ms min=5 p50=5 p95=5 max=5
+  tdd.green              runs=1   fails=0   ms min=31 p50=31 p95=31 max=31
+  tdd.red                runs=1   fails=0   ms min=30 p50=30 p95=30 max=30
+  ticket.block           runs=3   fails=0   ms min=0 p50=0 p95=0 max=0
+  ticket.conclude        runs=1   fails=0   ms min=9 p50=9 p95=9 max=9
+  ticket.new             runs=3   fails=0   ms min=10 p50=11 p95=12 max=12
+  ticket.next            runs=2   fails=0   ms min=2 p50=2 p95=3 max=3
+  ticket.unblock         runs=1   fails=0   ms min=0 p50=0 p95=0 max=0
+
+script failures:
+  bin/routine-gate           1
+  bin/routine-spec-lint      1
+  caffeine/python/pytest.sh  1
+  caffeine/ruby/rails.sh     1
+
+caffeine topics:
+       1  1.00  caffeine/python/pytest.sh            runs=1
+       1  0.50  caffeine/ruby/rails.sh               runs=2
+
+reds that passed:
+  none
+
+re-specify cost:
+  alpha 0001  episodes=2 failed_lints=1 worst_episode=1 recovery_s=600
+
+blocked seconds:
+  alpha 0001 01-02  1800
+  alpha 0002 01-02  still blocked
+  beta 0001 01-02  still blocked

@@ -1,0 +1,4 @@
+{"ts":"2026-08-12T08:00:00Z","event":"ticket.new","script":"bin/routine-ticket-new","ticket":"0002","task":"","exit":0,"ms":11}
+{"ts":"2026-08-12T08:01:00Z","event":"gate.developer","script":"bin/routine-gate","ticket":"0002","task":"01-01","exit":0,"ms":40}
+{"ts":"2026-08-12T08:05:00Z","event":"ticket.block","script":"bin/routine-block","ticket":"0002","task":"01-02","exit":0,"ms":0}
+{"ts":"2026-08-12T08:10:00Z","event":"ticket.next","script":"bin/routine-next","ticket":"0002","task":"","exit":4,"ms":2}

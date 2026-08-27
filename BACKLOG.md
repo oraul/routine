@@ -81,16 +81,24 @@ how to work.
 - Merge commits, never squash, titled
   `Merge pull request #N: <type>: <change-id> — <outcome>`.
 
-## Designed in session, not yet proposed
+## In flight and designed
 
-Three changes were designed against measured state and are queued in
-this order — each depends on the one before it. The decisions below
-are the operator's rulings, not options to re-litigate.
+One change is parked mid-flight; the rest were designed against
+measured state and are queued in dependency order. The decisions
+below are the operator's rulings, not options to re-litigate.
 
-### 1. Finish `add-run-timeline` (already proposed, branch exists)
+### 1. `add-run-timeline` — PARKED at task 1.1 of 17
 
-Proposed at `change/add-run-timeline`, 14 tasks unstarted. Refine it
-with two additions before applying:
+Parked deliberately, not abandoned. The proposal, its design, and its
+task line are on `main` under `openspec/changes/add-run-timeline/`;
+task 1.1 is done and merged (the golden fixture that pins the retro's
+output byte for byte), and tasks 2.1 onward are untouched. Resuming
+means picking up at 2.1 — the extraction of `epoch()` into
+`lib/awk/epoch.awk` — with the golden test already standing guard, so
+no number can move in silence.
+
+The refinement below was already folded into the task line before
+parking, as tasks 6.1 and 6.2:
 
 - `bin/routine-evidence <render>` becomes the single renderer, taking
   a render name (`retro` the default for compatibility, `timeline`
@@ -103,24 +111,6 @@ Measured motivation: `evidence/retro.txt` was rendered 2026-08-14 and
 reports `gate.developer runs=4 fails=2` where the live corpus reports
 `runs=28 fails=3` — a 50% failure rate on record against 11%
 measured, shipped through v0.12.0.
-
-### The example app's history was normalized
-
-All nine commits now carry the example app's own identity rather than
-the harness's default, so the published patches read as the app's
-history instead of the tooling's. Content, messages and author dates
-are untouched — verified by rebuilding from the patch and diffing
-against the live app, byte-for-byte identical with the suite green.
-
-The rewrite minted new commit hashes, and the archived tickets'
-`Grounded-at:` anchors deliberately still name the old ones: an anchor
-records what HEAD actually was when the analyst grounded, so rewriting
-it to match would falsify the record. The pre-rewrite chain is
-therefore pinned by the tag `pre-authorship-rewrite` in the app's
-repository, and every archived anchor still resolves through it.
-Deleting that tag would make the queued replays of tickets 0003 and
-0005 impossible — the earning condition for re-anchoring is a decision
-to abandon those replays, not convenience.
 
 ### 2. The evidence bundle — `evidence/<tag>/`
 
@@ -188,7 +178,33 @@ unproven:
   and it cannot self-verify on a fresh clone, because the app's gate
   hook lives in gitignored `runs/<app>/hooks/`.
 
-### 3. The freshness gate
+### 3. `routine-example <vX.Y.Z> [dir]` — the reader
+
+A release's evidence is useless if nothing reads it back, so the
+reader ships with the format rather than after it: apply every
+`example.patch` up to and including the named tag, in version order,
+into a fresh directory. Exit 0 prints the path and commit count; 1
+refuses (no evidence for that tag, target not empty, a patch that no
+longer applies, naming which); 2 is usage. Emits `harness.example`.
+The subtlety worth its own test: `v0.10.0` sorts before `v0.9.0`
+lexically, so ordering is by numeric component.
+
+Naming ruling, derived rather than chosen. Law 7 says a name comes
+from a rule where one exists and Law 10 forbids lore, which refuses
+`unbundle` (a mechanism nobody says aloud) and the whole
+snapshot/restore metaphor (a story invented mid-conversation). The
+name derives from the artifact it reads — `evidence/<tag>/example.patch`
+— and sits in the noun family beside `routine-evidence`,
+`routine-timeline`, `routine-manual`. For the same reason the words
+"bundle" and "snapshot" are dropped from the design prose: it is a
+release's evidence, described plainly.
+
+Proven by hand this session before being specified: four per-release
+patches sliced from the app's history rebuilt all nine commits in an
+empty repository, byte-for-byte identical to the live app with its
+suite green at 49 runs, 194 assertions.
+
+### 4. The freshness gate
 
 `routine-release-check` regenerates every render in the bundle being
 cut and compares byte for byte, refusing the release naming the render
@@ -204,3 +220,172 @@ multi-machine releases.
 
 Not built: no auto-regeneration inside the gate — a gate that fixes
 what it judges has judged nothing.
+
+## Decisions on record
+
+### The example app's history was normalized
+
+All nine commits now carry the example app's own identity rather than
+the harness's default, so the published patches read as the app's
+history instead of the tooling's. Content, messages and author dates
+are untouched — verified by rebuilding from the patch and diffing
+against the live app, byte-for-byte identical with the suite green.
+
+The rewrite minted new commit hashes, and the archived tickets'
+`Grounded-at:` anchors deliberately still name the old ones: an anchor
+records what HEAD actually was when the analyst grounded, so rewriting
+it to match would falsify the record. The pre-rewrite chain is
+therefore pinned by the tag `pre-authorship-rewrite` in the app's
+repository, and every archived anchor still resolves through it.
+Deleting that tag would make the queued replays of tickets 0003 and
+0005 impossible — the earning condition for re-anchoring is a decision
+to abandon those replays, not convenience.
+
+## Case study: does the harness leave bash?
+
+Raised because macOS users hit dialect differences (bash, awk, date,
+grep) and because a sibling project's bats suite takes over ten
+minutes even in parallel. Everything below was measured in one
+session against this repository; nothing here is a plan, and the
+first task is not a rewrite.
+
+### What the docs settle
+
+Claude Code hooks and plugin scripts are language-agnostic — "user
+defined shell commands, HTTP endpoints, or LLM prompts", any
+executable. So nothing about this ecosystem requires bash, and
+nothing forbids leaving it. The docs do name a portability gap
+sharper than macOS: shell form runs `sh -c` on macOS and Linux, but
+on Windows it is Git Bash, or PowerShell when Git Bash is absent, and
+exec form there needs a real executable. Windows, not macOS, is where
+bash actually blocks a user.
+
+Official Anthropic SDKs exist for Python, TypeScript, Java, Go, Ruby,
+C# and PHP — relevant only if routine ever calls the API, which it
+does not today.
+
+### What the benchmarks settle
+
+Same derivation in every language — ISO-8601 to epoch seconds, the
+one routine implements by hand because BSD awk has no `mktime` — over
+1,176 timestamps taken from the live corpus, twenty runs each:
+
+| implementation | per run | launch cost | binary |
+| --- | --- | --- | --- |
+| awk (today) | 1.9 ms | — | — |
+| Rust | 2.0 ms | 1.68 ms | 3.8 M |
+| Go | 2.1 ms | 1.68 ms | 2.3 M |
+| bun compiled | 26.4 ms | 23.5 ms | 95 M |
+| Node interpreted | 33.0 ms | 29.7 ms | — |
+
+Three findings, each of which refuted something believed before it
+was measured:
+
+- **A local API or daemon is dead.** Its entire benefit is skipping
+  process start, measured at 0.9 ms (bash 2.5 ms, compiled 1.6 ms).
+  That is not worth daemon lifecycle, shared state, and the loss of
+  the test isolation this repository deliberately pinned.
+- **JavaScript would make routine slower than it is now.** A real
+  routine script costs 12 ms end to end; Node needs ~30 ms to boot
+  before doing any work, and `bun --compile` does not fix it (23.5 ms,
+  95 MB) because the runtime still starts inside the binary. For a
+  tool made of hundreds of small invocations this is fatal.
+- **Compiling is not a speed argument.** awk is the fastest thing on
+  the table. Go and Rust tie with it on work and tie with each other
+  on launch. The honest reason to compile is portability — it deletes
+  the bash 3.2 / BSD awk / BSD date / BSD grep class entirely — and
+  single-artifact distribution. Go wins the practical grounds:
+  smaller binary, trivial cross-compilation, flat build times.
+
+### Where the ten minutes actually goes
+
+Measured here: 518 tests, 51 files, 50 seconds serial on 4 cores —
+about 96 ms per test, no single file dominating, while one real
+script call costs 12 ms. The time is the harness forking per test,
+not the work. Levers in payoff order: parallelism first (GNU parallel
+is not even installed, so `bats --jobs` cannot work yet), then fewer
+spawns inside tests — this repository already found 6,902 program
+launches in one lint run and fixed it by batching — and only then the
+runtime. Compiling alone would buy 2-3x on script execution, not 10x.
+
+### The test framework question
+
+| | runner | parallel | caching |
+| --- | --- | --- | --- |
+| bats | third-party | needs GNU parallel | none |
+| Go | stdlib `testing` | packages by default, `t.Parallel()` | result caching, verified |
+| Rust | built into cargo | threads by default | build only |
+| Node | `node:test` or vitest/jest | yes | vitest |
+
+Go and Rust ship their runner in the toolchain; Node is the only one
+where a framework must be chosen and owned. Go's result caching was
+demonstrated live: a second run of an unchanged package printed
+`ok tf (cached)` without re-running.
+
+The deeper point is that bats can only write one kind of test — spawn
+a process, check its exit code — which is why every case costs a
+process forever. In a compiled language most assertions become
+in-process package tests, microseconds and cached, leaving a small
+end-to-end layer that proves the binary wires them together.
+
+### If a port ever happens
+
+The suite is 15 files of pure content pins (grep over docs and
+workflows — mechanical to convert, no subprocess) and 36 files that
+exec a script, holding 358 `run` invocations and 432 `grep -q`
+assertions.
+
+**Do not convert the tests.** Keep bats running against the bash
+implementation and build the new binary to satisfy the identical
+observable behaviour, exactly as task 1.1 of `add-run-timeline` pins
+the retro's output before the awk moves. Converting implementation
+and tests together leaves no oracle: new code checked against new
+tests proves nothing. Thin bats down only after parity.
+
+One constraint to decide early, because it touches a capability
+rather than a script: `routine-script-lint` and `routine-manual` parse
+`# routine-script:`, `# routine-usage:` and `# routine-exit:` comments
+out of every file in `bin/`. A compiled binary carries no shell
+comments. Either the thin shell wrapper stays and keeps the
+frontmatter — the cheapest answer, and the shape the operator already
+proposed — or the binary exposes its contract another way and the
+lint learns to ask it.
+
+### The experiment that would settle the judgment
+
+The benchmarks above are measured; the claim that one test framework
+is more reliable *for an agent* is a judgment about training
+distribution, and this repository does not let a judgment stand where
+an instrument could decide it.
+
+The instrument already exists. Give a small greenfield app in Go,
+Rust and TypeScript the byte-identical requirement — the same move
+`routine-replay` makes, except the variable is the target language
+rather than the rails — run each through the loop, and let telemetry
+grade it: `tdd.red`/`tdd.green` pairs (was there a genuine red, or did
+tests pass at birth), `gate.developer` failures per task (where the
+attempts were actually spent), `spec.defective` returns, episodes
+against the revise budget, and `ms` on every line.
+
+Confounds to name or the result is worthless: order effects (mitigate
+by alternating and running each language twice), requirement fit (pick
+something deliberately neutral — parse, compute, refuse bad input,
+write a file), the analyst's grounding differing per target (report it
+apart from the developer's failures), and the honest scope, which is
+this setup and this model vintage rather than "Claude and Go".
+
+Six tickets, an afternoon. The output is a table of measured counts
+published in the release evidence, which anyone can recompute.
+
+### Earning condition
+
+Reproduce the macOS failure and write it down first. The suite is
+green on `macos-latest` on every pull request, so a rewrite motivated
+by an unnamed failure is speculation, and Law 9 says do not build the
+abstraction until it is earned. If the failure turns out to be a
+missing dependency or bash 3.2 rather than a dialect difference, the
+fix is a fix, not a port.
+
+Every toolchain needed to prototype this is already installed in the
+session container: Go 1.24.7, Node 22, bun 1.3.11, Python 3.11,
+Rust 1.94, gcc, make.

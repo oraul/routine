@@ -1,0 +1,5 @@
+{"ts":"2026-08-13T09:00:00Z","event":"ticket.new","script":"bin/routine-ticket-new","ticket":"0001","task":"","exit":0,"ms":10}
+{"ts":"2026-08-13T09:01:00Z","event":"gate.analyst","script":"bin/routine-gate","ticket":"0001","task":"01-01","exit":0,"ms":75}
+{"ts":"2026-08-13T09:02:00Z","event":"gate.developer.script","script":"caffeine/python/pytest.sh","ticket":"0001","task":"01-01","exit":1,"ms":22}
+{"ts":"2026-08-13T09:30:00Z","event":"ticket.block","script":"bin/routine-block","ticket":"0001","task":"01-02","exit":0,"ms":0}
+{"ts":"2026-08-13T10:00:00Z","event":"ticket.next","script":"bin/routine-next","ticket":"0001","task":"01-03","exit":3,"ms":3}
