@@ -4,7 +4,7 @@
       nothing and exits 0 when the runs directory holds no telemetry at
       all, while a corpus holding telemetry still decides both rules as
       before — `test/road_check.bats`
-- [ ] 1.2 Red→green: `bin/routine-release-check` invokes
+- [x] 1.2 Red→green: `bin/routine-release-check` invokes
       `routine-road-check` and relays its verdict and output rather
       than restating the comparison, refusing the release when a road
       violation is reported — `test/release_check.bats`

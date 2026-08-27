@@ -88,6 +88,19 @@ if [ "${#renders[@]}" -gt 0 ]; then
   fi
 fi
 
+# The road registry is judged before the suite runs, for the same
+# reason renders are: cheap to detect and independent of the suite. The
+# comparison itself is not restated here: routine-road-check owns it
+# and this gate relays its verdict, the same relay routine-record-lint
+# and routine-render-check already get.
+road_status=0
+road_out="$("$(cd "$(dirname "$0")" && pwd)/routine-road-check" 2>&1)" || road_status=$?
+[ -n "$road_out" ] && printf '%s\n' "$road_out"
+if [ "$road_status" -ne 0 ]; then
+  echo "routine-release-check: road check reported a violation" >&2
+  finish 1
+fi
+
 if ! "$root/bin/routine-selfcheck"; then
   echo "routine-release-check: selfcheck is red" >&2
   finish 1
