@@ -102,6 +102,7 @@ make_roads_fixture() {
   grep -qx 'harness.roads' "$roads"
   grep -q '^app.deps — never walked: ' "$roads"
   grep -qx 'ticket.replay' "$roads"
+  grep -qx 'harness.render' "$roads"
 }
 
 @test "an existing runs directory with no telemetry decides nothing" {

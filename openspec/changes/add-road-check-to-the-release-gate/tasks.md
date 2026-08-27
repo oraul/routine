@@ -8,6 +8,6 @@
       `routine-road-check` and relays its verdict and output rather
       than restating the comparison, refusing the release when a road
       violation is reported — `test/release_check.bats`
-- [ ] 1.3 Declare `harness.render` in `lib/roads.txt` and refile
+- [x] 1.3 Declare `harness.render` in `lib/roads.txt` and refile
       `ticket.replay` into the `ticket` block, showing `road-check`
       red before and green after
