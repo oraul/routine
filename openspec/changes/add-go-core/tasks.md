@@ -5,7 +5,7 @@
       provenance; a new `test/core.bats` builds once in `setup_suite`
       and asserts the output shape — red first on the missing module —
       `test/core.bats`
-- [ ] 1.2 Red→green: `bin/routine-selfcheck` builds the core at its
+- [x] 1.2 Red→green: `bin/routine-selfcheck` builds the core at its
       head and fails closed when the build fails; its bats coverage
       pins the build step — `test/selfcheck.bats`
 
