@@ -103,3 +103,36 @@ make_roads_fixture() {
   grep -q '^app.deps — never walked: ' "$roads"
   grep -qx 'ticket.replay' "$roads"
 }
+
+@test "an existing runs directory with no telemetry decides nothing" {
+  fixture="$BATS_TEST_TMPDIR/fixture"
+  mkdir -p "$fixture/lib" "$fixture/runs"
+  printf '%s\n' 'alpha.one' > "$fixture/lib/roads.txt"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-road-check"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -qi 'decided nothing\|nothing decided'
+  case "$output" in *"never walked"*) false ;; *) ;; esac
+  case "$output" in *"undeclared"*) false ;; *) ;; esac
+}
+
+@test "an empty telemetry file still counts as no telemetry at all" {
+  fixture="$BATS_TEST_TMPDIR/fixture"
+  mkdir -p "$fixture/lib" "$fixture/runs/app"
+  printf '%s\n' 'alpha.one' > "$fixture/lib/roads.txt"
+  : > "$fixture/runs/app/telemetry.jsonl"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-road-check"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -qi 'decided nothing\|nothing decided'
+}
+
+@test "a runs directory holding a single telemetry line still reports an unwalked road" {
+  fixture="$BATS_TEST_TMPDIR/fixture"
+  mkdir -p "$fixture/lib" "$fixture/runs/app"
+  printf '%s\n' 'alpha.one' 'beta.never' > "$fixture/lib/roads.txt"
+  printf '%s\n' \
+    '{"ts":"2026-01-01T00:00:00Z","event":"alpha.one","script":"bin/x","ticket":"","task":"","exit":0,"ms":1}' \
+    > "$fixture/runs/app/telemetry.jsonl"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-road-check"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q 'declared road never walked: beta.never'
+}

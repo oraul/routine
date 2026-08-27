@@ -1,6 +1,6 @@
 ## 1. The road registry is judged when a release is cut
 
-- [ ] 1.1 Red→green: `routine-road-check` prints that it decided
+- [x] 1.1 Red→green: `routine-road-check` prints that it decided
       nothing and exits 0 when the runs directory holds no telemetry at
       all, while a corpus holding telemetry still decides both rules as
       before — `test/road_check.bats`
