@@ -204,3 +204,126 @@ multi-machine releases.
 
 Not built: no auto-regeneration inside the gate — a gate that fixes
 what it judges has judged nothing.
+
+## Case study: does the harness leave bash?
+
+Raised because macOS users hit dialect differences (bash, awk, date,
+grep) and because a sibling project's bats suite takes over ten
+minutes even in parallel. Everything below was measured in one
+session against this repository; nothing here is a plan, and the
+first task is not a rewrite.
+
+### What the docs settle
+
+Claude Code hooks and plugin scripts are language-agnostic — "user
+defined shell commands, HTTP endpoints, or LLM prompts", any
+executable. So nothing about this ecosystem requires bash, and
+nothing forbids leaving it. The docs do name a portability gap
+sharper than macOS: shell form runs `sh -c` on macOS and Linux, but
+on Windows it is Git Bash, or PowerShell when Git Bash is absent, and
+exec form there needs a real executable. Windows, not macOS, is where
+bash actually blocks a user.
+
+Official Anthropic SDKs exist for Python, TypeScript, Java, Go, Ruby,
+C# and PHP — relevant only if routine ever calls the API, which it
+does not today.
+
+### What the benchmarks settle
+
+Same derivation in every language — ISO-8601 to epoch seconds, the
+one routine implements by hand because BSD awk has no `mktime` — over
+1,176 timestamps taken from the live corpus, twenty runs each:
+
+| implementation | per run | launch cost | binary |
+| --- | --- | --- | --- |
+| awk (today) | 1.9 ms | — | — |
+| Rust | 2.0 ms | 1.68 ms | 3.8 M |
+| Go | 2.1 ms | 1.68 ms | 2.3 M |
+| bun compiled | 26.4 ms | 23.5 ms | 95 M |
+| Node interpreted | 33.0 ms | 29.7 ms | — |
+
+Three findings, each of which refuted something believed before it
+was measured:
+
+- **A local API or daemon is dead.** Its entire benefit is skipping
+  process start, measured at 0.9 ms (bash 2.5 ms, compiled 1.6 ms).
+  That is not worth daemon lifecycle, shared state, and the loss of
+  the test isolation this repository deliberately pinned.
+- **JavaScript would make routine slower than it is now.** A real
+  routine script costs 12 ms end to end; Node needs ~30 ms to boot
+  before doing any work, and `bun --compile` does not fix it (23.5 ms,
+  95 MB) because the runtime still starts inside the binary. For a
+  tool made of hundreds of small invocations this is fatal.
+- **Compiling is not a speed argument.** awk is the fastest thing on
+  the table. Go and Rust tie with it on work and tie with each other
+  on launch. The honest reason to compile is portability — it deletes
+  the bash 3.2 / BSD awk / BSD date / BSD grep class entirely — and
+  single-artifact distribution. Go wins the practical grounds:
+  smaller binary, trivial cross-compilation, flat build times.
+
+### Where the ten minutes actually goes
+
+Measured here: 518 tests, 51 files, 50 seconds serial on 4 cores —
+about 96 ms per test, no single file dominating, while one real
+script call costs 12 ms. The time is the harness forking per test,
+not the work. Levers in payoff order: parallelism first (GNU parallel
+is not even installed, so `bats --jobs` cannot work yet), then fewer
+spawns inside tests — this repository already found 6,902 program
+launches in one lint run and fixed it by batching — and only then the
+runtime. Compiling alone would buy 2-3x on script execution, not 10x.
+
+### The test framework question
+
+| | runner | parallel | caching |
+| --- | --- | --- | --- |
+| bats | third-party | needs GNU parallel | none |
+| Go | stdlib `testing` | packages by default, `t.Parallel()` | result caching, verified |
+| Rust | built into cargo | threads by default | build only |
+| Node | `node:test` or vitest/jest | yes | vitest |
+
+Go and Rust ship their runner in the toolchain; Node is the only one
+where a framework must be chosen and owned. Go's result caching was
+demonstrated live: a second run of an unchanged package printed
+`ok tf (cached)` without re-running.
+
+The deeper point is that bats can only write one kind of test — spawn
+a process, check its exit code — which is why every case costs a
+process forever. In a compiled language most assertions become
+in-process package tests, microseconds and cached, leaving a small
+end-to-end layer that proves the binary wires them together.
+
+### If a port ever happens
+
+The suite is 15 files of pure content pins (grep over docs and
+workflows — mechanical to convert, no subprocess) and 36 files that
+exec a script, holding 358 `run` invocations and 432 `grep -q`
+assertions.
+
+**Do not convert the tests.** Keep bats running against the bash
+implementation and build the new binary to satisfy the identical
+observable behaviour, exactly as task 1.1 of `add-run-timeline` pins
+the retro's output before the awk moves. Converting implementation
+and tests together leaves no oracle: new code checked against new
+tests proves nothing. Thin bats down only after parity.
+
+One constraint to decide early, because it touches a capability
+rather than a script: `routine-script-lint` and `routine-manual` parse
+`# routine-script:`, `# routine-usage:` and `# routine-exit:` comments
+out of every file in `bin/`. A compiled binary carries no shell
+comments. Either the thin shell wrapper stays and keeps the
+frontmatter — the cheapest answer, and the shape the operator already
+proposed — or the binary exposes its contract another way and the
+lint learns to ask it.
+
+### Earning condition
+
+Reproduce the macOS failure and write it down first. The suite is
+green on `macos-latest` on every pull request, so a rewrite motivated
+by an unnamed failure is speculation, and Law 9 says do not build the
+abstraction until it is earned. If the failure turns out to be a
+missing dependency or bash 3.2 rather than a dialect difference, the
+fix is a fix, not a port.
+
+Every toolchain needed to prototype this is already installed in the
+session container: Go 1.24.7, Node 22, bun 1.3.11, Python 3.11,
+Rust 1.94, gcc, make.
