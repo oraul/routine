@@ -15,7 +15,7 @@
       neither passes silently nor refuses a release it cannot judge; a
       corpus path escaping the repository is refused —
       `test/render_check.bats`
-- [ ] 1.4 Red→green: `bin/routine-release-check` invokes
+- [x] 1.4 Red→green: `bin/routine-release-check` invokes
       `routine-render-check` over the repository's renders and relays
       its verdict and output rather than restating the comparison —
       `test/release_check.bats`
