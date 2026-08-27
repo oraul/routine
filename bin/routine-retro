@@ -10,15 +10,18 @@ set -u
 
 # shellcheck source=/dev/null
 . "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+# shellcheck source=/dev/null
+. "$(cd "$(dirname "$0")/.." && pwd)/lib/corpus.sh"
 
 root="$(routine_root)"
 
 files=()
-for f in "$root"/runs/*/tickets/*/telemetry.jsonl \
-         "$root"/runs/*/tickets/archive/*/telemetry.jsonl; do
-  [ -f "$f" ] || continue
+while IFS= read -r f; do
+  [ -n "$f" ] || continue
   files[${#files[@]}]="$f"
-done
+done <<EOF
+$(routine_telemetry_files "$root")
+EOF
 
 if [ "${#files[@]}" -eq 0 ]; then
   echo "routine-retro: no telemetry found under $root/runs"

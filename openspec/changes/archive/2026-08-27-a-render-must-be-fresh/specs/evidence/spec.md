@@ -1,13 +1,6 @@
-# evidence Specification
+# evidence Specification (delta)
 
-## Purpose
-
-Run state is gitignored, so what the scripts measured is invisible to
-everyone judging what to build next. This is the committable render of
-it — relayed, never recomputed.
-
-## Requirements
-
+## MODIFIED Requirements
 
 ### Requirement: Run evidence is committable and rendered, never recomputed
 `bin/routine-evidence` SHALL print a snapshot suitable for committing:
@@ -51,3 +44,10 @@ snapshot was true.
 - **THEN** its header declares the corpus absent, so a checkout that
   can regenerate nothing says so rather than rendering a body that
   looks like a measurement
+
+## Removed Lines
+
+- a header naming the generating script and the moment it was taken,
+- them. Freshness SHALL NOT be claimed mechanically: `runs/` is absent in
+- CI, so no check can prove the snapshot current, and the header's
+- timestamp is the honest statement of when it was true.
