@@ -12,8 +12,8 @@ enforce the rails.
 ## Laws — non-negotiable, apply to every change
 
 1. **Determinism boundary.** Anything that matters — gates, state, sequencing,
-   lifecycle — is a bash script with exit-code semantics. An instruction to an
-   LLM is never load-bearing.
+   lifecycle — is a deterministic executable with exit-code semantics. An
+   instruction to an LLM is never load-bearing.
 2. **TDD from birth.** Every `bin/` script and every caffeine sidecar starts as
    a failing bats test: red → green → commit. Prompt files (skills, agents) are
    exempt from bats; their feedback loop is the retro.
@@ -23,10 +23,16 @@ enforce the rails.
    `runs/<app>/hooks/<gate>.sh`. Exit 0 passes; non-zero aborts and surfaces
    the output. `developer.sh` is mandatory; missing optional hooks log one
    line and pass.
-5. **Bash-only runtime.** Operational scripts target bash 3.2 + BSD/GNU
-   coreutils: no associative arrays, no `mapfile`, no jq, no Node/Ruby/Python
-   in the operational path. OpenSpec (Node) is a dev dependency of this repo
-   only and never enters the plugin runtime.
+5. **Zero-setup core, scripted seams.** The operational core runs with zero
+   setup in the target project. Today that core is bash 3.2 + BSD/GNU
+   coreutils scripts — no associative arrays, no `mapfile`, no jq; its
+   sanctioned destination is a single statically linked binary,
+   cross-compiled per release, carrying its own commit provenance. The seam
+   stays scripts forever: app hooks at `runs/<app>/hooks/<gate>.sh` and
+   caffeine sidecars are bash 3.2 + BSD/GNU coreutils, editable in place
+   without a toolchain. No interpreter runtime (Node/Ruby/Python) enters the
+   operational path on either side of the seam. OpenSpec (Node) is a dev
+   dependency of this repo only and never enters the plugin runtime.
 6. **`ROUTINE_ROOT` everywhere.** Every script resolves its state root from
    `ROUTINE_ROOT` (default: `$CLAUDE_PLUGIN_ROOT`, fallback: this repo's
    root). A hardcoded state path is a bug. This is what makes scripts testable
