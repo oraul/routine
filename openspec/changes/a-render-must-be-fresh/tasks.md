@@ -19,5 +19,5 @@
       `routine-render-check` over the repository's renders and relays
       its verdict and output rather than restating the comparison —
       `test/release_check.bats`
-- [ ] 1.5 Regenerate `evidence/retro.txt` with the new header, showing
+- [x] 1.5 Regenerate `evidence/retro.txt` with the new header, showing
       the gate refusing it before the refresh and blessing it after

@@ -64,3 +64,15 @@ T
   declared="$(printf '%s\n' "$output" | sed -n 's/^# corpus: //p')"
   case "$declared" in none*) ;; *) false ;; esac
 }
+
+@test "the committed render declares its corpus too" {
+  grep -q '^# corpus: ' "$ROUTINE_REPO_ROOT/evidence/retro.txt"
+}
+
+@test "the declared corpus counts the ticket telemetry the retro reads" {
+  make_corpus
+  run env ROUTINE_ROOT="$vroot" "$ROUTINE_REPO_ROOT/bin/routine-evidence"
+  [ "$status" -eq 0 ]
+  declared="$(printf '%s\n' "$output" | sed -n 's/^# corpus: //p')"
+  case "$declared" in "1 ticket telemetry file(s)"*) ;; *) false ;; esac
+}
