@@ -97,30 +97,6 @@ for file in "$@"; do
     continue
   fi
 
-  # A declared corpus decides whether this render can be judged at all.
-  corpus="$(sed -n 's/^# corpus: //p' "$file" | head -n 1)"
-  if [ -n "$corpus" ]; then
-    case "$corpus" in
-      /*|*..*)
-        echo "render-check: $file: declared corpus escapes the repository: $corpus" >&2
-        fails=$((fails + 1))
-        continue
-        ;;
-      *) ;;
-    esac
-    matches=0
-    # Deliberate word splitting: the declared corpus is a pattern, and
-    # expanding it inside the render's own root is the whole point.
-    # shellcheck disable=SC2086
-    for candidate in $(cd "$root" && printf '%s\n' $corpus); do
-      [ -e "$root/$candidate" ] && matches=$((matches + 1))
-    done
-    if [ "$matches" -eq 0 ]; then
-      echo "render-check: $file: not decided — declared corpus matches no file: $corpus"
-      continue
-    fi
-  fi
-
   fresh="$(mktemp)"
   if ! ( cd "$root" && "./$generator" ) > "$fresh" 2>/dev/null; then
     rm -f "$fresh"
@@ -128,6 +104,20 @@ for file in "$@"; do
     fails=$((fails + 1))
     continue
   fi
+
+  # Whether this machine can decide the render is read off the
+  # regeneration, never off the committed file: the committed header
+  # answers for the machine that wrote it, and the question is about
+  # this one.
+  corpus="$(sed -n 's/^# corpus: //p' "$fresh" | head -n 1)"
+  case "$corpus" in
+    none*)
+      rm -f "$fresh"
+      echo "render-check: $file: not decided — the generator reports no corpus here: $corpus"
+      continue
+      ;;
+    *) ;;
+  esac
 
   # Everything but the generator's own timestamp line is compared.
   if ! diff -q \

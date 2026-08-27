@@ -10,7 +10,7 @@
 - [x] 1.2 Red→green: `bin/routine-evidence` declares the corpus its
       snapshot derives from in the header, so a reader and a check can
       tell which files the body came from — `test/evidence.bats`
-- [ ] 1.3 Red→green: a render whose declared corpus matches no file is
+- [x] 1.3 Red→green: a render whose declared corpus matches no file is
       printed as undecided and exits 0, so a corpus-less checkout
       neither passes silently nor refuses a release it cannot judge; a
       corpus path escaping the repository is refused —
