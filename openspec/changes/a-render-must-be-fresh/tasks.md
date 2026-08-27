@@ -7,12 +7,17 @@
       own timestamp line from the comparison; a generator that is not a
       repo-local `bin/routine-*` script is refused rather than executed
       — `test/render_check.bats`
-- [ ] 1.2 Red→green: the check decides nothing when the corpus it would
-      regenerate from is absent, printing that it could not decide and
-      exiting 0, so a corpus-less checkout neither passes silently nor
-      refuses a release it cannot judge — `test/render_check.bats`
-- [ ] 1.3 Red→green: `bin/routine-release-check` invokes
-      `routine-render-check` and relays its verdict and output rather
-      than restating the comparison — `test/release_check.bats`
-- [ ] 1.4 Regenerate `evidence/retro.txt` and show the gate refusing it
-      before the refresh and blessing it after
+- [ ] 1.2 Red→green: `bin/routine-evidence` declares the corpus its
+      snapshot derives from in the header, so a reader and a check can
+      tell which files the body came from — `test/evidence.bats`
+- [ ] 1.3 Red→green: a render whose declared corpus matches no file is
+      printed as undecided and exits 0, so a corpus-less checkout
+      neither passes silently nor refuses a release it cannot judge; a
+      corpus path escaping the repository is refused —
+      `test/render_check.bats`
+- [ ] 1.4 Red→green: `bin/routine-release-check` invokes
+      `routine-render-check` over the repository's renders and relays
+      its verdict and output rather than restating the comparison —
+      `test/release_check.bats`
+- [ ] 1.5 Regenerate `evidence/retro.txt` with the new header, showing
+      the gate refusing it before the refresh and blessing it after

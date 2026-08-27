@@ -89,3 +89,33 @@ where it does not. Three consequences:
   repository — the queued release-evidence directory. This change does
   not pretend to be that, and the Gate entry for run evidence stays
   open.
+
+## The spec already forbade this, and had to be amended first
+
+The `evidence` capability stated it outright: *"Freshness SHALL NOT be
+claimed mechanically: `runs/` is absent in CI, so no check can prove
+the snapshot current."* Building the gate without touching that
+sentence would have shipped a script contradicting a live requirement.
+
+The sentence is right about CI and overgeneralised in its conclusion.
+Amended, it says freshness is decided wherever the declared corpus is
+present, not claimed where it is absent, and the timestamp remains the
+honest statement in the undecidable case. The amendment carries the
+requirement's live lines and declares the four it drops, which is the
+second use of the removal grammar and the first that needed no hand
+override.
+
+## How the undecidable case is detected
+
+Exit codes cannot distinguish it: measured, `routine-retro` and
+`routine-evidence` both exit 0 whether or not any telemetry exists, so
+"the generator failed" is not available as a signal. Nor is "the
+corpus directory is missing" — `runs/routine/README.md` is tracked, so
+`runs/` exists in a clean checkout while holding nothing to render.
+
+So the render declares what it derives from, in the header it already
+uses to declare its generator: a repository-relative pattern matching
+the files the body came from. Zero matches means undecidable. The
+check globs and counts; it knows nothing about telemetry, retros or
+runs, which keeps the rule general and keeps this script out of the
+business of understanding any particular render.

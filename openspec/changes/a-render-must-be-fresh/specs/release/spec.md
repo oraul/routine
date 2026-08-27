@@ -10,16 +10,16 @@ and `bin/routine-render-check [file...]` SHALL decide it: renders are
 found by their header rather than by name, the declared generator is
 re-run and its output compared to the committed bytes with the
 generator's own timestamp line excluded — it differs by construction
-and would refuse everything — and a disagreement SHALL exit non-zero
-naming both the render and the command that refreshes it. A generator
-the header names that is not a repo-local `bin/routine-*` script SHALL
-be refused rather than executed, because a file that can name any
-command is a file that can run any command. The check SHALL NOT
-regenerate what it judges, since a gate that repairs its subject has
-judged nothing. `bin/routine-release-check` SHALL invoke it and relay
-its verdict and output rather than restating the comparison, for the
-same reason it relays `routine-record-lint`: two implementations of one
-rule can disagree with nothing to catch the disagreement.
+and would otherwise refuse everything — and a disagreement SHALL exit
+non-zero naming both the render and the command that refreshes it. A
+generator the header names that is not a repo-local `bin/routine-*`
+script SHALL be refused rather than executed, because a file that can
+name any command is a file that can run any command. The check SHALL
+NOT regenerate what it judges, since a gate that repairs its subject
+has judged nothing. `bin/routine-release-check` SHALL invoke it and
+relay its verdict and output rather than restating the comparison, for
+the same reason it relays `routine-record-lint`: two implementations of
+one rule can disagree with nothing to catch the disagreement.
 
 #### Scenario: A stale render refuses the release
 - **WHEN** a committed render's body differs from what its declared
@@ -38,18 +38,22 @@ rule can disagree with nothing to catch the disagreement.
 - **THEN** the check exits non-zero without executing it
 
 ### Requirement: A render whose corpus is absent is undecided, not blessed
-Run evidence is machine-local and gitignored, so a clean checkout can
+A render MAY declare the corpus it derives from in its header; run
+evidence is machine-local and gitignored, so a clean checkout can
 regenerate nothing — and `routine-release-check` runs in CI on exactly
-such a checkout. Where the corpus a render derives from is absent, the
+such a checkout. Where a render's declared corpus matches no file, the
 check SHALL print that it could not decide, naming the render, and
 SHALL exit 0 without asserting freshness: refusing would block every
 published release, and passing silently would report a judgment it
 never made. Freshness SHALL therefore be guaranteed only for a release
-cut on a machine holding the corpus, which is the machine where a
-stale render is committed in the first place.
+cut on a machine holding the corpus, which is the machine where a stale
+render is committed in the first place. A declared corpus SHALL be
+repository-relative, since a path a file can point anywhere is a path
+that can be pointed outside the repository.
 
 #### Scenario: A corpus-less checkout decides nothing
-- **WHEN** the check runs where the render's corpus does not exist
+- **WHEN** the check runs where the render's declared corpus matches no
+  file
 - **THEN** it prints that the render was not decided and exits 0
 
 #### Scenario: The undecided case is visible, not silent
