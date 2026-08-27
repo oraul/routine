@@ -166,3 +166,19 @@ load test_helper
   # the law still stands around it.
   ! grep -q 'cross-compiled per release' "$doc"
 }
+
+# --- amend-the-seam-boundary: a file's side is location, not language ---
+
+@test "a file's side of the seam is decided by where it lives" {
+  doc="$ROUTINE_REPO_ROOT/openspec/project.md"
+  grep -q 'is core and destined for the binary' "$doc"
+  grep -q 'seam is exactly' "$doc"
+  grep -qi 'app hooks' "$doc"
+  grep -qi 'caffeine sidecars' "$doc"
+}
+
+@test "bash written today is not itself a seam claim" {
+  doc="$ROUTINE_REPO_ROOT/openspec/project.md"
+  grep -q 'records how far the migration has got' "$doc"
+  grep -q 'never a claim about which side of the seam it sits on' "$doc"
+}
