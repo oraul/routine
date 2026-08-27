@@ -41,13 +41,28 @@ fi
 
 # Three sorted name sets. The waiver marker is matched with index(), a
 # plain string function, so the em-dash never meets a regex engine.
+raw_telemetry="$(find "$runs_dir" -name telemetry.jsonl -exec cat {} + 2>/dev/null)"
+
+# The runs directory can exist and still hold nothing: no telemetry.jsonl
+# under it, or telemetry.jsonl files with no lines. Either way, this
+# corpus cannot tell an unwalked road from an unobserved one, so the
+# check reports undecided rather than stating every declared road as
+# unwalked — the posture routine-render-check already takes toward an
+# absent corpus.
+if [ -z "$raw_telemetry" ]; then
+  echo "routine-road-check: nothing decided — no telemetry under $runs_dir"
+  telemetry_harness_emit harness.roads bin/routine-road-check 0 \
+    "$(( $(routine_now_ms) - start_ms ))"
+  exit 0
+fi
+
 declared="$(awk '/^[[:space:]]*#/ {next} /^[[:space:]]*$/ {next}
   { i = index($0, " — never walked: ")
     if (i) print substr($0, 1, i - 1); else print $0 }' "$roads" | sort -u)"
 waived="$(awk '/^[[:space:]]*#/ {next} /^[[:space:]]*$/ {next}
   { i = index($0, " — never walked: ")
     if (i) print substr($0, 1, i - 1) }' "$roads" | sort -u)"
-observed="$(find "$runs_dir" -name telemetry.jsonl -exec cat {} + \
+observed="$(printf '%s\n' "$raw_telemetry" \
   | awk -F'"' 'NF >= 8 { print $8 }' | sort -u)"
 
 unwaivered="$(comm -23 <(printf '%s\n' "$declared" | sed '/^$/d') \

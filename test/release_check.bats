@@ -4,10 +4,21 @@ load test_helper
 
 # Fixture release root: a git repo on main with a manifest, a fake green
 # selfcheck, a well-formed release record at evidence/v0.1.0.md, and one
-# commit so the tree can be clean.
+# commit so the tree can be clean. lib/roads.txt and an empty runs/ dir
+# are present too, the same corpus-less shape a fresh checkout gets in
+# production (runs/routine/README.md is committed there, so runs/
+# always exists even with no telemetry under it) — this fixture's road
+# check decides nothing by default, matching the release spec's
+# corpus-less scenario, and individual tests add telemetry to exercise
+# the other one.
 make_release_root() {
   rroot="$BATS_TEST_TMPDIR/rroot"
-  mkdir -p "$rroot/bin" "$rroot/.claude-plugin" "$rroot/evidence"
+  mkdir -p "$rroot/bin" "$rroot/.claude-plugin" "$rroot/evidence" \
+    "$rroot/lib" "$rroot/runs"
+  printf '%s\n' 'alpha.one' > "$rroot/lib/roads.txt"
+  # runs/ is gitignored here the same way it is in this repository, so
+  # telemetry a test writes under it later never dirties the worktree.
+  printf '%s\n' 'runs/' > "$rroot/.gitignore"
   printf '%s\n' '{' '  "name": "routine",' '  "version": "0.1.0"' '}' \
     > "$rroot/.claude-plugin/plugin.json"
   printf '%s\n' '#!/usr/bin/env bash' 'exit 0' > "$rroot/bin/routine-selfcheck"
@@ -171,4 +182,37 @@ commit_render() {
   run env ROUTINE_ROOT="$rroot" "$ROUTINE_REPO_ROOT/bin/routine-release-check" v0.1.0
   [ "$status" -eq 0 ]
   case "$output" in *"not decided"*) ;; *) false ;; esac
+}
+
+# An undeclared-road telemetry line, written directly rather than
+# through telemetry_emit, so the fixture stays independent of the
+# writer it is meant to catch disagreeing with.
+add_undeclared_road_telemetry() {
+  mkdir -p "$rroot/runs/app"
+  printf '%s\n' \
+    '{"ts":"2026-01-01T00:00:00Z","event":"totally.rogue","script":"bin/x","ticket":"","task":"","exit":0,"ms":1}' \
+    > "$rroot/runs/app/telemetry.jsonl"
+}
+
+@test "an undeclared road walked refuses the release" {
+  make_release_root
+  add_undeclared_road_telemetry
+  run env ROUTINE_ROOT="$rroot" "$ROUTINE_REPO_ROOT/bin/routine-release-check" v0.1.0
+  [ "$status" -eq 1 ]
+  case "$output" in *"undeclared road walked: totally.rogue"*) ;; *) false ;; esac
+}
+
+@test "the gate relays the road check's own violation text" {
+  make_release_root
+  add_undeclared_road_telemetry
+  run env ROUTINE_ROOT="$rroot" "$ROUTINE_REPO_ROOT/bin/routine-release-check" v0.1.0
+  [ "$status" -eq 1 ]
+  case "$output" in *"declare it in lib/roads.txt"*) ;; *) false ;; esac
+}
+
+@test "a corpus-less release is not blocked by the road check" {
+  make_release_root
+  run env ROUTINE_ROOT="$rroot" "$ROUTINE_REPO_ROOT/bin/routine-release-check" v0.1.0
+  [ "$status" -eq 0 ]
+  case "$output" in *"nothing decided"*) ;; *) false ;; esac
 }

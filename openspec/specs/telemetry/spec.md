@@ -133,6 +133,14 @@ harness wrapper like any other verdict, so the road the check opens is
 walked by walking it. It SHALL remain a session and release-record
 instrument rather than a clone-time gate, because run evidence is
 session-local and a fresh clone holds nothing to judge.
+Where the runs directory holds no telemetry at all, the check SHALL
+report that it decided nothing, naming the absent corpus, and SHALL
+exit 0 without asserting coverage: a corpus-less checkout cannot
+distinguish an unwalked road from an unobserved one, so reporting
+every declared road as unwalked states a judgment it never made. That
+is the posture the render check already takes toward an absent corpus,
+and it is what lets a release instrument run where the corpus may or
+may not be.
 
 #### Scenario: A clean tree passes
 - **WHEN** every declared, unwaivered road appears in some telemetry
@@ -165,3 +173,14 @@ session-local and a fresh clone holds nothing to judge.
 #### Scenario: Missing evidence is a refusal, not a verdict
 - **WHEN** the runs directory or the roads file does not exist
 - **THEN** the check exits 2 naming the missing path
+
+#### Scenario: An empty corpus decides nothing
+- **WHEN** the check runs against a runs directory that exists and holds
+  no telemetry line at all
+- **THEN** it prints that no road was decided and exits 0, naming
+  neither an undeclared nor an unwalked road
+
+#### Scenario: A corpus that exists still decides
+- **WHEN** the runs directory holds at least one telemetry line
+- **THEN** both the undeclared-road and unwalked-road rules decide as
+  before
