@@ -39,3 +39,28 @@ T
   grep -q 'routine-evidence' "$ROUTINE_REPO_ROOT/evidence/retro.txt"
   grep -q '^routine retro$' "$ROUTINE_REPO_ROOT/evidence/retro.txt"
 }
+
+@test "the snapshot declares the corpus its body came from" {
+  make_corpus
+  run env ROUTINE_ROOT="$vroot" "$ROUTINE_REPO_ROOT/bin/routine-evidence"
+  [ "$status" -eq 0 ]
+  case "$output" in *"# corpus: "*) ;; *) false ;; esac
+}
+
+@test "a corpus holding telemetry is declared present, not absent" {
+  make_corpus
+  run env ROUTINE_ROOT="$vroot" "$ROUTINE_REPO_ROOT/bin/routine-evidence"
+  [ "$status" -eq 0 ]
+  declared="$(printf '%s\n' "$output" | sed -n 's/^# corpus: //p')"
+  [ -n "$declared" ]
+  case "$declared" in none*) false ;; *) ;; esac
+}
+
+@test "an empty corpus is declared absent rather than rendered as a measurement" {
+  empty="$BATS_TEST_TMPDIR/empty"
+  mkdir -p "$empty/runs"
+  run env ROUTINE_ROOT="$empty" "$ROUTINE_REPO_ROOT/bin/routine-evidence"
+  [ "$status" -eq 0 ]
+  declared="$(printf '%s\n' "$output" | sed -n 's/^# corpus: //p')"
+  case "$declared" in none*) ;; *) false ;; esac
+}

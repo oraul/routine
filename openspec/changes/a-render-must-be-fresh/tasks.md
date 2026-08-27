@@ -7,7 +7,7 @@
       own timestamp line from the comparison; a generator that is not a
       repo-local `bin/routine-*` script is refused rather than executed
       — `test/render_check.bats`
-- [ ] 1.2 Red→green: `bin/routine-evidence` declares the corpus its
+- [x] 1.2 Red→green: `bin/routine-evidence` declares the corpus its
       snapshot derives from in the header, so a reader and a check can
       tell which files the body came from — `test/evidence.bats`
 - [ ] 1.3 Red→green: a render whose declared corpus matches no file is
