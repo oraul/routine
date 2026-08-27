@@ -120,8 +120,10 @@ user-editable seam — app hooks and caffeine sidecars — stays bash 3.2 +
 BSD/GNU coreutils, and no interpreter runtime (Node/Ruby/Python) enters
 the operational path on either side of the seam. It SHALL name the
 core's sanctioned destination — a single statically linked binary,
-cross-compiled per release, carrying its own commit provenance — while
-remaining true of the bash core that runs today. These statements SHALL
+built locally from the checkout so every user runs code they can
+read, carrying its own commit provenance — and SHALL state the
+narrowed setup honestly: zero setup beyond the Go toolchain that
+builds it, while remaining true of the bash core that runs today. These statements SHALL
 be enforced by tests pinning load-bearing terms, the same way this
 capability pins the rest of the guidance.
 

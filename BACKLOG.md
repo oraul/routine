@@ -28,6 +28,13 @@ how to work.
   by the R-council's own reasoning (R7).
 - **routine-record-scaffold** — the release record should start from
   the range, not from memory (V2).
+- **A stated-removal grammar for routine-change-check** — the carry
+  gate's first live refusal was a false positive: `add-go-core`'s
+  guidance delta deliberately removes "cross-compiled per release"
+  and the rule has no way to declare an intended removal, so the
+  driver overrode it by hand on the record. Earning evidence: that
+  refusal. Shape: a declaration in the delta the check honours,
+  refusing only undeclared losses.
 
 ## Contract refinements with evidence waiting
 
@@ -269,7 +276,22 @@ falsify the record. A replay of 0003 or 0005 therefore needs its
 anchor mapped by position to the rebuilt chain, recorded in the replay
 ticket rather than by editing the archived one.
 
-## Case study: does the harness leave bash?
+### The driving model changes
+
+The operator will drive future sessions with a different Claude
+model. Routine cannot observe which model answered — the agent files
+declare tiers as records of intent, and no script here can check the
+host — so this note is the only boundary marker there will be. What
+it moves: model vintage was already the named residual confound on
+the replay attribution and the stated scope of the framework
+experiment ("this setup, this model vintage"); from this point it is
+a moved variable, and any before/after comparison across the switch
+must say so or drop the causal claim. What it does not move: the
+agent tier declarations (they follow who grades the role, never the
+model), the gates, or a single exit code — the whole point of rails
+that do not care who is driving.
+
+## Case study: the harness leaves bash — in flight as `add-go-core`
 
 Raised because macOS users hit dialect differences (bash, awk, date,
 grep) and because a sibling project's bats suite takes over ten
@@ -404,6 +426,45 @@ this setup and this model vintage rather than "Claude and Go".
 
 Six tickets, an afternoon. The output is a table of measured counts
 published in the release evidence, which anyone can recompute.
+
+### Rulings added after the case study (operator)
+
+The migration is no longer hypothetical: it begins as the change
+`add-go-core`, and these rulings bind its design.
+
+- **Local build, not release artifacts.** Users are developers; the
+  binary is built from the checkout with `go build`, so everyone runs
+  exactly the code they can read and provenance is `git describe` on
+  the commit they are sitting on. No cross-compile matrix to keep
+  green, no downloaded binary to trust. This narrows Law 5's
+  "cross-compiled per release" wording to "built locally from the
+  checkout" and makes the zero-setup claim "zero setup beyond a Go
+  toolchain" — a small amendment owed by the migration proposal, not
+  hidden in it.
+- **Stdlib-only core.** Zero dependencies: `go build` needs no
+  network, no module downloads, no supply chain. A dependency is
+  earned the way this repository earns abstractions — never
+  speculatively.
+- **Build once per suite, never per test.** `go test` builds
+  incrementally and caches results (verified live: `ok tf (cached)`);
+  the bats layer builds the binary once in `setup_suite` and every
+  test execs it; `routine-selfcheck` gains the same single build step
+  at its head so the gate always judges the binary built from the
+  current checkout. First run pays ~5 seconds; unchanged code pays
+  nothing.
+- **Sidecars become data, hooks stay scripts.** The caffeine sidecars
+  are rule lists wearing a shell costume — `check <id> "<claim>"
+  '<regex>' <globs>` repeated — so in the compiled world they become
+  a data file the core interprets (JSON is the working assumption;
+  the one caveat to settle at that change is regex escaping inside
+  JSON strings, where a plain line-based format may read better).
+  Hooks remain ten-line shell scripts forever: they are the target
+  project's own code, edited in place without a toolchain, and `exec`
+  plus an exit code is the one interface every machine ships.
+- **The earning condition is superseded by ruling.** The case study
+  asked for the macOS failure to be reproduced before any port; the
+  operator ruled to begin regardless. The reproduction stays queued
+  as evidence for the record — it is no longer a blocker.
 
 ### Earning condition
 

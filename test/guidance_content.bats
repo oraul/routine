@@ -157,3 +157,12 @@ load test_helper
   grep -qi 'commit provenance' "$doc"
   grep -qi 'either side of the seam' "$doc"
 }
+
+@test "the destination is built locally and the setup claim is narrowed" {
+  doc="$ROUTINE_REPO_ROOT/openspec/project.md"
+  grep -q 'built locally from the checkout' "$doc"
+  grep -q 'beyond the Go toolchain' "$doc"
+  # The old destination is gone, while the seam sentence above proves
+  # the law still stands around it.
+  ! grep -q 'cross-compiled per release' "$doc"
+}

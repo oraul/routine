@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # routine-script: routine-selfcheck
-# routine-description: Harness integrity gate: caffeine lint, script lint, shellcheck, test naming, release records, then the full bats suite
+# routine-description: Harness integrity gate: core build, caffeine lint, script lint, shellcheck, test naming, release records, then the full bats suite
 # routine-exit: 0 — all stages green
 # routine-exit: 1 — a stage failed — its output is the reason
 # routine-test: test/selfcheck.bats
@@ -25,6 +25,31 @@ finish() {
     "$(( $(routine_now_ms) - start_ms ))"
   exit "$1"
 }
+
+# The gate judges only a binary built from the checkout under test — a
+# stale or absent binary proves nothing. A target project's root has no
+# go.mod and never will; that absence is not a failure, it is the
+# zero-setup case Law 5 promises. A root that declares a module and
+# fails to build it fails closed, before any lint or the suite runs.
+# The binary is a gate verdict, never a shipped artifact: it is built
+# into its own tempdir and removed on every path out of this stage.
+if [ -f "$root/go.mod" ]; then
+  build_dir="$(mktemp -d)"
+  built_commit="$(git -C "$root" describe --always --dirty 2> /dev/null)"
+  [ -n "$built_commit" ] || built_commit="unknown"
+  if ( cd "$root" && go build -ldflags "-X main.commit=$built_commit" \
+      -o "$build_dir/routine" ./cmd/routine ) > "$build_dir/build.log" 2>&1
+  then
+    rm -rf "$build_dir"
+  else
+    cat "$build_dir/build.log" >&2
+    rm -rf "$build_dir"
+    echo "routine-selfcheck: core build failed" >&2
+    finish 1
+  fi
+else
+  echo "routine-selfcheck: no go.mod at root; core build stage skipped"
+fi
 
 # A malformed topic tree makes downstream results meaningless — the
 # caffeine contract is checked before any other stage. Sibling

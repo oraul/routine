@@ -19,6 +19,16 @@ make_fixture() {
     > "$fixture/test/pass.bats"
 }
 
+# Drops a go.mod plus a cmd/routine package that fails to compile into
+# the fixture root, so the core build stage has a module to find and a
+# guaranteed compile error to trip over.
+add_broken_core_module() {
+  mkdir -p "$fixture/cmd/routine"
+  printf '%s\n' 'module fixture.local/core' '' 'go 1.21' > "$fixture/go.mod"
+  printf '%s\n' 'package main' 'func main() { this is not valid go syntax' \
+    > "$fixture/cmd/routine/main.go"
+}
+
 # A shellcheck-dirty script whose contract is nonetheless honest.
 add_bad() {
   printf '%s\n' '#!/usr/bin/env bash' \
@@ -104,6 +114,26 @@ add_bad() {
   [ ! -d "$fixture/evidence" ]
   run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-selfcheck"
   [ "$status" -eq 0 ]
+}
+
+@test "a fixture root without a go module skips the core build stage" {
+  make_fixture
+  [ ! -f "$fixture/go.mod" ]
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-selfcheck"
+  [ "$status" -eq 0 ]
+  case "$output" in *"core build"*skip*) ;; *) false ;; esac
+}
+
+@test "an uncompilable core module fails closed before any lint runs" {
+  make_fixture
+  add_broken_core_module
+  printf '@test "marker for broken core module" { touch "%s/tests-ran"; }\n' "$fixture" \
+    > "$fixture/test/pass.bats"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-selfcheck"
+  [ "$status" -ne 0 ]
+  case "$output" in *"core build"*"failed"*) ;; *) false ;; esac
+  case "$output" in *caffeine-lint*) false ;; *) ;; esac
+  [ ! -f "$fixture/tests-ran" ]
 }
 
 @test "a non-record file under evidence is never linted" {

@@ -28,3 +28,11 @@ WF=".github/workflows/ci.yml"
   printf '%s\n' "$job" | grep -q 'fetch-depth: 0'
   printf '%s\n' "$job" | grep -q 'routine-convention-check'
 }
+
+@test "the test job installs the toolchain its selfcheck now needs" {
+  wf="$ROUTINE_REPO_ROOT/.github/workflows/ci.yml"
+  grep -q 'actions/setup-go' "$wf"
+  # Read from go.mod so the runner and the module can never disagree;
+  # the setup-go line above proves the step exists to read it.
+  grep -q 'go-version-file: go.mod' "$wf"
+}

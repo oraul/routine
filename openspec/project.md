@@ -24,10 +24,11 @@ enforce the rails.
    the output. `developer.sh` is mandatory; missing optional hooks log one
    line and pass.
 5. **Zero-setup core, scripted seams.** The operational core runs with zero
-   setup in the target project. Today that core is bash 3.2 + BSD/GNU
-   coreutils scripts — no associative arrays, no `mapfile`, no jq; its
-   sanctioned destination is a single statically linked binary,
-   cross-compiled per release, carrying its own commit provenance. The seam
+   setup in the target project beyond the Go toolchain that builds it. Today
+   that core is bash 3.2 + BSD/GNU coreutils scripts — no associative
+   arrays, no `mapfile`, no jq; its sanctioned destination is a single
+   statically linked binary, built locally from the checkout so every user
+   runs code they can read, carrying its own commit provenance. The seam
    stays scripts forever: app hooks at `runs/<app>/hooks/<gate>.sh` and
    caffeine sidecars are bash 3.2 + BSD/GNU coreutils, editable in place
    without a toolchain. No interpreter runtime (Node/Ruby/Python) enters the
