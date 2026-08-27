@@ -23,8 +23,14 @@ the smallest slice that makes those rulings testable.
 - **Provenance via -ldflags** — `git describe --always --dirty`
   injected at build time; `routine version` prints it. A binary that
   cannot say which commit built it fails Law 5's provenance clause.
-- **CI needs no new job** — GitHub runners ship Go; the existing test
-  jobs inherit the build step through selfcheck.
+- **CI installs the toolchain explicitly** — this was first written as
+  "CI needs no new job: GitHub runners ship Go", and the first CI run
+  refuted it: the macOS runner failed with `go: command not found`
+  while ubuntu was cancelled by fail-fast. The test job now runs
+  `actions/setup-go` reading `go-version-file: go.mod`, so the runner
+  and the module can never disagree. The failing-closed behaviour was
+  correct throughout — a gate that skipped the build whenever `go` was
+  missing would pass without ever building the core.
 
 ## Risks
 

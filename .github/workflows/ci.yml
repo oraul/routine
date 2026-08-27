@@ -33,6 +33,10 @@ jobs:
       - name: Install shellcheck (macos)
         if: runner.os == 'macOS'
         run: brew install shellcheck
+      - name: Install the Go toolchain the core build needs
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
       - name: Install bats-core
         uses: actions/checkout@v4
         with:
