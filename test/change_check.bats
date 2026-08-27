@@ -15,6 +15,9 @@ make_fixture() {
     "$fixture/openspec/changes/absent-requirement/specs/widgets" \
     "$fixture/openspec/changes/added-only/specs/widgets" \
     "$fixture/openspec/changes/no-deltas" \
+    "$fixture/openspec/changes/declared-removal/specs/widgets" \
+    "$fixture/openspec/changes/mixed-removal/specs/widgets" \
+    "$fixture/openspec/changes/superfluous-declaration/specs/widgets" \
     "$fixture/runs/app"
 
   printf '%s\n' \
@@ -83,6 +86,57 @@ make_fixture() {
     '### Requirement: Widgets glow' \
     'Widgets SHALL glow softly.' \
     > "$fixture/openspec/changes/added-only/specs/widgets/spec.md"
+
+  printf '%s\n' \
+    '# widgets Specification (delta)' \
+    '' \
+    '## MODIFIED Requirements' \
+    '' \
+    '### Requirement: Widgets spin' \
+    'Widgets SHALL spin when powered.' \
+    '' \
+    '#### Scenario: Power loss' \
+    '- **WHEN** power is cut' \
+    '- **THEN** the widget stops within one second' \
+    '' \
+    '## Removed Lines' \
+    '' \
+    '- Widgets SHALL stop within one second of power loss.' \
+    > "$fixture/openspec/changes/declared-removal/specs/widgets/spec.md"
+
+  printf '%s\n' \
+    '# widgets Specification (delta)' \
+    '' \
+    '## MODIFIED Requirements' \
+    '' \
+    '### Requirement: Widgets spin' \
+    '' \
+    '#### Scenario: Power loss' \
+    '- **WHEN** power is cut' \
+    '- **THEN** the widget stops within one second' \
+    '' \
+    '## Removed Lines' \
+    '' \
+    '- Widgets SHALL spin when powered.' \
+    > "$fixture/openspec/changes/mixed-removal/specs/widgets/spec.md"
+
+  printf '%s\n' \
+    '# widgets Specification (delta)' \
+    '' \
+    '## MODIFIED Requirements' \
+    '' \
+    '### Requirement: Widgets spin' \
+    'Widgets SHALL spin when powered.' \
+    'Widgets SHALL stop within one second of power loss.' \
+    '' \
+    '#### Scenario: Power loss' \
+    '- **WHEN** power is cut' \
+    '- **THEN** the widget stops within one second' \
+    '' \
+    '## Removed Lines' \
+    '' \
+    '- Widgets SHALL spin when powered.' \
+    > "$fixture/openspec/changes/superfluous-declaration/specs/widgets/spec.md"
 }
 
 @test "a complete carry with an extended line passes" {
@@ -112,6 +166,31 @@ make_fixture() {
 @test "an added-only delta carries nothing and passes" {
   make_fixture
   run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/$checker" added-only
+  [ "$status" -eq 0 ]
+}
+
+@test "a declared removal exempts the dropped line" {
+  make_fixture
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/$checker" \
+    declared-removal
+  [ "$status" -eq 0 ]
+}
+
+@test "an undeclared loss fails naming only the undeclared line" {
+  make_fixture
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/$checker" \
+    mixed-removal
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" \
+    | grep -qF 'Widgets SHALL stop within one second of power loss.'
+  ! printf '%s\n' "$output" \
+    | grep -qF 'lost line: Widgets SHALL spin when powered.'
+}
+
+@test "a superfluous declaration on a line still carried still passes" {
+  make_fixture
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/$checker" \
+    superfluous-declaration
   [ "$status" -eq 0 ]
 }
 

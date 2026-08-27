@@ -52,6 +52,15 @@ for cap_dir in "$specs_dir"/*/; do
   names="$(printf '%s\n' "$modified" | sed -n 's/^### Requirement: //p')"
   [ -n "$names" ] || continue
 
+  # Lines the delta declares as deliberately dropped: a '## Removed
+  # Lines' section holding one '- <text>' bullet per live line the
+  # change means to drop. Exact-match only, same as the carry itself.
+  removed="$(awk '
+    /^## Removed Lines/ { a = 1; next }
+    a && /^## / { exit }
+    a { print }
+  ' "$delta_file" | sed -n 's/^- //p')"
+
   while IFS= read -r name; do
     [ -n "$name" ] || continue
 
@@ -83,6 +92,9 @@ for cap_dir in "$specs_dir"/*/; do
     while IFS= read -r line; do
       [ -n "$line" ] || continue
       if printf '%s\n' "$delta_block" | grep -qF -- "$line"; then
+        continue
+      fi
+      if [ -n "$removed" ] && printf '%s\n' "$removed" | grep -qxF -- "$line"; then
         continue
       fi
       lost="$line"
