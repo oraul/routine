@@ -33,7 +33,14 @@ enforce the rails.
    caffeine sidecars are bash 3.2 + BSD/GNU coreutils, editable in place
    without a toolchain. No interpreter runtime (Node/Ruby/Python) enters the
    operational path on either side of the seam. OpenSpec (Node) is a dev
-   dependency of this repo only and never enters the plugin runtime.
+   dependency of this repo only and never enters the plugin runtime. A
+   file's side of the seam is decided by where it lives, never by which
+   language it happens to be written in today: everything under `bin/`
+   and `lib/` is core and destined for the binary. The seam is exactly the
+   app hooks at `runs/<app>/hooks/<gate>.sh` and the caffeine sidecars. A
+   core script written in bash today records how far the migration has got,
+   never a claim about which side of the seam it sits on, since both sides
+   are bash scripts and language identifies neither.
 6. **`ROUTINE_ROOT` everywhere.** Every script resolves its state root from
    `ROUTINE_ROOT` (default: `$CLAUDE_PLUGIN_ROOT`, fallback: this repo's
    root). A hardcoded state path is a bug. This is what makes scripts testable
