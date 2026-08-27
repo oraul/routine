@@ -1,6 +1,6 @@
 ## 1. The binary exists and knows its commit
 
-- [ ] 1.1 Red→green: `go.mod` (stdlib-only) and `cmd/routine` build a
+- [x] 1.1 Red→green: `go.mod` (stdlib-only) and `cmd/routine` build a
       binary whose `version` subcommand prints the build-time commit
       provenance; a new `test/core.bats` builds once in `setup_suite`
       and asserts the output shape — red first on the missing module —
