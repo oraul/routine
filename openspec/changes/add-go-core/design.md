@@ -32,3 +32,17 @@ the smallest slice that makes those rulings testable.
   ruling; CI runners and this container already carry it.
 - Byte-for-byte parity includes error messages and usage strings —
   the port must reproduce them exactly, which is the point.
+
+## The carry gate's first live refusal
+
+`routine-change-check add-go-core` refuses this change's guidance
+delta, naming the lost line `cross-compiled per release, ...` — and
+the refusal is correct by the rule as written, wrong for this case:
+the removal is deliberate, stated in the proposal, and the entire
+point of task 3.1. The rule was built to catch silent loss and has no
+grammar for a stated removal. The override is recorded here rather
+than worked around, and the refinement — a declared-removals grammar
+the check honours — goes to the backlog with this incident as its
+earning evidence. Until it lands, a deliberate rewording documents
+its removals and the driver overrides the check by hand, on the
+record.

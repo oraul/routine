@@ -28,6 +28,13 @@ how to work.
   by the R-council's own reasoning (R7).
 - **routine-record-scaffold** — the release record should start from
   the range, not from memory (V2).
+- **A stated-removal grammar for routine-change-check** — the carry
+  gate's first live refusal was a false positive: `add-go-core`'s
+  guidance delta deliberately removes "cross-compiled per release"
+  and the rule has no way to declare an intended removal, so the
+  driver overrode it by hand on the record. Earning evidence: that
+  refusal. Shape: a declaration in the delta the check honours,
+  refusing only undeclared losses.
 
 ## Contract refinements with evidence waiting
 

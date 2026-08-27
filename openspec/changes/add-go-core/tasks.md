@@ -16,3 +16,11 @@
       scenarios; the parity test runs both against the same fixture
       repo and diffs their stdout and exit codes — red first with the
       subcommand absent — `test/core_parity.bats`
+
+## 3. The law says local build, honestly
+
+- [ ] 3.1 Red→green: Law 5's destination clause becomes "built locally
+      from the checkout" with the setup claim narrowed to "zero setup
+      beyond the Go toolchain that builds it" — amended in
+      `openspec/project.md`, pinned by new words in
+      `test/guidance_content.bats` verified absent first
