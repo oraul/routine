@@ -147,6 +147,18 @@ T
   ! printf '%s\n' "$output" | grep -q 'still blocked'
 }
 
+# Golden output test (design D4): a checked-in fixture corpus under
+# test/fixtures/retro/ and its checked-in expected render. This is the
+# only mechanical proof that extracting the shared derivations into
+# lib/awk/ changes no number — it must be green before that extraction
+# starts and green after it, byte for byte.
+@test "the retro's output over the golden fixture is unchanged" {
+  golden="$ROUTINE_REPO_ROOT/test/fixtures/retro"
+  run env ROUTINE_ROOT="$golden" "$ROUTINE_REPO_ROOT/bin/routine-retro"
+  [ "$status" -eq 0 ]
+  diff <(printf '%s\n' "$output") "$golden/expected.txt"
+}
+
 @test "the queue ranks by accumulated failures, not by one unlucky run" {
   eroot="$BATS_TEST_TMPDIR/croot"
   mkdir -p "$eroot/runs/app1/tickets/0001"

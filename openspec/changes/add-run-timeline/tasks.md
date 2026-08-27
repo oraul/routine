@@ -1,6 +1,6 @@
 ## 1. Pin the retro before touching it
 
-- [ ] 1.1 Add a fixture corpus under `test/` and a `test/retro.bats` golden
+- [x] 1.1 Add a fixture corpus under `test/` and a `test/retro.bats` golden
       test comparing `bin/routine-retro`'s full output byte for byte against a
       checked-in expectation; verify by running it green against the retro as
       it stands today, before any extraction (design D4 — this is the only
