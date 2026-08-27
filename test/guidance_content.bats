@@ -140,3 +140,20 @@ load test_helper
   grep -qi 'carries into' "$doc"
   grep -qi 'accident' "$doc"
 }
+
+# --- amend-the-runtime-law: the boundary is the invariant, not bash ---
+
+@test "the boundary binds the executable, not the language" {
+  doc="$ROUTINE_REPO_ROOT/openspec/project.md"
+  grep -q 'deterministic executable' "$doc"
+  ! grep -q 'Bash-only runtime' "$doc"
+}
+
+@test "the runtime law states the seam and its destination" {
+  doc="$ROUTINE_REPO_ROOT/openspec/project.md"
+  grep -qi 'scripted seams' "$doc"
+  grep -qi 'zero-setup' "$doc"
+  grep -qi 'statically linked' "$doc"
+  grep -qi 'commit provenance' "$doc"
+  grep -qi 'either side of the seam' "$doc"
+}
