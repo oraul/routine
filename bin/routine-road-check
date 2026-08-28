@@ -20,6 +20,8 @@ lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
 . "$lib/paths.sh"
 # shellcheck source=/dev/null
 . "$lib/telemetry.sh"
+# shellcheck source=/dev/null
+. "$lib/corpus.sh"
 
 start_ms="$(routine_now_ms)"
 root="$(routine_root)"
@@ -39,22 +41,25 @@ if [ ! -d "$runs_dir" ]; then
   exit 2
 fi
 
-# Three sorted name sets. The waiver marker is matched with index(), a
-# plain string function, so the em-dash never meets a regex engine.
-raw_telemetry="$(find "$runs_dir" -name telemetry.jsonl -exec cat {} + 2>/dev/null)"
-
-# The runs directory can exist and still hold nothing: no telemetry.jsonl
-# under it, or telemetry.jsonl files with no lines. Either way, this
-# corpus cannot tell an unwalked road from an unobserved one, so the
-# check reports undecided rather than stating every declared road as
-# unwalked — the posture routine-render-check already takes toward an
-# absent corpus.
-if [ -z "$raw_telemetry" ]; then
-  echo "routine-road-check: nothing decided — no telemetry under $runs_dir"
-  telemetry_harness_emit harness.roads bin/routine-road-check 0 \
-    "$(( $(routine_now_ms) - start_ms ))"
+# A run corpus means ticket telemetry — the same file set
+# bin/routine-retro aggregates and bin/routine-evidence counts, resolved
+# through lib/corpus.sh so this is never a second definition. The
+# harness tier records the harness's own footprint, not evidence that
+# any road was walked by a run, so its presence alone cannot decide
+# this: reporting every declared road as unwalked would state a
+# judgment the check never made. On this path the check emits nothing
+# — no harness.roads line — so it cannot write itself into the corpus
+# it just found absent, and a second run agrees with the first.
+if [ -z "$(routine_telemetry_files "$root")" ]; then
+  echo "routine-road-check: nothing decided — no run corpus under $runs_dir"
   exit 0
 fi
+
+# Three sorted name sets. The waiver marker is matched with index(), a
+# plain string function, so the em-dash never meets a regex engine.
+# With a corpus present, every telemetry.jsonl under the runs directory
+# is judged exactly as before, harness tier included.
+raw_telemetry="$(find "$runs_dir" -name telemetry.jsonl -exec cat {} + 2>/dev/null)"
 
 declared="$(awk '/^[[:space:]]*#/ {next} /^[[:space:]]*$/ {next}
   { i = index($0, " — never walked: ")

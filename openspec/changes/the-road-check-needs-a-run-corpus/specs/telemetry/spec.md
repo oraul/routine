@@ -22,11 +22,15 @@ harness wrapper like any other verdict, so the road the check opens is
 walked by walking it. It SHALL remain a session and release-record
 instrument rather than a clone-time gate, because run evidence is
 session-local and a fresh clone holds nothing to judge.
-Where the machine holds no run corpus, the check SHALL report that it
-decided nothing, naming the absent corpus, and SHALL exit 0 without
-asserting coverage: it cannot distinguish an unwalked road from an
-unobserved one, so reporting every declared road as unwalked states a
-judgment it never made. A run corpus SHALL mean ticket telemetry — the
+The two rules SHALL be judged against different evidence. An observed
+event absent from the registry SHALL always be reported, since a single
+line is sufficient evidence that an undeclared road was walked. The
+unwalked-road rule SHALL be judged only where the machine holds a run
+corpus; where it does not, the check SHALL report that it decided
+nothing about coverage, naming the absent corpus, and SHALL NOT report
+a declared road as unwalked — it cannot distinguish an unwalked road
+from an unobserved one, so doing so states a judgment it never made. A
+run corpus SHALL mean ticket telemetry — the
 same file set `bin/routine-retro` aggregates and `bin/routine-evidence`
 counts — and SHALL NOT mean telemetry of any kind, because the harness
 tier records the harness's own footprint rather than evidence that any
@@ -80,10 +84,17 @@ release instrument run where the corpus may or may not be.
 - **THEN** both the undeclared-road and unwalked-road rules decide as
   before
 
-#### Scenario: A harness footprint is not a run corpus
+#### Scenario: A harness footprint decides no coverage
 - **WHEN** the runs directory holds harness telemetry but no ticket
-  telemetry
-- **THEN** the check reports that it decided nothing and exits 0
+  telemetry, and every observed event is declared
+- **THEN** the check reports that it decided nothing about coverage,
+  names no declared road as unwalked, and exits 0
+
+#### Scenario: An undeclared road is caught without a run corpus
+- **WHEN** an observed event is absent from the registry and no ticket
+  telemetry exists
+- **THEN** the check exits non-zero naming that event, because one line
+  is evidence enough that the road was walked
 
 #### Scenario: The undecided path leaves the corpus unchanged
 - **WHEN** the check runs twice in a row where no run corpus exists
