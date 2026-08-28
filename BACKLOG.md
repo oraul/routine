@@ -1,10 +1,13 @@
 # Backlog — the standing queue
 
-The work queue as of v0.12.0, written down so a fresh session starts
+The work queue as of v0.16.0, written down so a fresh session starts
 from the record instead of from memory. Every item names its evidence
 or its earning condition; none is a promise. Read `CLAUDE.md` and
 `CONTRIBUTING.md` first — this file only says what is queued, never
-how to work.
+how to work. Reconciled against `openspec/changes/archive/` and
+`evidence/` through v0.16.0 (HEAD `813a225`): items marked shipped
+below name the archive folder that closed them; nothing true is
+deleted, only updated.
 
 ## Queued scripts and gates
 
@@ -20,21 +23,34 @@ how to work.
 - **Test frontmatter and the bidirectional coverage edge** — the
   script→test pointer is checked; the reverse direction has a known
   edge (queued as Q4 since the R-council).
-- **A why line on the negative assertions** — 21 negated greps carry
-  no recorded reason (queued as Q5).
+- **A why line on the negative assertions — shipped, in a stronger
+  form** (`openspec/changes/archive/2026-08-15-pair-negative-assertions/`).
+  Rather than a prose reason, `bin/routine-test-lint` now requires a
+  negated assertion's subject to be established by a positive
+  assertion in the same test body, so the vacuous case (`! grep -q X
+  "$doc"` passing only because `$doc` never existed) fails mechanically
+  instead of being explained. 20 of the 21 negated greps already paired
+  on their own subject; the 21st — `test/agents_content.bats`'s
+  no-model-in-skill test, demonstrably green with `skills/` deleted —
+  was the defect the change fixed.
 - **better-bats** — genre-aware test semantics, doc plus sidecar
   (queued as R2).
 - **Seeded file-order shuffle** — optional; weaker here than in RSpec
   by the R-council's own reasoning (R7).
 - **routine-record-scaffold** — the release record should start from
   the range, not from memory (V2).
-- **A stated-removal grammar for routine-change-check** — the carry
-  gate's first live refusal was a false positive: `add-go-core`'s
-  guidance delta deliberately removes "cross-compiled per release"
-  and the rule has no way to declare an intended removal, so the
-  driver overrode it by hand on the record. Earning evidence: that
-  refusal. Shape: a declaration in the delta the check honours,
-  refusing only undeclared losses.
+- **A stated-removal grammar for routine-change-check — shipped**
+  (`openspec/changes/archive/2026-08-27-a-removal-can-be-declared/`).
+  The carry gate's first live refusal was a false positive:
+  `add-go-core`'s guidance delta deliberately removed "cross-compiled
+  per release" and the rule had no way to declare an intended removal,
+  so the driver overrode it by hand on the record — that refusal was
+  the earning evidence. `bin/routine-change-check` now honours a
+  delta's `## Removed Lines` section (confirmed: the `/^## Removed
+  Lines/` handling reads it), exempting exactly the declared lines and
+  refusing every undeclared loss in the same run. The archived
+  `add-go-core` delta itself carries no retroactive declaration — its
+  override is history, recorded where it happened, by ruling.
 
 ## Contract refinements with evidence waiting
 
@@ -49,18 +65,64 @@ how to work.
 - **Refine the developer from run 0005** (W1) — evidence of a correct
   refusal worth folding into the contract.
 - **Separate what the analyst derived from what only the operator can
-  answer** (X1) — the heading exists; the sorting rule could be
-  sharper.
+  answer (X1) — shipped**
+  (`openspec/changes/archive/2026-08-17-the-analyst-asks-what-only-the-operator-knows/`).
+  `agents/analyst.md` now separates a derivation from a question,
+  records questions under a `## Questions` heading with a floor
+  (`- none — <why>`) and its provisional reading, and `routine-approve`
+  refuses a proceed that leaves a non-floor question unanswered.
 - **The closed road** (S1) — record what was tried that is not in the
   diff, and what happened.
 - **The judgment queue** (Z) — promoted findings tracked so no
   release ships a known defect; the rule is already practiced, not
   yet a rail.
-- **Driver-side delegation templates** — twice in one day the driver's
-  prompt contradicted a delegate's contract (`routine-done` handed to
-  a developer; git handed to a contributor); both delegates that
-  refused were right. A written payload template for the developer
-  and contributor lines would stop the driver re-typing the mistake.
+- **Driver-side delegation templates** — still queued, and now earned
+  twice over. First occurrence: twice in one day the driver's prompt
+  contradicted a delegate's contract (`routine-done` handed to a
+  developer; git handed to a contributor); both delegates that refused
+  were right. Second occurrence, v0.16.0 (`#122`, `#124`): twice again
+  the driver's delegation payload told a contributor to commit and
+  tick its own `tasks.md` checkbox, which its contract forbids; both
+  times the delegate refused and said why (`evidence/v0.16.0.md`,
+  Caffeine and Gate sections — the Gate entry states plainly that this
+  item "remains unbuilt" and that its earning condition "is now met
+  twice over"). Both times the boundary held because the delegate was
+  more careful than the instruction, which is not a gate. A related
+  but distinct payload gap shipped separately —
+  `openspec/changes/archive/2026-08-15-template-delegation-payloads/`
+  gave the analyst and developer literal payload templates in
+  `skills/routine/SKILL.md`, closing the missing-`briefing.md`
+  inconsistency — but it never touched the contributor line, and
+  neither template states the commit/checkbox boundary this incident
+  keeps tripping. A written payload template for the developer and
+  contributor lines, stating that boundary explicitly, would stop the
+  driver re-typing the mistake; a lint over delegation prompts is the
+  other named shape.
+- **`record-lint` and `test-lint` declare no telemetry road.** Measured:
+  neither `bin/routine-record-lint` nor `bin/routine-test-lint` calls
+  `telemetry_harness_emit`, while their siblings `bin/routine-script-lint`
+  and `bin/routine-caffeine-lint` do, emitting `harness.script` and
+  `harness.caffeine`, both declared in `lib/roads.txt`. Either the
+  registry has a gap two of four sibling lints should close, or lints
+  genuinely differ in a way nothing states — open question, not
+  answered here, and after this week an undeclared road is a
+  demonstrated live defect class (the `harness.render` gap that cost
+  v0.16.0 a release-gate refusal).
+- **The telemetry app key comes from `$PWD`'s git toplevel, not the
+  repository.** `telemetry_harness_emit` (`lib/telemetry.sh`) derives
+  the app key via `routine_app_key "${TARGET:-$PWD}"`, which resolves
+  `git rev-parse --show-toplevel` on that directory (or the raw path
+  outside a repo) and takes its basename, then no-ops unless
+  `runs/<key>/` already exists (`lib/paths.sh`). Measured in a
+  `git worktree add` probe off this checkout: `bin/routine-script-lint`
+  exited 0 and `bats test/script_lint.bats` ran 10/10 green from inside
+  the worktree, while `runs/routine/telemetry.jsonl` held the same 1829
+  lines before and after the whole probe — not one line written,
+  because the worktree's toplevel basename (`wt-probe`) has no
+  `runs/wt-probe/` directory. Work done in a worktree is therefore
+  invisible to the retro and to every road-check corpus. No fix
+  decided: a worktree could resolve to its main repository's toplevel,
+  or the gap could stay documented rather than closed.
 
 ## Proving-ground work (shopapp)
 
@@ -228,26 +290,42 @@ patches sliced from the app's history rebuilt all nine commits in an
 empty repository, byte-for-byte identical to the live app with its
 suite green at 49 runs, 194 assertions.
 
-### 4. The freshness gate — NOT STARTED
+### 4. The freshness gate — SHIPPED
 
-Designed, not proposed. Blocked on item 2 for the same reason: it
-refuses a render the release did not just regenerate, and there is no
-per-release directory to check yet.
+Shipped as `openspec/changes/archive/2026-08-27-a-render-must-be-fresh/`
+(`bin/routine-render-check`, relayed by `bin/routine-release-check`).
 
-`routine-release-check` regenerates every render in the bundle being
-cut and compares byte for byte, refusing the release naming the render
-and the command that refreshes it. Renders are found by their
-generator header. The gate judges renders only — a record's truth
-stays the author's, as the record rule already states.
+The design queued here was wrong on both halves it stated, and the
+change's own design doc says so in as many words. **It was not blocked
+on item 2.** `evidence/retro.txt` already existed, already carried a
+generator header, and had already shipped stale in three releases —
+v0.12.0, v0.13.0 and v0.14.0, each recording the same Gate entry and
+fixing nothing. Waiting on a per-release directory to check a render
+that already exists was a dependency this design invented, not one the
+defect required. **And `routine-release-check` cannot
+regenerate-and-compare inside the release path as stated**, because
+that path runs on a checkout with no `runs/` — measured on a clean
+`git archive` of HEAD: `routine-retro: no telemetry found under
+<checkout>/runs`. A gate refusing on that basis would refuse every
+release the workflow has ever published; the premise "the release
+regenerates its renders" is false wherever the release actually runs.
 
-Boundary: the comparison is against the releasing machine's corpus,
-since run evidence is machine-local. A render committed elsewhere
-legitimately differs, and regenerating before cutting a release is the
-instruction that resolves it. Earning condition for a rethink:
-multi-machine releases.
+What shipped instead: a render is decided where its corpus exists —
+the machine that committed it, at commit time — and openly undecided
+(prints "not decided", exits 0) where it does not, which is every CI
+checkout. The generator-header discovery and the excluded-timestamp
+comparison survived unchanged from the design below; the
+"regenerate-inside-release-CI" idea did not, and `evidence/retro.txt`
+was regenerated in the same change that shipped the gate — the defect
+it exists to catch, fixed by the change that catches it.
 
-Not built: no auto-regeneration inside the gate — a gate that fixes
-what it judges has judged nothing.
+Boundary carried forward, unchanged: the comparison is against the
+releasing machine's corpus, since run evidence is machine-local. A
+render committed elsewhere legitimately differs, and regenerating
+before cutting a release is the instruction that resolves it. Earning
+condition for a rethink: multi-machine releases. Not built, also
+carried forward: no auto-regeneration inside the gate — a gate that
+fixes what it judges has judged nothing.
 
 ## Decisions on record
 
@@ -291,7 +369,7 @@ agent tier declarations (they follow who grades the role, never the
 model), the gates, or a single exit code — the whole point of rails
 that do not care who is driving.
 
-## Case study: the harness leaves bash — in flight as `add-go-core`
+## Case study: the harness leaves bash — first slice shipped as `add-go-core`
 
 Raised because macOS users hit dialect differences (bash, awk, date,
 grep) and because a sibling project's bats suite takes over ten
@@ -429,8 +507,21 @@ published in the release evidence, which anyone can recompute.
 
 ### Rulings added after the case study (operator)
 
-The migration is no longer hypothetical: it begins as the change
-`add-go-core`, and these rulings bind its design.
+The migration is no longer hypothetical: it began as the change
+`add-go-core`, and these rulings bound its design.
+
+`add-go-core` has since shipped
+(`openspec/changes/archive/2026-08-27-add-go-core/`): `go.mod` and
+`cmd/routine` exist, stdlib-only, with a `version` subcommand carrying
+build-time commit provenance, and `bin/routine-selfcheck` builds the
+core at its head. Exactly one script is ported so far — `release-notes`
+— proven byte-for-byte against the existing bats suite
+(`test/core_parity.bats`); the bash script stays live and untouched.
+Confirmed: nothing outside `test/` invokes the binary yet —
+`routine-selfcheck` only builds it, never calls a subcommand. Every
+other `bin/` and `lib/` script is still bash, by the change's own "not
+built" list: one script proves the structure, and scripts migrate one
+per task in later changes.
 
 - **Local build, not release artifacts.** Users are developers; the
   binary is built from the checkout with `go build`, so everyone runs
@@ -465,6 +556,54 @@ The migration is no longer hypothetical: it begins as the change
   asked for the macOS failure to be reproduced before any port; the
   operator ruled to begin regardless. The reproduction stays queued
   as evidence for the record — it is no longer a blocker.
+
+### A command grammar was proposed, and a council refuted it
+
+Mid-migration, the naming question came up again: should the ported
+surface group under a two-level `<noun> <verb>` grammar — an eight-kind
+grammar worked out over many turns and presented as derived from the
+domain — rather than the flat `routine-<name>` scripts this ecosystem
+uses today?
+
+A four-seat council reviewed it independently and found the premise
+wrong: a derivation rule already existed, in `lib/roads.txt`, gated by
+`bin/routine-road-check` — the telemetry event registry already groups
+into namespaces (confirmed by reading the file: `app.`, `gate.`,
+`harness.`, `spec.`, `tdd.`, `ticket.`, six of them) — and the proposal
+never cited it. Measured (`evidence/v0.16.0.md`, Gate section): the
+proposed grammar agreed with the registry on 14 members and
+contradicted it on 12. Each seat found something different: the law
+seat found the registry itself; the semantic seat found the
+`check`/`lint` boundary refuted by the scripts' own comments; the
+ergonomics seat found `ticket status` would collide with `index.tsv`'s
+own `status` column; the migration seat found the proposal never said
+whether a rename touches the bash scripts or only the Go binary's
+dispatch.
+
+The recommendation on record: re-derive the grammar from the registry
+rather than invent a second one, and leave the pure readers (like
+`routine-manual`) flat rather than force them into a namespace they do
+not need.
+
+Open scoping question, never settled: what a rename would actually
+touch. Confirmed here: `cmd/routine/main.go`'s dispatch is 4 lines —
+one `case` per subcommand — and nothing outside `test/` calls the
+binary yet (`routine-selfcheck` only builds it). Already measured
+(`evidence/v0.16.0.md`): renaming the bash scripts touches 1,170
+occurrences across 126 files; re-derived at v0.16.0 the same way it
+gives 1,212, the drift being the commits landed since. The frozen
+prose under `openspec/changes/archive/` and `evidence/` — which must
+never change — holds 1,388 occurrences of the same names, so the record
+of these commands is larger than the code implementing them. A
+delegate reconciling this file declined to write that figure because
+its reconstructions disagreed with each other; the driver's first
+re-derivation was also wrong, using a `*.md` pathspec that matches the
+archive it was meant to exclude. The counts above are the ones that
+survived, measured per directory with the exact `bin/` names.
+
+script that would decide it: none — the registry is the derivation
+source; the remaining work is to re-derive the table from it, not to
+build a checker.
 
 ### Earning condition
 
