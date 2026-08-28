@@ -126,14 +126,86 @@ make_roads_fixture() {
   printf '%s\n' "$output" | grep -qi 'decided nothing\|nothing decided'
 }
 
-@test "a runs directory holding a single telemetry line still reports an unwalked road" {
+@test "a ticket corpus present still reports an unwalked road from the harness tier" {
   fixture="$BATS_TEST_TMPDIR/fixture"
-  mkdir -p "$fixture/lib" "$fixture/runs/app"
-  printf '%s\n' 'alpha.one' 'beta.never' > "$fixture/lib/roads.txt"
+  mkdir -p "$fixture/lib" "$fixture/runs/app/tickets/0001"
+  printf '%s\n' 'alpha.one' 'beta.never' 'gamma.ticket' \
+    > "$fixture/lib/roads.txt"
   printf '%s\n' \
     '{"ts":"2026-01-01T00:00:00Z","event":"alpha.one","script":"bin/x","ticket":"","task":"","exit":0,"ms":1}' \
     > "$fixture/runs/app/telemetry.jsonl"
+  printf '%s\n' \
+    '{"ts":"2026-01-01T00:00:01Z","event":"gamma.ticket","script":"bin/x","ticket":"0001","task":"","exit":0,"ms":1}' \
+    > "$fixture/runs/app/tickets/0001/telemetry.jsonl"
   run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-road-check"
   [ "$status" -eq 1 ]
   printf '%s\n' "$output" | grep -q 'declared road never walked: beta.never'
+  case "$output" in *'never walked: alpha.one'*) false ;; *) ;; esac
+}
+
+@test "a harness footprint without ticket telemetry decides nothing" {
+  fixture="$BATS_TEST_TMPDIR/fixture"
+  mkdir -p "$fixture/lib" "$fixture/runs/fixture"
+  printf '%s\n' 'alpha.one' 'harness.roads' > "$fixture/lib/roads.txt"
+  printf '%s\n' \
+    '{"ts":"2026-01-01T00:00:00Z","event":"harness.roads","script":"bin/routine-road-check","ticket":"","task":"","exit":0,"ms":1}' \
+    > "$fixture/runs/fixture/telemetry.jsonl"
+  run env ROUTINE_ROOT="$fixture" TARGET="$fixture" \
+    "$ROUTINE_REPO_ROOT/bin/routine-road-check"
+  [ "$status" -eq 0 ]
+  printf '%s\n' "$output" | grep -qi 'decided nothing\|nothing decided'
+  case "$output" in *"never walked"*) false ;; *) ;; esac
+  case "$output" in *"undeclared"*) false ;; *) ;; esac
+}
+
+# The undeclared-road rule is decided on the strength of one line, with
+# or without a run corpus, unlike the unwalked-road rule right above:
+# no tickets/ directory exists anywhere in this fixture, yet the rogue
+# event must still be caught.
+@test "an undeclared road is caught without a run corpus" {
+  fixture="$BATS_TEST_TMPDIR/fixture"
+  mkdir -p "$fixture/lib" "$fixture/runs/app"
+  printf '%s\n' 'alpha.one' > "$fixture/lib/roads.txt"
+  printf '%s\n' \
+    '{"ts":"2026-01-01T00:00:00Z","event":"zulu.rogue","script":"bin/x","ticket":"","task":"","exit":0,"ms":1}' \
+    > "$fixture/runs/app/telemetry.jsonl"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-road-check"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q 'undeclared road walked: zulu.rogue'
+  case "$output" in *"never walked"*) false ;; *) ;; esac
+}
+
+# A stale waiver is proven false by one line the same way an undeclared
+# road is proven true by one — neither needs a whole run corpus, only
+# the unwalked-road rule does.
+@test "a stale waiver is caught without a run corpus" {
+  fixture="$BATS_TEST_TMPDIR/fixture"
+  mkdir -p "$fixture/lib" "$fixture/runs/app"
+  printf '%s\n' 'alpha.one' \
+    'beta.skip — never walked: no live run has needed it yet' \
+    > "$fixture/lib/roads.txt"
+  printf '%s\n' \
+    '{"ts":"2026-01-01T00:00:00Z","event":"beta.skip","script":"bin/x","ticket":"","task":"","exit":0,"ms":1}' \
+    > "$fixture/runs/app/telemetry.jsonl"
+  run env ROUTINE_ROOT="$fixture" "$ROUTINE_REPO_ROOT/bin/routine-road-check"
+  [ "$status" -eq 1 ]
+  printf '%s\n' "$output" | grep -q 'stale waiver: beta.skip was walked'
+}
+
+@test "two consecutive runs on a corpus-less checkout agree" {
+  fixture="$BATS_TEST_TMPDIR/fixture"
+  mkdir -p "$fixture/lib" "$fixture/runs/fixture"
+  printf '%s\n' 'alpha.one' 'beta.never' > "$fixture/lib/roads.txt"
+  run env ROUTINE_ROOT="$fixture" TARGET="$fixture" \
+    "$ROUTINE_REPO_ROOT/bin/routine-road-check"
+  first_status="$status"
+  first_output="$output"
+  run env ROUTINE_ROOT="$fixture" TARGET="$fixture" \
+    "$ROUTINE_REPO_ROOT/bin/routine-road-check"
+  [ "$first_status" -eq 0 ]
+  [ "$status" -eq 0 ]
+  [ "$status" -eq "$first_status" ]
+  printf '%s\n' "$first_output" | grep -qi 'decided nothing\|nothing decided'
+  printf '%s\n' "$output" | grep -qi 'decided nothing\|nothing decided'
+  case "$output" in *"never walked"*) false ;; *) ;; esac
 }

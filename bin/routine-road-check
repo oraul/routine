@@ -13,6 +13,10 @@
 # requirement guarantees. The check counts itself: harness.roads is
 # declared unwaivered, so its first live run truthfully reports its
 # own road unwalked, walks it by running, and passes from then on.
+# The undeclared-road and stale-waiver rules decide from one telemetry
+# line, corpus or no corpus; the unwalked-road rule alone waits for a
+# run corpus (ticket telemetry), since only a corpus tells an unwalked
+# road apart from a merely unobserved one.
 set -u
 
 lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
@@ -20,6 +24,8 @@ lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
 . "$lib/paths.sh"
 # shellcheck source=/dev/null
 . "$lib/telemetry.sh"
+# shellcheck source=/dev/null
+. "$lib/corpus.sh"
 
 start_ms="$(routine_now_ms)"
 root="$(routine_root)"
@@ -41,20 +47,10 @@ fi
 
 # Three sorted name sets. The waiver marker is matched with index(), a
 # plain string function, so the em-dash never meets a regex engine.
+# Every telemetry.jsonl under the runs directory is read regardless of
+# corpus, harness tier included: the undeclared- and stale-waiver rules
+# below are decided from this alone, corpus or no corpus.
 raw_telemetry="$(find "$runs_dir" -name telemetry.jsonl -exec cat {} + 2>/dev/null)"
-
-# The runs directory can exist and still hold nothing: no telemetry.jsonl
-# under it, or telemetry.jsonl files with no lines. Either way, this
-# corpus cannot tell an unwalked road from an unobserved one, so the
-# check reports undecided rather than stating every declared road as
-# unwalked — the posture routine-render-check already takes toward an
-# absent corpus.
-if [ -z "$raw_telemetry" ]; then
-  echo "routine-road-check: nothing decided — no telemetry under $runs_dir"
-  telemetry_harness_emit harness.roads bin/routine-road-check 0 \
-    "$(( $(routine_now_ms) - start_ms ))"
-  exit 0
-fi
 
 declared="$(awk '/^[[:space:]]*#/ {next} /^[[:space:]]*$/ {next}
   { i = index($0, " — never walked: ")
@@ -67,31 +63,65 @@ observed="$(printf '%s\n' "$raw_telemetry" \
 
 unwaivered="$(comm -23 <(printf '%s\n' "$declared" | sed '/^$/d') \
   <(printf '%s\n' "$waived" | sed '/^$/d'))"
+# An observed event absent from the registry, or a waivered event that
+# was in fact walked, is a violation on the strength of one telemetry
+# line — neither rule needs a run corpus to be meaningful.
 undeclared="$(comm -13 <(printf '%s\n' "$declared" | sed '/^$/d') \
-  <(printf '%s\n' "$observed" | sed '/^$/d'))"
-unwalked="$(comm -23 <(printf '%s\n' "$unwaivered" | sed '/^$/d') \
   <(printf '%s\n' "$observed" | sed '/^$/d'))"
 stale="$(comm -12 <(printf '%s\n' "$waived" | sed '/^$/d') \
   <(printf '%s\n' "$observed" | sed '/^$/d'))"
 
+# The unwalked-road rule alone needs a run corpus: a declared road
+# absent from telemetry cannot be told apart from a road this machine
+# simply never exercised, unless ticket telemetry — the same file set
+# bin/routine-retro aggregates and bin/routine-evidence counts, resolved
+# through lib/corpus.sh so this is never a second definition — proves
+# the machine actually ran tickets. The harness tier records the
+# harness's own footprint, not evidence that any road was walked by a
+# run, so its presence alone does not count.
+corpus="$(routine_telemetry_files "$root")"
+unwalked=""
+coverage_decided=0
+if [ -n "$corpus" ]; then
+  coverage_decided=1
+  unwalked="$(comm -23 <(printf '%s\n' "$unwaivered" | sed '/^$/d') \
+    <(printf '%s\n' "$observed" | sed '/^$/d'))"
+fi
+
 rc=0
+decided=0
 if [ -n "$undeclared" ]; then
   rc=1
+  decided=1
   while IFS= read -r e; do
     echo "routine-road-check: undeclared road walked: $e — declare it in lib/roads.txt"
   done <<< "$undeclared"
 fi
-if [ -n "$unwalked" ]; then
-  rc=1
-  while IFS= read -r e; do
-    echo "routine-road-check: declared road never walked: $e — walk it, or waiver it: '$e — never walked: <why>'"
-  done <<< "$unwalked"
+if [ "$coverage_decided" -eq 1 ]; then
+  decided=1
+  if [ -n "$unwalked" ]; then
+    rc=1
+    while IFS= read -r e; do
+      echo "routine-road-check: declared road never walked: $e — walk it, or waiver it: '$e — never walked: <why>'"
+    done <<< "$unwalked"
+  fi
 fi
 if [ -n "$stale" ]; then
   rc=1
+  decided=1
   while IFS= read -r e; do
     echo "routine-road-check: stale waiver: $e was walked — drop the waiver"
   done <<< "$stale"
+fi
+
+# Nothing was decided at all: no undeclared or stale line anywhere, and
+# no run corpus to judge coverage against. Report that plainly and stop
+# here, before the harness.roads emit below — emitting it here would be
+# the check writing its own footprint into the evidence it just found
+# absent, and a second run would then disagree with the first.
+if [ "$decided" -eq 0 ]; then
+  echo "routine-road-check: nothing decided about coverage — no run corpus under $runs_dir"
+  exit 0
 fi
 
 if [ "$rc" -eq 0 ]; then
