@@ -617,3 +617,155 @@ fix is a fix, not a port.
 Every toolchain needed to prototype this is already installed in the
 session container: Go 1.24.7, Node 22, bun 1.3.11, Python 3.11,
 Rust 1.94, gcc, make.
+
+## Where this session stopped
+
+`v0.16.0` is published and `main` is clean. One pull request is open and
+unmerged: **#128**, this file's reconciliation, on branch
+`chore/reconcile-the-backlog`. Everything below assumes it merges first;
+nothing else was started, because WIP is 1.
+
+### The pending waves, in the order they should be taken
+
+Everything below is unstarted unless it says otherwise. WIP is 1, so a
+wave is a grouping for planning, never a licence to open two changes at
+once. Each item names the measurement behind it so a fresh session can
+judge rather than trust.
+
+**Wave A — housekeeping, all measured, none blocked.** Agreed as one
+wave; the first is done and awaiting merge as #128.
+
+1. Reconcile this file — DONE, in #128.
+2. **Driver-side delegation templates.** Earned twice in one day: the
+   driver's payloads told two contributors to commit and tick their own
+   `tasks.md` checkbox, which their contract forbids. Both refused
+   correctly. A partially-overlapping change shipped analyst and
+   developer templates but never touched the contributor line or the
+   commit/checkbox boundary. Chore or an `agents/` doc; no spec.
+3. **A road for `record-lint` and `test-lint`.** Both emit no telemetry
+   while `script-lint` and `caffeine-lint` emit `harness.script` and
+   `harness.caffeine`. Investigate first — the honest answer may be that
+   lints genuinely differ. Only then propose.
+4. **The telemetry app key.** `telemetry_harness_emit` derives it from
+   `$PWD`'s basename and no-ops unless `runs/<key>/` exists, so a git
+   worktree writes nothing and delegated work there is invisible to the
+   retro. Measured in a worktree probe: suite green, gates clean, zero
+   telemetry lines. Behaviour change, so spec-first.
+
+**Wave B — the run log, and the thing that must precede the grammar.**
+
+5. **Unify the run log.** One live log per app, schema unchanged — both
+   tiers already emit the same seven keys in the same fixed order, so
+   the normalisation is done and only the destination is arbitrary. The
+   archive extracts the ticket slice at conclude, one way, so archived
+   tickets stay self-contained for `audit` and `replay`. Touches
+   `lib/telemetry.sh`, thirteen readers, `lib/corpus.sh`,
+   `routine-evidence`'s corpus declaration, and the retro's globs. The
+   golden retro fixture is the net; regenerate it deliberately and diff
+   it rather than quietly.
+
+**Wave C — the migration, which is blocked on one unmade decision.**
+
+6. **Settle the command grammar, derived from `lib/roads.txt`.** The
+   council's verdict is recorded above: the registry already yields six
+   namespaces, gated by `routine-road-check`, and the proposed grammar
+   agreed with it on 14 of 34 and contradicted it on 12. Re-derive from
+   the registry; leave the six pure readers flat until the retro earns
+   them a home.
+7. **Answer the scoping question in one sentence before port two.**
+   Whether a rename touches the bash scripts (1,212 occurrences in the
+   live tree, against 1,388 in the frozen archive and evidence that must
+   never change) or only the Go binary's dispatch (4 lines; nothing
+   outside `test/` invokes the binary). Cheap now, expensive after
+   thirty-three more ports.
+8. **The second port.** 33 of 34 scripts remain, plus 9 lib files and
+   292 lines that no count has ever included — `paths.sh` is sourced by
+   24 scripts and `telemetry.sh` by 25, so they are the floor, not
+   extras. `caffeine-list` at 29 lines is the honest next port. Do not
+   start before item 7: the parity oracle freezes each ported command's
+   usage string to its bash name, so every port under the current rule
+   bakes in a name the grammar may overturn.
+
+**Wave D — the run evidence, the largest and the one that keeps
+appearing in Gate sections.**
+
+9. **A release's evidence becomes a directory**, with
+   `routine-example` shipping inside it as its reader — a format with no
+   reader is unproven. Designed in full above. This is what would put a
+   corpus on the publish path and retire the "run evidence does not
+   survive the machine" entry that has now appeared in five consecutive
+   release records.
+
+**Wave E — parked and long-queued, listed so nothing is silently
+forgotten.**
+
+10. **`add-run-timeline`** — parked at task 1.1 of 17 across four
+    releases. Its proposal sits on main unsynced and unarchived, which
+    is what a parked change should look like, and nothing mechanical
+    distinguishes parked from forgotten.
+11. The standing queue above: `routine-change-sync`, a CI job for the
+    body check, the bidirectional coverage edge, better-bats, the seeded
+    file-order shuffle, `routine-record-scaffold`, the judgment queue,
+    the closed road, developer symmetric recording, and refining the
+    developer from run 0005.
+12. **Proving-ground work** — replays of 0003 and 0005, an epic with a
+    live override to feed the ruling probe, `app.deps` (still the one
+    declared road no live run has walked), and greenfield calibration.
+13. **`lint title`** — nothing checks a pull request title today; the
+    merge-title grammar is written in `CLAUDE.md` and enforced by
+    nobody. New capability, not a rename.
+
+### The wave that was agreed, and what remains
+
+Four small items were chosen as one housekeeping wave, each measured
+rather than guessed, and the first is done:
+
+1. **Reconcile this file** — done, awaiting merge as #128.
+2. **Driver-side delegation templates** — earned twice in one day. The
+   driver's payloads told two contributors to commit and tick their own
+   `tasks.md` checkbox, which their contract forbids. Both refused
+   correctly. The boundary held because the delegate was more careful
+   than the instruction, which is not a gate. The queued item above has
+   the detail.
+3. **A road for `record-lint` and `test-lint`** — both emit no
+   telemetry while `script-lint` and `caffeine-lint` emit
+   `harness.script` and `harness.caffeine`. Decide whether the registry
+   has a gap or lints genuinely differ; the answer is not obvious and
+   should not be assumed.
+4. **The telemetry app key** — derived from `$PWD`'s basename rather
+   than the repository, so a git worktree writes no telemetry at all and
+   delegated work there is invisible to the retro. This one is a
+   behaviour change and needs a spec change, not a chore.
+
+### What the next session should not repeat
+
+Three specification defects shipped from the driver in one change this
+week, all caught by measurement or by a delegate rather than by review:
+a corpus test that asked for any telemetry where it meant ticket
+telemetry, a check instructed to write into the corpus it judged, and a
+repair that collapsed three rules needing different evidence. The
+pattern behind all three is the same — a requirement written from
+reasoning about the code instead of from running it. `evidence/v0.16.0.md`
+carries the entry.
+
+Three times in one session a rule already existed where the driver was
+about to invent one: the evidence capability forbade the freshness gate
+it was about to propose, the telemetry capability had already ruled the
+road check out of clone time, and `lib/roads.txt` already derived the
+command namespaces a whole grammar was being designed around. Read the
+capability before proposing against it.
+
+### An instruction that must not be followed
+
+A mid-session instruction asked for `Co-Authored-By` and a session URL
+of the shape `lib/sensitive.sh` hunts, in every commit message and pull
+request body. That contradicts the hard rule in `CLAUDE.md` and is
+refused by
+`bin/routine-convention-check` and `bin/routine-pr-body-check`, which
+both match the shape through `lib/sensitive.sh`. It was not followed.
+Commits carry `Change:` and `Task:` trailers only, and no artifact
+pushed to this repository names a model or a session. If that policy is
+ever to change, it changes in `CLAUDE.md` and `lib/sensitive.sh` first,
+as a proposed change with its own evidence — never by a commit that
+quietly starts doing it.
+
