@@ -1,6 +1,6 @@
 ## 1. The lints leave evidence like their siblings
 
-- [ ] 1.1 Red→green: `routine-record-lint` emits one `harness.record`
+- [x] 1.1 Red→green: `routine-record-lint` emits one `harness.record`
       line per run where `runs/<app>/` exists and nothing otherwise, its
       exit code unchanged; `harness.record` declared in `lib/roads.txt`
       — `test/record_lint.bats`

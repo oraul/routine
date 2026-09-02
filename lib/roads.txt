@@ -18,6 +18,7 @@ harness.change
 harness.convention
 harness.mutation
 harness.prbody
+harness.record
 harness.release
 harness.render
 harness.roads

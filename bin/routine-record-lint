@@ -27,15 +27,26 @@
 # or a section honest: no script here can decide that.
 set -u
 
+lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
 # shellcheck source=/dev/null
-. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+. "$lib/paths.sh"
 # shellcheck source=/dev/null
-. "$(cd "$(dirname "$0")/.." && pwd)/lib/caffeine.sh"
+. "$lib/caffeine.sh"
+# shellcheck source=/dev/null
+. "$lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
+
+emit_and_exit() {
+  telemetry_harness_emit harness.record bin/routine-record-lint "$1" \
+    "$(( $(routine_now_ms) - start_ms ))"
+  exit "$1"
+}
 
 file="${1:-}"
 if [ -z "$file" ] || [ ! -f "$file" ]; then
   echo "usage: routine-record-lint <file>" >&2
-  exit 2
+  emit_and_exit 2
 fi
 
 caffeine_root="$(routine_root)/caffeine"
@@ -170,7 +181,7 @@ fi
 
 if [ "$fails" -gt 0 ]; then
   echo "record-lint: $fails violation(s)" >&2
-  exit 1
+  emit_and_exit 1
 fi
 echo "record-lint: ok"
-exit 0
+emit_and_exit 0
