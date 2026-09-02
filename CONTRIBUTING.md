@@ -172,6 +172,19 @@ that its work is final. `git status` is not that signal** — it cannot
 distinguish "the delegate finished" from "the delegate is between two
 writes", and both look like a dirty tree.
 
+Delegating one task to the **contributor** agent
+(`.claude/agents/contributor.md`) hands over exactly its closed context
+list — nothing more:
+
+```
+Change: <change-id>
+Branch: <branch, already checked out>
+Task: <n.m — the tasks.md line verbatim>
+Scope: <every file the task may touch, resolved absolute paths>
+Why: <the reason the task exists, from the design or the evidence>
+Boundary: the contributor never commits or touches git, never ticks the tasks.md checkbox, and never runs routine-tdd or a lifecycle script — you commit, tick, and record.
+```
+
 Until the notification arrives, do not: edit a file in the delegate's
 scope, run `add`/`commit`/`stash`/`checkout`/`restore` against the
 worktree, or run any P3/P4 step for its change. Reading is fine;

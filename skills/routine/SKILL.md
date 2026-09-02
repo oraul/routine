@@ -184,6 +184,7 @@ Task: <resolved absolute path to the task file `routine-next` printed>
 ROUTINE_TICKET_DIR: <resolved absolute path to the ticket>
 TARGET: <resolved absolute path to the target project root>
 briefing.md: <resolved absolute path to the ticket>/briefing.md
+Boundary: the developer takes this one task red to green and reports — it never runs `routine-done`; you run that after `routine-gate developer` is green.
 ```
 
    Resuming a re-served task (see above): add `uncommitted: <the

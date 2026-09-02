@@ -307,6 +307,11 @@ load test_helper
   awk '/^## 4\./,/^## 5\./' "$skill" | awk '/^```$/{f=!f; next} f' | grep -q 'briefing.md'
 }
 
+@test "the develop payload template states the routine-done boundary" {
+  doc="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
+  awk '/^## 4\./,/^## 5\./' "$doc" | grep '^Boundary:' | grep -q 'routine-done'
+}
+
 @test "the specify revise payload template names the lint log" {
   skill="$ROUTINE_REPO_ROOT/skills/routine/SKILL.md"
   awk '/^## 2\./,/^## 3\./' "$skill" | awk '/^```$/{f=!f; next} f' | grep -q 'lint.log'
