@@ -24,6 +24,7 @@ harness.render
 harness.roads
 harness.script
 harness.selfcheck
+harness.test
 spec.defective
 spec.lint
 tdd.characterize

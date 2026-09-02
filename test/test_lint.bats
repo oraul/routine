@@ -376,3 +376,63 @@ lint() {
   [ "$status" -eq 0 ]
   [ "$(wc -l < "$tally")" -le 30 ]
 }
+
+# A telemetry destination fixture shaped the way record_lint.bats builds
+# one: TARGET is a real git repo whose basename names the runs/<app>
+# directory the fixture ROUTINE_ROOT already has waiting.
+make_telemetry_fixture() {
+  fixture_root="$BATS_TEST_TMPDIR/fixture"
+  mkdir -p "$fixture_root/runs/app"
+  tgt="$BATS_TEST_TMPDIR/app"
+  mkdir -p "$tgt"
+  git -C "$tgt" -c init.defaultBranch=main init -q
+  git -C "$tgt" -c user.name=t -c user.email=t@example.invalid \
+    commit -q --allow-empty -m "root"
+}
+
+@test "a clean corpus emits exactly one harness dot test line" {
+  make_telemetry_fixture
+  fixture a.bats "a complete run passes and writes nothing"
+  run env ROUTINE_ROOT="$fixture_root" TARGET="$tgt" \
+    "$ROUTINE_REPO_ROOT/bin/routine-test-lint" "$CORPUS"
+  [ "$status" -eq 0 ]
+  [ "$(grep -c '"event":"harness.test"' "$fixture_root/runs/app/telemetry.jsonl")" -eq 1 ]
+  grep '"event":"harness.test"' "$fixture_root/runs/app/telemetry.jsonl" \
+    | grep -q '"exit":0'
+}
+
+@test "a violating corpus reports its exit unchanged by emission" {
+  make_telemetry_fixture
+  fixture a.bats "it should work correctly"
+  run env ROUTINE_ROOT="$fixture_root" TARGET="$tgt" \
+    "$ROUTINE_REPO_ROOT/bin/routine-test-lint" "$CORPUS"
+  [ "$status" -eq 1 ]
+  [ "$(grep -c '"event":"harness.test"' "$fixture_root/runs/app/telemetry.jsonl")" -eq 1 ]
+  grep '"event":"harness.test"' "$fixture_root/runs/app/telemetry.jsonl" \
+    | grep -q '"exit":1'
+}
+
+@test "a usage error still emits its own harness dot test line" {
+  make_telemetry_fixture
+  run env ROUTINE_ROOT="$fixture_root" TARGET="$tgt" \
+    "$ROUTINE_REPO_ROOT/bin/routine-test-lint" "$BATS_TEST_TMPDIR/absent"
+  [ "$status" -eq 2 ]
+  [ "$(grep -c '"event":"harness.test"' "$fixture_root/runs/app/telemetry.jsonl")" -eq 1 ]
+  grep '"event":"harness.test"' "$fixture_root/runs/app/telemetry.jsonl" \
+    | grep -q '"exit":2'
+}
+
+@test "no app state means the test lint invents no destination" {
+  rroot="$BATS_TEST_TMPDIR/rroot"
+  mkdir -p "$rroot"
+  fixture a.bats "a complete run passes and writes nothing"
+  tgt="$BATS_TEST_TMPDIR/app"
+  mkdir -p "$tgt"
+  git -C "$tgt" -c init.defaultBranch=main init -q
+  git -C "$tgt" -c user.name=t -c user.email=t@example.invalid \
+    commit -q --allow-empty -m "root"
+  run env ROUTINE_ROOT="$rroot" TARGET="$tgt" \
+    "$ROUTINE_REPO_ROOT/bin/routine-test-lint" "$CORPUS"
+  [ "$status" -eq 0 ]
+  [ -z "$(find "$rroot" -name telemetry.jsonl)" ]
+}
