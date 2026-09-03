@@ -182,3 +182,14 @@ load test_helper
   grep -q 'records how far the migration has got' "$doc"
   grep -q 'never a claim about which side of the seam it sits on' "$doc"
 }
+
+# --- driver-side delegation templates: the commit/checkbox boundary ---
+
+@test "the conventions carry a contributor payload template with the commit boundary" {
+  doc="$ROUTINE_REPO_ROOT/CONTRIBUTING.md"
+  grep -q 'contributor.md' "$doc"
+  grep -q '^Change: <' "$doc"
+  grep -q '^Scope: <' "$doc"
+  grep '^Boundary:' "$doc" | grep -q 'commit'
+  grep '^Boundary:' "$doc" | grep -q 'checkbox'
+}
