@@ -182,3 +182,39 @@ load test_helper
   grep -q 'records how far the migration has got' "$doc"
   grep -q 'never a claim about which side of the seam it sits on' "$doc"
 }
+
+# --- the dispatch command ---
+
+@test "the dispatch skill declares its name and invocation gate" {
+  doc="$ROUTINE_REPO_ROOT/.claude/skills/rdev-dispatch/SKILL.md"
+  [ -f "$doc" ]
+  grep -q '^name: rdev-dispatch' "$doc"
+  grep -q '^disable-model-invocation: true' "$doc"
+}
+
+@test "the dispatch skill carries the payload block verbatim" {
+  doc="$ROUTINE_REPO_ROOT/.claude/skills/rdev-dispatch/SKILL.md"
+  grep -q '^Change: <' "$doc"
+  grep -q '^Scope: <' "$doc"
+  line="$(grep '^Boundary:' "$doc")"
+  [[ "$line" == *commit* ]]
+  [[ "$line" == *checkbox* ]]
+  [[ "$line" == *git* ]]
+}
+
+@test "the dispatch skill restores scope files before trusting green" {
+  doc="$ROUTINE_REPO_ROOT/.claude/skills/rdev-dispatch/SKILL.md"
+  grep -q 'git show HEAD:' "$doc"
+  grep -qi 'red' "$doc"
+}
+
+@test "the dispatch skill orders convention check after the commit" {
+  doc="$ROUTINE_REPO_ROOT/.claude/skills/rdev-dispatch/SKILL.md"
+  grep -q 'convention-check' "$doc"
+  grep -qi 'after' "$doc"
+}
+
+@test "the dispatch skill forbids a force push" {
+  doc="$ROUTINE_REPO_ROOT/.claude/skills/rdev-dispatch/SKILL.md"
+  grep -qi 'force-push' "$doc"
+}
