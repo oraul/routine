@@ -333,3 +333,78 @@ make_range_repo() {
   [ "$status" -eq 2 ]
   [ ! -e "$BATS_TEST_TMPDIR/nope.md" ]
 }
+
+# A telemetry destination fixture shaped the way pr_body_check.bats and
+# harness_telemetry.bats build one: TARGET is a real git repo whose
+# basename names the runs/<app> directory the fixture ROUTINE_ROOT
+# already has waiting, plus the same caffeine topic pair make_root uses
+# so make_good_record's citation resolves.
+make_telemetry_fixture() {
+  fixture="$BATS_TEST_TMPDIR/fixture"
+  mkdir -p "$fixture/runs/app" "$fixture/caffeine/bash"
+  printf '%s\n' '# caffeine: bash/portability' \
+    '<!-- caffeine-topic: bash/portability -->' \
+    > "$fixture/caffeine/bash/portability.md"
+  tgt="$BATS_TEST_TMPDIR/app"
+  mkdir -p "$tgt"
+  git -C "$tgt" -c init.defaultBranch=main init -q
+  git -C "$tgt" -c user.name=t -c user.email=t@example.invalid \
+    commit -q --allow-empty -m "root"
+}
+
+@test "a clean record emits exactly one harness dot record line" {
+  make_telemetry_fixture
+  make_good_record
+  run env ROUTINE_ROOT="$fixture" TARGET="$tgt" \
+    "$ROUTINE_REPO_ROOT/bin/routine-record-lint" "$rec"
+  [ "$status" -eq 0 ]
+  [ "$(grep -c '"event":"harness.record"' "$fixture/runs/app/telemetry.jsonl")" -eq 1 ]
+  grep '"event":"harness.record"' "$fixture/runs/app/telemetry.jsonl" \
+    | grep -q '"exit":0'
+}
+
+@test "a record with violations reports its exit unchanged by emission" {
+  make_telemetry_fixture
+  rec="$BATS_TEST_TMPDIR/record.md"
+  printf '%s\n' \
+    '# Release record: v1.2.0' \
+    '' \
+    '## Caffeine' \
+    '- BSD grep has no \b' \
+    '  topic: bash/portability' \
+    '' \
+    '## Gate' \
+    '- coverage dropped and nothing failed' \
+    '  evidence: runs/2026-08-01/coverage.txt shows the drop' \
+    > "$rec"
+  run env ROUTINE_ROOT="$fixture" TARGET="$tgt" \
+    "$ROUTINE_REPO_ROOT/bin/routine-record-lint" "$rec"
+  [ "$status" -eq 1 ]
+  [ "$(grep -c '"event":"harness.record"' "$fixture/runs/app/telemetry.jsonl")" -eq 1 ]
+  grep '"event":"harness.record"' "$fixture/runs/app/telemetry.jsonl" \
+    | grep -q '"exit":1'
+}
+
+@test "a usage error still emits its own harness dot record line" {
+  make_telemetry_fixture
+  run env ROUTINE_ROOT="$fixture" TARGET="$tgt" \
+    "$ROUTINE_REPO_ROOT/bin/routine-record-lint"
+  [ "$status" -eq 2 ]
+  [ "$(grep -c '"event":"harness.record"' "$fixture/runs/app/telemetry.jsonl")" -eq 1 ]
+  grep '"event":"harness.record"' "$fixture/runs/app/telemetry.jsonl" \
+    | grep -q '"exit":2'
+}
+
+@test "no app state means the record lint invents no destination" {
+  make_root
+  make_good_record
+  tgt="$BATS_TEST_TMPDIR/app"
+  mkdir -p "$tgt"
+  git -C "$tgt" -c init.defaultBranch=main init -q
+  git -C "$tgt" -c user.name=t -c user.email=t@example.invalid \
+    commit -q --allow-empty -m "root"
+  run env ROUTINE_ROOT="$rroot" TARGET="$tgt" \
+    "$ROUTINE_REPO_ROOT/bin/routine-record-lint" "$rec"
+  [ "$status" -eq 0 ]
+  [ -z "$(find "$rroot" -name telemetry.jsonl)" ]
+}

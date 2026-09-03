@@ -23,15 +23,26 @@
 # strings — everything else moved into the awk program below.
 set -u
 
+lib="$(cd "$(dirname "$0")/.." && pwd)/lib"
 # shellcheck source=/dev/null
-. "$(cd "$(dirname "$0")/.." && pwd)/lib/paths.sh"
+. "$lib/paths.sh"
+# shellcheck source=/dev/null
+. "$lib/telemetry.sh"
+
+start_ms="$(routine_now_ms)"
+
+emit_and_exit() {
+  telemetry_harness_emit harness.test bin/routine-test-lint "$1" \
+    "$(( $(routine_now_ms) - start_ms ))"
+  exit "$1"
+}
 
 root="$(routine_root)"
 dir="${1:-$root/test}"
 
 if [ ! -d "$dir" ]; then
   echo "usage: routine-test-lint [test-dir] (defaults to the repo's test/)" >&2
-  exit 2
+  emit_and_exit 2
 fi
 
 # An opener plus a literal space, never a word boundary: \b is absent from
@@ -409,8 +420,8 @@ done
 
 if [ "$violations" -gt 0 ]; then
   echo "test-lint: $violations violation(s) — a name states no claim or a body proves none" >&2
-  exit 1
+  emit_and_exit 1
 fi
 
 echo "test-lint: every test name states its claim and every body proves it"
-exit 0
+emit_and_exit 0
