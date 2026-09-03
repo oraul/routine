@@ -188,3 +188,16 @@ decide it — the completion signal lives in the host, outside bash, and a
 script inspecting the worktree sees exactly the ambiguity the rule
 exists to resolve. It is written here because three sessions broke it
 before it was written down.
+
+Delegating one task to the **contributor** agent
+(`.claude/agents/contributor.md`) hands over exactly its closed context
+list — nothing more:
+
+```
+Change: <change-id>
+Branch: <branch, already checked out>
+Task: <n.m — the tasks.md line verbatim>
+Scope: <every file the task may touch, resolved absolute paths>
+Why: <the reason the task exists, from the design or the evidence>
+Boundary: the contributor never commits or touches git in any way (no add, rm, stash, checkout, reset), never ticks the tasks.md checkbox, and never runs routine-tdd or a lifecycle script — you commit, tick, and record.
+```
